@@ -1,0 +1,40 @@
+.sante-page {
+    padding: 1.5rem;
+    background-color: #f7f9fb;
+    min-height: 100vh;
+  
+    h1 {
+      font-size: 1.75rem;
+      text-align: center;
+      margin-bottom: 1.2rem;
+      color: #333;
+    }
+  
+    input {
+      display: block;
+      margin: 0 auto 1.5rem;
+      width: 75%;
+      padding: 0.75rem 1rem;
+      border: 1px solid #ccc;
+      border-radius: 1rem;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+  
+      &:focus {
+        outline: none;
+        border-color: #5b9bd5;
+        box-shadow: 0 0 0 3px rgba(91, 155, 213, 0.2);
+      }
+    }
+  
+    .card-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.2rem;
+  
+      @media screen and (min-width: 600px) {
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      }
+    }
+  }
+  

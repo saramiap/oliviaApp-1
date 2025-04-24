@@ -1,0 +1,35 @@
+.profile-select {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: #121212;
+    color: white;
+    min-height: 100vh;
+    padding: 2rem;
+  
+    .profiles {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+  
+    .profile-card {
+      background: #1e1e1e;
+      border-radius: 1rem;
+      padding: 1rem;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+      text-align: center;
+  
+      img {
+        width: 100px;
+        border-radius: 50%;
+      }
+  
+      &:hover {
+        transform: scale(1.05);
+      }
+    }
+  }
+  
