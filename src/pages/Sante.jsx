@@ -1,7 +1,7 @@
 import { useState } from "react";
 import practitioners from "../data/practitioners";
 import PractitionerCard from "../components/PractitionerCard";
-import "../styles/Sante.scss";
+
 
 
 const Sante = () => {

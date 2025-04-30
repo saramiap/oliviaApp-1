@@ -1,4 +1,4 @@
-import "../styles/PractitionerCard.scss";
+
 
 
 const PractitionerCard = ({ practitioner }) => (

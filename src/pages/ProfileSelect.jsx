@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import "../styles/ProfileSelect.scss"
+
 
 const profiles = [
   {
@@ -22,7 +22,7 @@ const profiles = [
   },
   {
     name: "Psycholib",
-    role: "Professionnel de santé",
+    role: "Des professionnel de santé",
     avatar: "../../public/santéImage.jpg",
     description: "un psychologue, un psychiatre ou encore psychotérapeute?",
   },
@@ -39,13 +39,13 @@ export default function ProfileSelect() {
       case "Olivia":
         navigate("/chat");
         break;
-      case "Leo":
-        navigate("/podcasts");
+      case "Podcasta":
+        navigate("/podcast");
         break;
-      case "Artie":
+      case "detenta":
         navigate("/detente");
         break;
-      case "Max":
+      case "Psycholib":
         navigate("/sante");
         break;
       default:

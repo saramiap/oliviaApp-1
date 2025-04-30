@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import "../styles/Profile.scss";
+
 
 const podcasts = {
   "Développement personnel": [

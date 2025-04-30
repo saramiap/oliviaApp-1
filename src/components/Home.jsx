@@ -1,5 +1,5 @@
 import React from "react";
-import "../styles/Home.scss";
+
 import Carousel from "./Carousel"; // Le carrousel de vidéos/podcasts
 import CardSection from "./CardSection"; // Les cards vers les pages
 

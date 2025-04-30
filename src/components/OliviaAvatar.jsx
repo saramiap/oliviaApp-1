@@ -1,5 +1,5 @@
 import React from "react";
-import "../styles/OliviaAvatar.scss";
+
 
 export default function OliviaAvatar({ isSpeaking }) {
   return (

@@ -1,0 +1,159 @@
+@use './variables' as *;
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  position: fixed;
+  z-index: 1000;
+  width: 100%;
+  padding: 12px 4%;
+  font-size: 0.9rem;
+  color: white;
+  background: linear-gradient(to bottom, rgba(136, 60, 131, 0.4), rgba(0, 0, 0, 0));
+  transition: background-color 0.3s ease-in-out, transform 0.3s ease-in-out;
+  box-sizing: border-box;
+
+  &--hidden {
+    transform: translateY(-100%);
+  }
+
+  &--visible {
+    transform: translateY(0);
+  }
+
+  &--black {
+    background-color: black;
+  }
+
+  a {
+    color: white;
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+
+    &:hover {
+      color: #e573e5;
+    }
+  }
+
+  &__burger {
+    background-color: black;
+    cursor: pointer;
+    color: white;
+    margin-right: 1rem;
+    border: none;
+
+    @media screen and (min-width: 768px) {
+      display: none;
+    }
+  }
+
+  &__mobile-menu {
+    position: absolute;
+    top: 60px;
+    left: 0;
+    width: 100%;
+    background-color: #111;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    gap: 1rem;
+    transform: translateY(-10px);
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 999;
+
+    a {
+      padding: 0.5rem 0;
+      text-decoration: none;
+      color: white;
+    }
+  }
+
+  &.show &__mobile-menu {
+    transform: translateY(0);
+    opacity: 1;
+    visibility: visible;
+  }
+
+  &__logo {
+    max-width: 100px;
+  }
+
+  &__links {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+
+    @media screen and (max-width: 767.98px) {
+      display: none;
+    }
+  }
+
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    @media screen and (max-width: 767.98px) {
+      display: none;
+    }
+
+    .nav__avatar {
+      max-width: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+  }
+}
+
+.nav__profile {
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+
+  svg {
+    font-size: 1.2rem;
+  }
+}
+
+.nav__dropdown {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  background-color: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 0.5rem 0;
+  width: 160px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.3s ease-in-out;
+
+  a {
+    color: white;
+    padding: 10px 16px;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: background 0.2s;
+
+    &:hover {
+      background-color: #333;
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

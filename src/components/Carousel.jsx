@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import "../styles/Home.scss";
+
 
 const items = [
   {
