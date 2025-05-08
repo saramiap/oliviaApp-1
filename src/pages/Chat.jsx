@@ -4,7 +4,8 @@ import OliviaAvatar from "../components/OliviaAvatar";
 import useSpeech from "../hooks/useSpeech";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import { useNavigate } from "react-router-dom";
-import Journal from "../components/Journal";
+import "../styles/_chat.scss"
+
 
 const EMERGENCY_KEYWORDS = [
   "suicide",
@@ -219,7 +220,7 @@ const Chat = () => {
           <button className={mode === "journal" ? "active" : ""} onClick={() => setMode("journal")}>📓 Carnet</button>
         </div>
 
-        {mode === "chat" ? (
+        
           <div className="chat-container">
             <div className="chat-messages">
               {messages.map((msg, idx) => (
@@ -258,9 +259,7 @@ const Chat = () => {
               </div>
             </div>
           </div>
-        ) : (
-          <Journal journal={journal} />
-        )}
+      
       </div>
 
       {showEmergencyModal && (

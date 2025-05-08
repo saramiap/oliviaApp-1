@@ -1,5 +1,28 @@
+// _profile.scss
 .profile {
-  padding: 2rem;
+  display: flex;
+  flex-direction: column; // Mobile first: sidebar au-dessus, contenu en dessous
+  // min-height: 100vh; // Si la page profil doit prendre toute la hauteur de la vue.
+                     // À ajuster en fonction de ton layout global (header/footer).
+
+  @media (min-width: 768px) { // Point de rupture pour tablette et plus grand (à ajuster si besoin)
+    flex-direction: row; // Sidebar à gauche, contenu à droite
+  }
+
+  &__content-area {
+    // Sur mobile, il prendra la largeur disponible car son parent est flex-direction: column.
+    padding: 1rem; // Padding réduit pour mobile
+
+    @media (min-width: 768px) {
+      flex-grow: 1; // Permet à cette zone de prendre tout l'espace restant à côté de la sidebar
+      padding: 2rem; // Le padding original pour les écrans plus larges
+      // overflow-y: auto; // Optionnel: si le contenu de cette zone doit pouvoir scroller indépendamment
+    }
+  }
+
+  // Les styles existants pour &__header, &__tabs, &__grid, &__card, &__modal
+  // restent les mêmes. Ils s'appliqueront correctement aux éléments
+  // à l'intérieur de .profile__content-area.
 
   &__header {
     text-align: center;
@@ -10,6 +33,10 @@
       height: 100px;
       border-radius: 50%;
       object-fit: cover;
+      // Ajout possible pour un meilleur centrage si besoin
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
     }
 
     .profile__edit {
@@ -20,6 +47,11 @@
       border: none;
       border-radius: 8px;
       cursor: pointer;
+      transition: background-color 0.2s ease; // Petite transition pour le hover
+
+      &:hover {
+        background-color: darken(#814caf, 10%);
+      }
     }
 
     .profile__bio {
@@ -40,10 +72,16 @@
       background: #eee;
       cursor: pointer;
       border-radius: 5px;
+      transition: background-color 0.2s ease, color 0.2s ease;
 
       &.active {
-        background-color: #cba6f7;
+        background-color: #cba6f7; // Couleur d'onglet actif existante
+        color: #333; // Peut-être un texte plus foncé pour contraster
         font-weight: bold;
+      }
+
+      &:hover:not(.active) {
+        background-color: #ddd;
       }
     }
   }
@@ -59,11 +97,18 @@
     padding: 1rem;
     border-radius: 10px;
     text-align: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05); // Légère ombre pour la profondeur
 
     iframe {
       width: 100%;
-      height: 150px;
+      height: 150px; // Tu pourrais aussi utiliser aspect-ratio ici si tu cibles des navigateurs modernes
       border-radius: 8px;
+      margin-bottom: 0.5rem; // Espace entre l'iframe et le titre
+    }
+
+    p {
+      font-size: 0.9rem;
+      color: #333;
     }
   }
 
@@ -77,29 +122,46 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 1000; // Pour s'assurer qu'elle est au-dessus des autres éléments
 
     .modal__content {
       background: white;
-      padding: 2rem;
+      padding: 1.5rem; // Léger ajustement du padding
       border-radius: 10px;
       width: 90%;
-      max-width: 400px;
+      max-width: 400px; // Bien pour mobile
+
+      h3 {
+        margin-top: 0;
+        margin-bottom: 1.5rem; // Espace sous le titre de la modale
+      }
 
       label {
         display: block;
         margin-top: 1rem;
         font-weight: bold;
+        font-size: 0.9rem; // Taille de police pour les labels
       }
 
       input,
       textarea {
-        width: 100%;
+        width: 100%; // S'assure que l'input prend toute la largeur
+        box-sizing: border-box; // Inclut padding et border dans la largeur/hauteur totale
         margin-top: 0.5rem;
-        padding: 0.5rem;
+        padding: 0.75rem; // Padding un peu plus confortable
         border-radius: 5px;
         border: 1px solid #ccc;
       }
 
+      textarea {
+        min-height: 80px; // Hauteur minimale pour la bio
+        resize: vertical; // Permet le redimensionnement vertical
+      }
+
+      input[type="file"] {
+        padding: 0.25rem; // Moins de padding pour l'input file
+      }
+      
       .modal__buttons {
         margin-top: 1.5rem;
         display: flex;
@@ -107,18 +169,24 @@
         gap: 1rem;
 
         button {
-          padding: 0.5rem 1rem;
+          padding: 0.6rem 1.2rem; // Padding ajusté
           border: none;
           cursor: pointer;
           border-radius: 5px;
+          font-weight: bold;
+          transition: opacity 0.2s ease;
 
-          &:first-child {
-            background-color: #4caf50;
+          &:hover {
+            opacity: 0.85;
+          }
+
+          &:first-child { // Bouton Enregistrer
+            background-color: #4caf50; // Vert (existant)
             color: white;
           }
 
-          &:last-child {
-            background-color: #f44336;
+          &:last-child { // Bouton Annuler
+            background-color: #f44336; // Rouge (existant)
             color: white;
           }
         }

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
-import "../styles/_profile.scss"
+import "../styles/_profile.scss"; // Vérifie bien ce chemin si tu as une structure de dossier différente pour les styles compilés
 import SidebarProfil from "../components/SidebarProfil";
-
 
 const podcasts = {
   "Développement personnel": [
@@ -38,7 +37,7 @@ function Profile() {
   const [showEdit, setShowEdit] = useState(false);
   const [username, setUsername] = useState("@olivia.pope");
   const [bio, setBio] = useState("Bienvenue sur mon profil !");
-  const [avatar, setAvatar] = useState("/image/LMavatar.jpg");
+  const [avatar, setAvatar] = useState("/image/LMavatar.jpg"); // Assure-toi que ce chemin est correct ou gère-le dynamiquement
 
   useEffect(() => {
     setLikes(JSON.parse(localStorage.getItem("likes")) || {});
@@ -75,62 +74,66 @@ function Profile() {
 
   const handleSave = () => {
     setShowEdit(false);
+    // Ici, tu pourrais aussi vouloir sauvegarder username, bio, et avatar
+    // dans localStorage ou via une API si c'est persistant.
   };
 
   return (
-    <div className="profile">
+    <div className="profile"> {/* Ce conteneur principal utilisera Flexbox */}
       <SidebarProfil />
-      <div className="profile__header">
-        <img src={avatar} alt="Avatar" className="profile__avatar" />
-        <h2 className="profile__username">{username}</h2>
-        <p className="profile__bio">{bio}</p>
-        <button className="profile__edit" onClick={() => setShowEdit(true)}>
-          Modifier le profil
-        </button>
-      </div>
+      <main className="profile__content-area"> {/* Nouveau conteneur pour le contenu principal */}
+        <div className="profile__header">
+          <img src={avatar} alt="Avatar" className="profile__avatar" />
+          <h2 className="profile__username">{username}</h2>
+          <p className="profile__bio">{bio}</p>
+          <button className="profile__edit" onClick={() => setShowEdit(true)}>
+            Modifier le profil
+          </button>
+        </div>
 
-      {showEdit && (
-        <div className="profile__modal">
-          <div className="modal__content">
-            <h3>Modifier mon profil</h3>
-            <label>Nom d'utilisateur :</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-            />
-            <label>Bio :</label>
-            <textarea value={bio} onChange={(e) => setBio(e.target.value)} />
-            <label>Photo de profil :</label>
-            <input type="file" accept="image/*" onChange={handleAvatarChange} />
-            <div className="modal__buttons">
-              <button onClick={handleSave}>Enregistrer</button>
-              <button onClick={() => setShowEdit(false)}>Annuler</button>
+        {showEdit && (
+          <div className="profile__modal">
+            <div className="modal__content">
+              <h3>Modifier mon profil</h3>
+              <label>Nom d'utilisateur :</label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+              <label>Bio :</label>
+              <textarea value={bio} onChange={(e) => setBio(e.target.value)} />
+              <label>Photo de profil :</label>
+              <input type="file" accept="image/*" onChange={handleAvatarChange} />
+              <div className="modal__buttons">
+                <button onClick={handleSave}>Enregistrer</button>
+                <button onClick={() => setShowEdit(false)}>Annuler</button>
+              </div>
             </div>
           </div>
+        )}
+
+        <div className="profile__tabs">
+          <button
+            onClick={() => setActiveTab("likes")}
+            className={activeTab === "likes" ? "active" : ""}
+          >
+            ❤️ Likes
+          </button>
+          <button
+            onClick={() => setActiveTab("favorites")}
+            className={activeTab === "favorites" ? "active" : ""}
+          >
+            ⭐ Favoris
+          </button>
         </div>
-      )}
 
-      <div className="profile__tabs">
-        <button
-          onClick={() => setActiveTab("likes")}
-          className={activeTab === "likes" ? "active" : ""}
-        >
-          ❤️ Likes
-        </button>
-        <button
-          onClick={() => setActiveTab("favorites")}
-          className={activeTab === "favorites" ? "active" : ""}
-        >
-          ⭐ Favoris
-        </button>
-      </div>
-
-      <div className="profile__grid">
-        {activeTab === "likes"
-          ? renderPodcastCards(getFilteredPodcasts(likes))
-          : renderPodcastCards(getFilteredPodcasts(favorites))}
-      </div>
+        <div className="profile__grid">
+          {activeTab === "likes"
+            ? renderPodcastCards(getFilteredPodcasts(likes))
+            : renderPodcastCards(getFilteredPodcasts(favorites))}
+        </div>
+      </main>
     </div>
   );
 }
