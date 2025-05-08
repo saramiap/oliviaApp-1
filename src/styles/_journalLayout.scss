@@ -1,0 +1,114 @@
+@use './variables' as *;
+
+.journal-layout {
+    display: flex;
+    height: 100vh;
+    background-color: $color-bg;
+  color: $color-text;
+  }
+  
+  .journal-sidebar {
+    width: 250px;
+    background-color: #111;
+    padding: 1rem;
+    border-right: 1px solid #222;
+  
+    h2 {
+      margin-bottom: 1rem;
+      font-size: 1.4rem;
+    }
+  
+    ul {
+      list-style: none;
+      padding: 0;
+  
+      li {
+        cursor: pointer;
+        padding: 0.5rem;
+        border-radius: 5px;
+        margin-bottom: 0.3rem;
+        transition: background 0.2s;
+  
+        &:hover {
+          background-color: #e0dcd3;
+        }
+  
+        &.active {
+          background-color: #d9c9b2;
+          font-weight: bold;
+        }
+      }
+    }
+  }
+  
+  .journal-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+    background: #fffefc;
+  
+    .journal-entries {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 1rem;
+  
+      .entry {
+        background-color: #fff7ec;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  
+        small {
+          display: block;
+          color: #666;
+          margin-top: 0.5rem;
+        }
+  
+        .delete-btn {
+          margin-top: 0.5rem;
+          background: none;
+          border: none;
+          color: #a00;
+          cursor: pointer;
+        }
+      }
+    }
+  
+    .journal-input {
+      display: flex;
+      flex-direction: column;
+  
+      .chat-input-wrapper {
+        bottom: 0;
+        left: 280px;
+        right: 0;
+        background: #313131;
+        padding: 1rem;
+        border-top: 1px solid #f0d4c3;
+      }
+      
+      .chat-input {
+        display: flex;
+        align-items: center;
+        background-color: #1e1e1e;
+        border: 1px solid #333;
+        border-radius: 999px;
+        padding: 0.5rem 1rem;
+        
+        
+      
+      }
+    }
+  }
+  .input-chat{
+    padding: 1rem;
+    border: 4px solid #838181;
+    border-radius: 8px;
+    margin-bottom: 3%;
+    font-family: inherit;
+    font-size: 1rem;
+    background: #fffaf8;
+  
+}

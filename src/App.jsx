@@ -14,6 +14,7 @@ import ProfileSelect from './pages/ProfileSelect';
 import Sante from './pages/Sante';
 import EmergencyButton from "./components/EmergencyButton";
 import Urgence from './pages/Urgence';
+import JournalPage from "./pages/Journal"; 
 function App() {
   return (
     <Router>
@@ -23,6 +24,7 @@ function App() {
         <Route path="/" element={<ProfileSelect />} />
           <Route path="/home" element={<Home />} />
           <Route path="/chat" element={<Chat />} />
+          <Route path="/journal" element={<JournalPage />} />
           <Route path="/profil" element={<Profile />} />
           <Route path="/detente" element={<Detente />} />
           <Route path="/podcast" element={<Podcast />} />

@@ -15,7 +15,7 @@ if (!GEMINI_API_KEY) {
   process.exit(1);
 }
 
-const geminiApiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
+const geminiApiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-04-17:generateContent?key=${GEMINI_API_KEY}`;
 
 const SYSTEM_PROMPT = `
 Tu es Olivia Sérénis, une assistante virtuelle spécialisée en psychologie.  

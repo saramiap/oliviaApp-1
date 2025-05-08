@@ -4,11 +4,21 @@ import OliviaAvatar from "../components/OliviaAvatar";
 import useSpeech from "../hooks/useSpeech";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import { useNavigate } from "react-router-dom";
+import Journal from "../components/Journal";
 
 const EMERGENCY_KEYWORDS = [
-  "suicide", "je veux mourir", "tuer", "plus envie de vivre", 
-  "violence", "je me fais mal", "je suis en danger", "j’ai besoin d’aide",
-  "je vais mal", "pensées suicidaires", "on m’a agressé", "je me sens en insécurité"
+  "suicide",
+  "je veux mourir",
+  "tuer",
+  "plus envie de vivre",
+  "violence",
+  "je me fais mal",
+  "je suis en danger",
+  "j’ai besoin d’aide",
+  "je vais mal",
+  "pensées suicidaires",
+  "on m’a agressé",
+  "je me sens en insécurité",
 ];
 
 const Chat = () => {
@@ -18,20 +28,29 @@ const Chat = () => {
   const [loading, setLoading] = useState(false);
   const [showScroll, setShowScroll] = useState(false);
   const [history, setHistory] = useState([]);
-  const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
   const [showConfirmClear, setShowConfirmClear] = useState(false);
-  const [alerte, setAlerte] = useState(null);
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
-  const messagesEndRef = useRef(null);
-  const { speak, isSpeaking } = useSpeech(voiceEnabled);
+  const [silentMode, setSilentMode] = useState(false);
+  const [journal, setJournal] = useState([]);
+  const [mode, setMode] = useState("chat");
 
+  const messagesEndRef = useRef(null);
+  const { speak, isSpeaking } = useSpeech(false);
+
+  
   useEffect(() => {
     const stored = localStorage.getItem("chatMessages");
     if (stored) {
       setMessages(JSON.parse(stored));
     } else {
-      setMessages([{ from: "model", text: "Bonjour, je suis Olivia. Dis-moi ce que tu ressens aujourd’hui." }]);
+      setMessages([
+        {
+          from: "model",
+          text: "Bonjour, je suis Olivia. Dis-moi ce que tu ressens aujourd’hui.",
+        },
+      ]);
     }
   }, []);
 
@@ -41,6 +60,11 @@ const Chat = () => {
       localStorage.setItem("chatMessages", JSON.stringify(messages));
     }
   }, [messages]);
+
+ const handleChange = (event) =>{
+  console.log("oncheck");
+  setVoiceEnabled(event.target.checked);
+ }
 
   const containsEmergencyKeyword = (text) =>
     EMERGENCY_KEYWORDS.some((word) => text.toLowerCase().includes(word));
@@ -52,13 +76,22 @@ const Chat = () => {
     setHistory((prev) => [...prev, { date: new Date(), convo: finalMessages }]);
     if (shouldRedirect) {
       setPendingAction(redirectTarget);
-    } else {
+    } 
+    if (voiceEnabled){
+      console.log("voiceEnable", voiceEnabled);
       speak(aiReply);
     }
   };
 
   const sendMessage = async () => {
     if (!input.trim()) return;
+
+    if (silentMode) {
+      setJournal([...journal, { text: input, date: new Date() }]);
+      setMessages([...messages, { from: "user", text: input }]);
+      setInput("");
+      return;
+    }
 
     const updated = [...messages, { from: "user", text: input }];
     const inputLower = input.toLowerCase();
@@ -68,7 +101,7 @@ const Chat = () => {
       setMessages([...updated, { from: "model", text: emergencyMsg }]);
       speak(emergencyMsg);
       setPendingAction("urgence");
-      setShowEmergencyModal(true); // Affiche le modal
+      setShowEmergencyModal(true);
       setInput("");
       return;
     }
@@ -76,7 +109,6 @@ const Chat = () => {
     setMessages(updated);
     setInput("");
     setLoading(true);
-    setAlerte(null);
 
     try {
       const res = await axios.post("http://localhost:3000/ask", {
@@ -104,11 +136,6 @@ const Chat = () => {
     if (e.key === "Enter") sendMessage();
   };
 
-  const handleScroll = (e) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.target;
-    setShowScroll(scrollHeight - scrollTop > clientHeight + 200);
-  };
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -116,30 +143,59 @@ const Chat = () => {
   const clearHistory = () => {
     setHistory([]);
     localStorage.removeItem("chatMessages");
-    setMessages([{ from: "model", text: "Bonjour, je suis Olivia. Dis-moi ce que tu ressens aujourd’hui." }]);
+    setMessages([
+      {
+        from: "model",
+        text: "Bonjour, je suis Olivia. Dis-moi ce que tu ressens aujourd’hui.",
+      },
+    ]);
     setShowConfirmClear(false);
   };
 
   const formatResponse = (text) =>
-    text.split(/\n+/).filter((line) => line.trim() !== "").map((line, i) => <p key={i}>• {line.trim()}</p>);
+    text
+      .split(/\n+/)
+      .filter((line) => line.trim() !== "")
+      .map((line, i) => <p key={i}>• {line.trim()}</p>);
 
   return (
     <div className="layout">
       <aside className="sidebar">
         <OliviaAvatar isSpeaking={isSpeaking} />
+        <button onClick={() => navigate("/journal")}>📔 Ouvrir mon carnet</button>
         <div className="chat__voice-toggle">
           <label>
-            <input type="checkbox" checked={voiceEnabled} onChange={() => setVoiceEnabled(!voiceEnabled)} />
+            <input
+              type="checkbox"
+              checked={voiceEnabled}
+              onChange={handleChange}
+            />
             Voix {voiceEnabled ? "activée 🔊" : "désactivée 🔇"}
+          </label>
+        </div>
+
+        <div className="chat__silent-toggle">
+          <label>
+            <input
+              type="checkbox"
+              checked={silentMode}
+              onChange={() => setSilentMode(!silentMode)}
+            />
+            Mode silencieux ✍️
           </label>
         </div>
 
         <div className="history">
           <h3>Historique</h3>
           {history.map((conv, idx) => (
-            <div key={idx} className="history-item">Conversation {idx + 1}</div>
+            <div key={idx} className="history-item">
+              Conversation {idx + 1}
+            </div>
           ))}
-          <button className="clear-history-btn" onClick={() => setShowConfirmClear(true)}>
+          <button
+            className="clear-history-btn"
+            onClick={() => setShowConfirmClear(true)}
+          >
             🗑️ Effacer l'historique
           </button>
         </div>
@@ -149,51 +205,62 @@ const Chat = () => {
             <p>Es-tu sûr·e de vouloir supprimer l’historique ?</p>
             <div className="confirmation-actions">
               <button onClick={clearHistory}>Oui, supprimer</button>
-              <button onClick={() => setShowConfirmClear(false)}>Non, annuler</button>
+              <button onClick={() => setShowConfirmClear(false)}>
+                Non, annuler
+              </button>
             </div>
           </div>
         )}
       </aside>
 
-      <div className="chat-container">
-        <div className="chat-messages" onScroll={handleScroll}>
-          {messages.map((msg, idx) => (
-            <div key={idx} className={`chat__message ${msg.from === "user" ? "chat__user" : "chat__ai"}`}>
-              {msg.from === "model" ? formatResponse(msg.text) : msg.text}
+      <div className="main-area">
+        <div className="chat__nav">
+          <button className={mode === "chat" ? "active" : ""} onClick={() => setMode("chat")}>💬 Olivia</button>
+          <button className={mode === "journal" ? "active" : ""} onClick={() => setMode("journal")}>📓 Carnet</button>
+        </div>
+
+        {mode === "chat" ? (
+          <div className="chat-container">
+            <div className="chat-messages">
+              {messages.map((msg, idx) => (
+                <div key={idx} className={`chat__message ${msg.from === "user" ? "chat__user" : "chat__ai"}`}>
+                  {msg.from === "model" ? formatResponse(msg.text) : msg.text}
+                </div>
+              ))}
+              {loading && <div className="chat__message chat__ai">Olivia est en train de réfléchir...</div>}
+              <div ref={messagesEndRef} />
             </div>
-          ))}
-          {loading && <div className="chat__message chat__ai">Olivia est en train de réfléchir...</div>}
-          <div ref={messagesEndRef} />
-        </div>
 
-        {showScroll && (
-          <div className="scroll-to-bottom" onClick={scrollToBottom}>
-            <ArrowDownwardIcon />
+            {showScroll && (
+              <div className="scroll-to-bottom" onClick={scrollToBottom}>
+                <ArrowDownwardIcon />
+              </div>
+            )}
+
+            {pendingAction && (
+              <div className="chat__confirmation">
+                <p>Souhaites-tu que je t’emmène vers un espace de détente ?</p>
+                <button onClick={() => { navigate(`/${pendingAction}`); setPendingAction(null); }}>Oui, j’y vais</button>
+                <button onClick={() => setPendingAction(null)}>Non, merci</button>
+              </div>
+            )}
+
+            <div className="chat-input-wrapper">
+              <div className="chat-input">
+                <input
+                  type="text"
+                  placeholder="Écris ton message ici..."
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                />
+                <button onClick={sendMessage}>📨</button>
+              </div>
+            </div>
           </div>
+        ) : (
+          <Journal journal={journal} />
         )}
-
-        {pendingAction && (
-          <div className="chat__confirmation">
-            <p>Souhaites-tu que je t’emmène vers un espace de détente ?</p>
-            <button onClick={() => { navigate(`/${pendingAction}`); setPendingAction(null); }}>
-              Oui, j’y vais
-            </button>
-            <button onClick={() => setPendingAction(null)}>Non, merci</button>
-          </div>
-        )}
-
-        <div className="chat-input-wrapper">
-          <div className="chat-input">
-            <input
-              type="text"
-              placeholder="Écris ton message ici..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-            />
-            <button onClick={sendMessage}>📨</button>
-          </div>
-        </div>
       </div>
 
       {showEmergencyModal && (
