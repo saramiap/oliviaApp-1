@@ -1,114 +1,177 @@
-@use './variables' as *;
+// _journalLayout.scss
 
-.journal-layout {
-    display: flex;
-    height: 100vh;
-    background-color: $color-bg;
-  color: $color-text;
+.journal-layout { // Ce conteneur est maintenant un enfant de .main-content-area
+  display: flex;
+  height: 100%; // Pour remplir la .main-content-area
+  background-color: #FEFBF6; // Fond clair cohérent
+  color: #333333; // Texte sombre par défaut
+}
+  
+.journal-sidebar { // La sidebar spécifique au journal
+  width: 250px;
+  background-color: #FDF8F2; // Fond légèrement différent du contenu, mais toujours clair
+  padding: 1.5rem 1rem;
+  border-right: 1px solid #EAE1D8; // Bordure claire
+  overflow-y: auto;
+
+  h2 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 1.4rem;
+    color: #4A4A4A; // Titre un peu plus foncé
+    text-align: center;
   }
-  
-  .journal-sidebar {
-    width: 250px;
-    background-color: #111;
-    padding: 1rem;
-    border-right: 1px solid #222;
-  
-    h2 {
-      margin-bottom: 1rem;
-      font-size: 1.4rem;
-    }
-  
-    ul {
-      list-style: none;
-      padding: 0;
-  
-      li {
-        cursor: pointer;
-        padding: 0.5rem;
-        border-radius: 5px;
-        margin-bottom: 0.3rem;
-        transition: background 0.2s;
-  
-        &:hover {
-          background-color: #e0dcd3;
-        }
-  
-        &.active {
-          background-color: #d9c9b2;
-          font-weight: bold;
-        }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+      cursor: pointer;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      transition: background-color 0.2s, color 0.2s;
+      color: #555555; // Couleur des items de liste
+      font-weight: 500;
+
+      &:hover {
+        background-color: #F5F0E9; // Hover subtil
+      }
+
+      &.active {
+        background-color: #814CAF; // Couleur d'accent pour l'item actif
+        color: #FFFFFF; // Texte blanc sur fond accentué
+        font-weight: 600;
       }
     }
   }
+}
   
-  .journal-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    padding: 1rem;
-    background: #fffefc;
-  
-    .journal-entries {
-      flex: 1;
-      overflow-y: auto;
-      margin-bottom: 1rem;
-  
-      .entry {
-        background-color: #fff7ec;
-        padding: 1rem;
-        border-radius: 8px;
+.journal-content { // La zone principale des entrées et de l'input du journal
+  flex: 1;
+  display: flex;
+  flex-direction: column; // Pour placer les entrées au-dessus de l'input
+  padding: 1.5rem;
+  background: #FEFBF6; // Fond principal du contenu
+  overflow: hidden; // Le scroll sera géré par .journal-entries
+
+  .journal-entries {
+    flex: 1; // Prend tout l'espace vertical disponible avant l'input
+    overflow-y: auto; // Permet le scroll des entrées
+    margin-bottom: 1.5rem; // Espace avant la zone d'input
+
+    h3 { // Titre de la session active (date)
+        margin-top: 0;
         margin-bottom: 1rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  
-        small {
-          display: block;
-          color: #666;
-          margin-top: 0.5rem;
-        }
-  
-        .delete-btn {
-          margin-top: 0.5rem;
-          background: none;
-          border: none;
-          color: #a00;
-          cursor: pointer;
+        font-size: 1.2rem;
+        color: #4A4A4A;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #EAE1D8;
+    }
+
+    .entry {
+      background-color: #FFFFFF; // Fond blanc pour chaque entrée
+      padding: 1rem 1.2rem;
+      border-radius: 10px;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07); // Ombre subtile
+      position: relative; // Pour le positionnement du bouton supprimer
+
+      p { // Texte de l'entrée
+        margin-top: 0;
+        margin-bottom: 0.5rem;
+        line-height: 1.6;
+        color: #333333;
+      }
+
+      small { // Date/heure de l'entrée
+        display: block;
+        color: #888888;
+        font-size: 0.8rem;
+        margin-top: 0.75rem;
+      }
+
+      .delete-btn {
+        position: absolute;
+        top: 0.75rem;
+        right: 0.75rem;
+        background: none;
+        border: none;
+        color: #AAAAAA; // Couleur discrète pour le bouton supprimer
+        cursor: pointer;
+        font-size: 0.9rem;
+        padding: 0.3rem;
+        border-radius: 50%;
+        transition: color 0.2s, background-color 0.2s;
+
+        &:hover {
+          color: #D32F2F; // Devient rouge au survol
+          background-color: #FEEFEE; // Fond léger rouge au survol
         }
       }
     }
+    
+    // Message si aucune note
+    > p:not(.entry) {
+        color: #777777;
+        text-align: center;
+        padding: 2rem 0;
+    }
+  }
   
-    .journal-input {
+  // Styles pour l'input du journal, réutilisant .chat-input-area et .chat-input de chat.scss si possible, ou en les adaptant
+  // Ici, je vais créer une version spécifique pour le journal, pour plus de contrôle
+  .journal-input-wrapper {
+    border-top: 1px solid #EAE1D8;
+    padding-top: 1rem; // Espace au-dessus de l'input
+    background-color: #FDF8F2; // Fond légèrement différent
+    margin: 0 -1.5rem -1.5rem -1.5rem; // Pour que le fond aille jusqu'aux bords de .journal-content
+    padding: 1rem 1.5rem 1.5rem 1.5rem; // Padding interne
+  
+    .journal-input-field { // Renommé pour éviter conflit si chat-input a des styles trop spécifiques
       display: flex;
-      flex-direction: column;
-  
-      .chat-input-wrapper {
-        bottom: 0;
-        left: 280px;
-        right: 0;
-        background: #313131;
-        padding: 1rem;
-        border-top: 1px solid #f0d4c3;
+      align-items: flex-end; // Aligner bouton avec bas du textarea
+
+      textarea {
+        flex: 1;
+        padding: 0.8rem 1rem;
+        border: 1px solid #D1C7BC;
+        border-radius: 8px; // Moins arrondi que le chat
+        margin-right: 0.75rem;
+        font-family: inherit;
+        font-size: 1rem;
+        background: #FFFFFF;
+        color: #222222;
+        resize: none;
+        min-height: 80px; // Hauteur de base pour le journal
+        max-height: 200px;
+        line-height: 1.5;
+        overflow-y: auto;
       }
-      
-      .chat-input {
-        display: flex;
-        align-items: center;
-        background-color: #1e1e1e;
-        border: 1px solid #333;
-        border-radius: 999px;
-        padding: 0.5rem 1rem;
-        
-        
-      
+
+      button { // Bouton d'envoi pour le journal
+        background-color: #814CAF; // Couleur d'accent
+        color: white;
+        border: none;
+        border-radius: 8px; // Moins arrondi
+        padding: 0.8rem 1rem; // Bouton rectangulaire
+        font-size: 1rem; // Plus petit que l'icône du chat
+        height: auto; // Hauteur s'adapte au padding
+        min-width: 48px; // Similaire au chat pour la largeur minimale
+        cursor: pointer;
+        transition: background-color 0.2s;
+        font-weight: 500;
+
+        &:hover {
+          background-color: #6B3F92; // Accent plus foncé
+        }
+         &:disabled {
+            background-color: #B0B0B0;
+            cursor: not-allowed;
+        }
       }
     }
   }
-  .input-chat{
-    padding: 1rem;
-    border: 4px solid #838181;
-    border-radius: 8px;
-    margin-bottom: 3%;
-    font-family: inherit;
-    font-size: 1rem;
-    background: #fffaf8;
-  
 }

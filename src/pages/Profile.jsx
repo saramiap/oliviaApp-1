@@ -40,6 +40,10 @@ function Profile() {
   const [avatar, setAvatar] = useState("/image/LMavatar.jpg"); // Assure-toi que ce chemin est correct ou gère-le dynamiquement
 
   useEffect(() => {
+    const storedAvatar = localStorage.getItem("userAvatar");
+    if (storedAvatar) {
+      setAvatar(storedAvatar);
+    }
     setLikes(JSON.parse(localStorage.getItem("likes")) || {});
     setFavorites(JSON.parse(localStorage.getItem("favorites")) || {});
   }, []);
@@ -74,7 +78,7 @@ function Profile() {
 
   const handleSave = () => {
     setShowEdit(false);
-    // Ici, tu pourrais aussi vouloir sauvegarder username, bio, et avatar
+    localStorage.setItem("userAvatar", avatar); // Sauvegarder l'avatar
     // dans localStorage ou via une API si c'est persistant.
   };
 
