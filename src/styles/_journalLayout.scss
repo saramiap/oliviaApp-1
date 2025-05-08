@@ -1,177 +1,286 @@
 // _journalLayout.scss
+@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=Shadows+Into+Light+Two&display=swap'); // Polices manuscrites
 
-.journal-layout { // Ce conteneur est maintenant un enfant de .main-content-area
+// Couleurs (remplace par tes préférences si besoin)
+$journal-bg: #FDF6E3; // Couleur crème/papier vieilli
+$journal-lines: #D4C8B4; // Couleur des lignes du cahier
+$journal-text-color: #4A3B31; // Couleur d'encre foncée (marron/gris)
+$journal-accent: #814CAF; // Ton violet pour les accents (boutons, etc.)
+$journal-history-bg: #F5EFDB; // Fond pour la colonne historique
+$journal-history-text: #5D5046;
+$journal-history-hover: #EFE5CC;
+
+.journal-layout {
   display: flex;
-  height: 100%; // Pour remplir la .main-content-area
-  background-color: #FEFBF6; // Fond clair cohérent
-  color: #333333; // Texte sombre par défaut
-}
-  
-.journal-sidebar { // La sidebar spécifique au journal
-  width: 250px;
-  background-color: #FDF8F2; // Fond légèrement différent du contenu, mais toujours clair
-  padding: 1.5rem 1rem;
-  border-right: 1px solid #EAE1D8; // Bordure claire
-  overflow-y: auto;
+  height: 100%;
+  position: relative; // Pour le positionnement du bouton toggle
+  background-color: $journal-bg; // Le fond général sera celui du papier
+  overflow: hidden; // Empêcher le double scroll global
 
-  h2 {
-    margin-top: 0;
-    margin-bottom: 1.5rem;
-    font-size: 1.4rem;
-    color: #4A4A4A; // Titre un peu plus foncé
-    text-align: center;
+  &.history-visible {
+    // Styles spécifiques quand l'historique est visible (utiles pour des transitions ou overlays)
+  }
+}
+
+.journal-history-toggle {
+  display: block; // Visible sur mobile
+  position: fixed; // Ou absolute, selon ton layout global
+  top: 70px; // Ajuste selon la hauteur de ta topbar principale
+  left: 15px;
+  z-index: 1300; // Au-dessus de la colonne historique si elle est en overlay
+  background-color: rgba($journal-accent, 0.85);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: background-color 0.2s, transform 0.2s;
+
+  &:hover {
+    background-color: $journal-accent;
+    transform: scale(1.05);
   }
 
-  ul {
+  @media (min-width: 768px) {
+    // Peut être positionné différemment ou caché si la colonne est toujours visible
+    // Pour l'instant, on le garde pour un toggle même sur desktop
+    left: 15px; 
+  }
+}
+
+.journal-history-column {
+  background-color: $journal-history-bg;
+  width: 85%; // Large sur mobile quand visible
+  max-width: 320px; // Limite la largeur max sur mobile
+  height: 100%;
+  position: fixed; // Pour un effet de "slide-in" ou overlay sur mobile
+  top: 0;
+  left: 0;
+  transform: translateX(-100%);
+  transition: transform 0.3s ease-in-out;
+  z-index: 1200; // En dessous du bouton toggle, au-dessus du contenu principal
+  border-right: 1px solid darken($journal-history-bg, 8%);
+  padding: 1.5rem 1rem;
+  padding-top: 60px; // Espace pour le header de l'app si besoin
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+
+  &.visible {
+    transform: translateX(0);
+    box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+  }
+
+  .journal-history-title {
+    font-family: 'Kalam', cursive; // Police un peu stylée pour le titre
+    font-size: 1.8rem;
+    color: $journal-text-color;
+    margin-top: 1rem; // Après l'espace pour le header
+    margin-bottom: 1.5rem;
+    text-align: center;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px dashed $journal-lines;
+  }
+
+  .journal-history-list {
     list-style: none;
     padding: 0;
     margin: 0;
+    flex-grow: 1;
 
-    li {
-      cursor: pointer;
-      padding: 0.75rem 1rem;
-      border-radius: 8px;
+    .history-entry-item {
+      padding: 0.8rem 0.6rem;
       margin-bottom: 0.5rem;
-      transition: background-color 0.2s, color 0.2s;
-      color: #555555; // Couleur des items de liste
-      font-weight: 500;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      color: $journal-history-text;
+      border-left: 3px solid transparent; // Indicateur visuel subtil
 
       &:hover {
-        background-color: #F5F0E9; // Hover subtil
+        background-color: $journal-history-hover;
+        border-left-color: darken($journal-lines, 10%);
       }
 
-      &.active {
-        background-color: #814CAF; // Couleur d'accent pour l'item actif
-        color: #FFFFFF; // Texte blanc sur fond accentué
+      &.active-session { // Style pour l'entrée dont la session est active
+        background-color: lighten($journal-accent, 35%);
+        color: $journal-accent;
         font-weight: 600;
+        border-left-color: $journal-accent;
       }
+
+      .history-entry-title {
+        display: block;
+        font-size: 0.95rem;
+        font-weight: 500; // Ou la police manuscrite si lisible en petit
+        margin-bottom: 0.2rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis; // Pour les titres longs
+      }
+      .history-entry-date {
+        display: block;
+        font-size: 0.75rem;
+        color: lighten($journal-history-text, 20%);
+      }
+    }
+    .no-history-entries {
+        text-align: center;
+        color: lighten($journal-history-text, 15%);
+        padding: 2rem 0;
+        font-style: italic;
+    }
+  }
+
+  @media (min-width: 768px) { // Styles pour desktop
+    position: static; // Revient dans le flux normal
+    transform: translateX(0);
+    width: 25%; // Largeur de la colonne sur desktop
+    min-width: 280px;
+    max-width: 350px;
+    box-shadow: none; // Plus besoin d'ombre car c'est une colonne fixe
+    padding-top: 1.5rem; // Rétablir le padding normal
+
+    // Le bouton toggle pourrait être ajusté ou caché si la colonne est toujours visible
+    // Si on veut la garder toggleable :
+    // .journal-layout:not(.history-visible) & { transform: translateX(-100%); }
+    // .journal-layout.history-visible & { transform: translateX(0); }
+  }
+}
+
+.journal-page-column {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden; // Le scroll sera géré par .journal-notebook-paper ou .notebook-entries-display
+  // Transition pour quand la colonne historique apparaît/disparaît sur desktop
+  transition: margin-left 0.3s ease-in-out; 
+
+  .journal-layout:not(.history-visible) & {
+    @media (min-width: 768px) {
+      margin-left: 0; // Prend toute la largeur si l'historique est cachée
+    }
+  }
+  .journal-layout.history-visible & {
+    @media (min-width: 768px) {
+      // margin-left: 25%; // S'adapte à la largeur de la colonne historique (si elle n'est pas en position:static)
+      // Avec position:static, le flex-grow suffit.
     }
   }
 }
-  
-.journal-content { // La zone principale des entrées et de l'input du journal
-  flex: 1;
-  display: flex;
-  flex-direction: column; // Pour placer les entrées au-dessus de l'input
-  padding: 1.5rem;
-  background: #FEFBF6; // Fond principal du contenu
-  overflow: hidden; // Le scroll sera géré par .journal-entries
 
-  .journal-entries {
-    flex: 1; // Prend tout l'espace vertical disponible avant l'input
-    overflow-y: auto; // Permet le scroll des entrées
-    margin-bottom: 1.5rem; // Espace avant la zone d'input
+.journal-notebook-paper {
+  flex-grow: 1;
+  background-color: $journal-bg;
+  // Effet de papier ligné (optionnel, peut surcharger si le texte est dense)
+  background-image: linear-gradient($journal-lines 1px, transparent 1px);
+  background-size: 100% 2em; // Ajuste 2em pour l'espacement des lignes
+  padding: 2rem 2.5rem; // Marges intérieures de la page
+  overflow-y: auto; // Permet le scroll du contenu du cahier
+  font-family: 'Kalam', cursive; // Police manuscrite pour tout le contenu du cahier
+  // font-family: 'Shadows Into Light Two', cursive; // Autre option de police
+  color: $journal-text-color;
+  font-size: 1.1em; // Taille de base pour l'écriture manuscrite
+  line-height: 2em; // Doit correspondre à l'espacement des lignes du background-size
 
-    h3 { // Titre de la session active (date)
-        margin-top: 0;
-        margin-bottom: 1rem;
-        font-size: 1.2rem;
-        color: #4A4A4A;
-        padding-bottom: 0.5rem;
-        border-bottom: 1px solid #EAE1D8;
-    }
-
-    .entry {
-      background-color: #FFFFFF; // Fond blanc pour chaque entrée
-      padding: 1rem 1.2rem;
-      border-radius: 10px;
-      margin-bottom: 1rem;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07); // Ombre subtile
-      position: relative; // Pour le positionnement du bouton supprimer
-
-      p { // Texte de l'entrée
-        margin-top: 0;
-        margin-bottom: 0.5rem;
-        line-height: 1.6;
-        color: #333333;
-      }
-
-      small { // Date/heure de l'entrée
-        display: block;
-        color: #888888;
-        font-size: 0.8rem;
-        margin-top: 0.75rem;
-      }
-
-      .delete-btn {
-        position: absolute;
-        top: 0.75rem;
-        right: 0.75rem;
-        background: none;
-        border: none;
-        color: #AAAAAA; // Couleur discrète pour le bouton supprimer
-        cursor: pointer;
-        font-size: 0.9rem;
-        padding: 0.3rem;
-        border-radius: 50%;
-        transition: color 0.2s, background-color 0.2s;
-
-        &:hover {
-          color: #D32F2F; // Devient rouge au survol
-          background-color: #FEEFEE; // Fond léger rouge au survol
-        }
-      }
-    }
-    
-    // Message si aucune note
-    > p:not(.entry) {
-        color: #777777;
-        text-align: center;
-        padding: 2rem 0;
+  .notebook-header {
+    margin-bottom: 1.5em; // Espace après la date, en fonction de la line-height
+    .notebook-date {
+      font-size: 1.5em; // Plus grand pour la date
+      font-weight: 700;
+      color: darken($journal-text-color, 10%);
+      text-align: center; // Ou à gauche
+      padding-bottom: 0.5em;
+      // border-bottom: 1px solid $journal-lines; // Ligne sous la date
     }
   }
-  
-  // Styles pour l'input du journal, réutilisant .chat-input-area et .chat-input de chat.scss si possible, ou en les adaptant
-  // Ici, je vais créer une version spécifique pour le journal, pour plus de contrôle
-  .journal-input-wrapper {
-    border-top: 1px solid #EAE1D8;
-    padding-top: 1rem; // Espace au-dessus de l'input
-    background-color: #FDF8F2; // Fond légèrement différent
-    margin: 0 -1.5rem -1.5rem -1.5rem; // Pour que le fond aille jusqu'aux bords de .journal-content
-    padding: 1rem 1.5rem 1.5rem 1.5rem; // Padding interne
-  
-    .journal-input-field { // Renommé pour éviter conflit si chat-input a des styles trop spécifiques
+
+  .notebook-entries-display {
+    // Conteneur pour les entrées sauvegardées et l'entrée en cours
+  }
+
+  .notebook-entry-saved {
+    margin-bottom: 2em; // Espace entre les entrées sauvegardées, aligné sur les lignes
+    border-bottom: 1px dashed lighten($journal-lines, 5%); // Séparateur subtil
+    padding-bottom: 1em;
+
+    .entry-text-saved {
+      // La police est déjà héritée de .journal-notebook-paper
+      margin: 0;
+      white-space: pre-line; // Respecte les sauts de ligne de l'utilisateur
+    }
+    .entry-meta-saved {
       display: flex;
-      align-items: flex-end; // Aligner bouton avec bas du textarea
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.8em;
+      color: lighten($journal-text-color, 20%);
+      margin-top: 0.5em; // Espace avant les méta-données
+      font-family: Arial, sans-serif; // Police neutre pour les méta
 
-      textarea {
-        flex: 1;
-        padding: 0.8rem 1rem;
-        border: 1px solid #D1C7BC;
-        border-radius: 8px; // Moins arrondi que le chat
-        margin-right: 0.75rem;
-        font-family: inherit;
-        font-size: 1rem;
-        background: #FFFFFF;
-        color: #222222;
-        resize: none;
-        min-height: 80px; // Hauteur de base pour le journal
-        max-height: 200px;
-        line-height: 1.5;
-        overflow-y: auto;
+      .delete-entry-btn {
+        background: none; border: none; color: lighten($journal-text-color, 30%); cursor: pointer;
+        font-size: 1.1em; padding: 0.2em;
+        &:hover { color: #D32F2F; }
       }
+    }
+  }
 
-      button { // Bouton d'envoi pour le journal
-        background-color: #814CAF; // Couleur d'accent
-        color: white;
-        border: none;
-        border-radius: 8px; // Moins arrondi
-        padding: 0.8rem 1rem; // Bouton rectangulaire
-        font-size: 1rem; // Plus petit que l'icône du chat
-        height: auto; // Hauteur s'adapte au padding
-        min-width: 48px; // Similaire au chat pour la largeur minimale
-        cursor: pointer;
-        transition: background-color 0.2s;
-        font-weight: 500;
+  .notebook-live-entry {
+    // Le texte "en cours" sera ici. La police et line-height sont héritées.
+    // On peut ajouter un min-height pour qu'il y ait toujours un peu d'espace pour écrire
+    min-height: 4em; // Au moins 2 lignes visibles
+    white-space: pre-wrap; // Respecte les sauts de ligne et les espaces
+    word-wrap: break-word; // Coupe les mots si nécessaire
+  }
+}
 
-        &:hover {
-          background-color: #6B3F92; // Accent plus foncé
-        }
-         &:disabled {
-            background-color: #B0B0B0;
-            cursor: not-allowed;
-        }
-      }
+.journal-input-area {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid darken($journal-history-bg, 8%);
+  background-color: $journal-history-bg; // Même fond que la colonne historique pour une harmonie
+  display: flex;
+  align-items: center; // Aligner le textarea et le bouton
+
+  .journal-textarea {
+    flex-grow: 1;
+    padding: 0.75rem 1rem;
+    border: 1px solid $journal-lines;
+    border-radius: 6px;
+    font-family: Arial, sans-serif; // Police standard pour l'input, pas la manuscrite
+    font-size: 1rem;
+    background-color: #FFFFFF;
+    color: #222222;
+    resize: none; // L'utilisateur ne peut pas redimensionner
+    min-height: 60px;
+    line-height: 1.5;
+    margin-right: 1rem;
+  }
+
+  .journal-add-entry-btn {
+    background-color: $journal-accent;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 0.75rem 1.2rem;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-weight: 500;
+    white-space: nowrap; // Empêche le texte du bouton de passer à la ligne
+
+    &:hover {
+      background-color: darken($journal-accent, 10%);
+    }
+    &:disabled {
+      background-color: lighten($journal-accent, 25%);
+      cursor: not-allowed;
     }
   }
 }
