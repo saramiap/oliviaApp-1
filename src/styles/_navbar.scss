@@ -1,159 +1,261 @@
-@use './variables' as *;
+// _navbar.scss
+
+// Palette "Chat" adaptée pour la Navbar
+$nav-bg-gradient-start: #2c3e50; // Bleu nuit (similaire à $chat-bg-dark mais pour dégradé)
+$nav-bg-gradient-end: #34495e;   // Bleu gris plus clair
+$nav-bg-scrolled: #212c36;       // Fond plus opaque au scroll (proche de $chat-bg-nav)
+$nav-text-color: #ecf0f1;        // Blanc cassé (similaire à $chat-text-light)
+$nav-text-hover: #82AAFF;        // Bleu clair accent (comme $chat-accent-primary)
+$nav-icon-color: #bdc3c7;        // Gris clair pour icônes
+$nav-icon-hover: #ecf0f1;
+$nav-dropdown-bg: #3B4A5A;       // Fond dropdown (similaire à $chat-bg-nav)
+$nav-dropdown-hover-bg: #4A5A6A; // Hover dropdown (similaire à $chat-ai-bubble-bg)
+$nav-mobile-bg: #283747;       // Fond menu mobile (légèrement différent)
+$nav-mobile-link-hover-bg: rgba(130, 170, 255, 0.1); // Hover transparent bleu
+$nav-mobile-shadow: rgba(0, 0, 0, 0.4);
+
+
 .nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  color: $nav-text-color;
+  // Dégradé initial transparent vers un peu de couleur
+  background: linear-gradient(to bottom, rgba(44, 62, 80, 0.7), transparent);
+  transition: background-color 0.4s ease-in-out, transform 0.4s ease-in-out, box-shadow 0.3s ease;
+  box-sizing: border-box;
+
+  &--visible { transform: translateY(0); }
+  &--hidden { transform: translateY(-110%); } // Cacher complètement
+
+  &--black { // Quand scrollé ou menu mobile ouvert
+    background: linear-gradient(135deg, $nav-bg-gradient-start, $nav-bg-gradient-end);
+    // background-color: $nav-bg-scrolled; // Ou une couleur unie si le dégradé est trop
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+  }
+
+  a { // Styles de base pour les liens
+    color: $nav-text-color;
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+    &:hover { color: $nav-text-hover; }
+  }
+}
+
+.nav__content-wrapper {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  position: fixed;
-  z-index: 1000;
-  width: 100%;
-  padding: 12px 4%;
-  font-size: 0.9rem;
-  color: white;
-  background: linear-gradient(to bottom, rgba(136, 60, 131, 0.4), rgba(0, 0, 0, 0));
-  transition: background-color 0.3s ease-in-out, transform 0.3s ease-in-out;
-  box-sizing: border-box;
+  padding: 0.8rem 2%; // Padding horizontal réduit pour plus de place
+  height: 60px; // Hauteur fixe pour la navbar
+  max-width: 1600px; // Limite la largeur max sur très grands écrans
+  margin: 0 auto; // Centre le contenu
+}
 
-  &--hidden {
-    transform: translateY(-100%);
+.nav__left {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem; // Espace entre logo et liens desktop
+}
+
+.nav__logo-link {
+  display: flex;
+  align-items: center;
+  // img.nav__logo-img { height: 35px; width: auto; }
+  .nav__logo-placeholder { // Style pour le placeholder texte
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: $nav-text-color; // Ou une couleur d'accent
   }
+}
 
-  &--visible {
-    transform: translateY(0);
-  }
-
-  &--black {
-    background-color: black;
-  }
-
-  a {
-    color: white;
-    text-decoration: none;
-    transition: color 0.2s ease-in-out;
-
-    &:hover {
-      color: #e573e5;
-    }
-  }
-
-  &__burger {
-    background-color: black;
-    cursor: pointer;
-    color: white;
-    margin-right: 1rem;
-    border: none;
-
-    @media screen and (min-width: 768px) {
-      display: none;
-    }
-  }
-
-  &__mobile-menu {
-    position: absolute;
-    top: 60px;
-    left: 0;
-    width: 100%;
-    background-color: #111;
+.nav__links-desktop {
+  display: none; // Caché par défaut, visible sur desktop
+  @media (min-width: 992px) { // Point de rupture pour afficher les liens desktop
     display: flex;
-    flex-direction: column;
-    padding: 1rem;
-    gap: 1rem;
-    transform: translateY(-10px);
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.3s ease;
-    z-index: 999;
-
+    gap: 1.2rem; // Espace entre les liens
     a {
-      padding: 0.5rem 0;
-      text-decoration: none;
-      color: white;
-    }
-  }
-
-  &.show &__mobile-menu {
-    transform: translateY(0);
-    opacity: 1;
-    visibility: visible;
-  }
-
-  &__logo {
-    max-width: 100px;
-  }
-
-  &__links {
-    display: flex;
-    gap: 20px;
-    align-items: center;
-
-    @media screen and (max-width: 767.98px) {
-      display: none;
-    }
-  }
-
-  &__actions {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-
-    @media screen and (max-width: 767.98px) {
-      display: none;
-    }
-
-    .nav__avatar {
-      max-width: 40px;
-      border-radius: 50%;
-      object-fit: cover;
+      font-size: 0.95rem;
+      padding: 0.3rem 0.5rem;
+      border-radius: 4px;
+      position: relative;
+      &::after { // Effet de soulignement au survol
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background-color: $nav-text-hover;
+        transition: width 0.3s ease;
+      }
+      &:hover::after { width: 100%; }
     }
   }
 }
 
-.nav__profile {
+.nav__right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav__actions-desktop {
+  display: none; // Caché par défaut, visible sur desktop
+  @media (min-width: 992px) {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    .nav__action-icon {
+      color: $nav-icon-color;
+      svg { font-size: 1.4rem; }
+      &:hover { color: $nav-icon-hover; }
+    }
+  }
+}
+
+.nav__profile-avatar-wrapper {
   position: relative;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 0.3rem;
-
-  svg {
-    font-size: 1.2rem;
+  .nav__profile-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid transparent;
+    transition: border-color 0.2s;
+    &:hover { border-color: $nav-text-hover; }
+  }
+  .nav__profile-arrow {
+    color: $nav-icon-color;
+    transition: transform 0.2s ease;
+    &.open { transform: rotate(180deg); }
   }
 }
 
-.nav__dropdown {
+.nav__dropdown-menu {
   position: absolute;
-  top: 40px;
+  top: calc(100% + 10px); // En dessous de l'avatar
   right: 0;
-  background-color: #1a1a1a;
-  border: 1px solid #333;
+  background-color: $nav-dropdown-bg;
   border-radius: 8px;
   padding: 0.5rem 0;
-  width: 160px;
+  width: 180px; // Un peu plus large
   display: flex;
   flex-direction: column;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-  animation: fadeIn 0.3s ease-in-out;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  animation: dropdownFadeIn 0.3s forwards ease-out;
 
   a {
-    color: white;
-    padding: 10px 16px;
-    text-decoration: none;
+    color: $nav-text-color;
+    padding: 0.75rem 1rem;
     font-size: 0.9rem;
-    transition: background 0.2s;
-
+    transition: background-color 0.2s, color 0.2s;
     &:hover {
-      background-color: #333;
+      background-color: $nav-dropdown-hover-bg;
+      color: $nav-text-hover;
     }
   }
 }
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
+@keyframes dropdownFadeIn {
   to {
     opacity: 1;
+    visibility: visible;
     transform: translateY(0);
+  }
+}
+
+
+.nav__burger {
+  background: none;
+  border: none;
+  color: $nav-text-color;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex; // Pour s'assurer que l'icône est bien rendue
+  z-index: 1010; // Au-dessus du menu mobile quand il est caché
+  svg { font-size: 1.8rem; } // Taille de l'icône burger
+
+  @media (min-width: 992px) { // Cacher le burger sur desktop
+    display: none;
+  }
+}
+
+.nav__mobile-menu {
+  position: fixed;
+  top: 0;
+  left: 0; // Commence à gauche
+  width: 280px; // Ne prend pas tout l'écran
+  height: 100vh;
+  background: $nav-mobile-bg;
+  padding: 1.5rem;
+  padding-top: calc(60px + 1.5rem); // Espace pour la navbar principale au-dessus
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transform: translateX(-100%); // Initialement caché à gauche
+  opacity: 0.90; // Légère transparence
+  visibility: hidden;
+  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+              box-shadow 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  z-index: 1005; // En dessous du bouton burger, au-dessus du contenu de la page
+  box-shadow: none; // Pas d'ombre quand caché
+
+  &.open {
+    transform: translateX(0);
+    visibility: visible;
+    // Dégradé d'ombrage vers la droite
+    box-shadow: 30px 0 25px -5px $nav-mobile-shadow;
+  }
+
+  .nav__mobile-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem; // Espace réduit entre les liens
+    flex-grow: 1; // Prend l'espace disponible
+
+    a {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem; // Espace entre icône et texte
+      padding: 0.8rem 1rem; // Padding des liens
+      border-radius: 8px; // Bordures arrondies pour chaque lien
+      font-size: 1rem;
+      transition: background-color 0.2s ease, color 0.2s ease;
+      svg { 
+        font-size: 1.3rem; 
+        color: $nav-icon-color; // Couleur d'icône par défaut
+        transition: color 0.2s ease;
+      }
+      &:hover {
+        background-color: $nav-mobile-link-hover-bg;
+        color: $nav-text-hover;
+        svg { color: $nav-text-hover; }
+      }
+    }
+  }
+  .nav__mobile-divider {
+    border: none;
+    height: 1px;
+    background-color: rgba(#34495e, 0.2);
+    margin: 1rem 0;
+  }
+  .nav__mobile-emergency {
+    margin-top: 1rem; // Pousse le bouton d'urgence en bas
+    padding-top: 1rem;
+    border-top: 1px solid rgba (#212c36, 0.2);
+    margin-top: 2rem;
+    .urgence-button { // Style spécifique pour le bouton d'urgence dans le menu mobile
+        width: 50%;
+        padding: 1rem;
+        margin-left: 5rem;
+    }
   }
 }

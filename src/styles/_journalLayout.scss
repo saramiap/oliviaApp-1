@@ -25,8 +25,8 @@ $journal-history-hover: #EFE5CC;
 .journal-history-toggle {
   display: block; // Visible sur mobile
   position: fixed; // Ou absolute, selon ton layout global
-  top: 70px; // Ajuste selon la hauteur de ta topbar principale
-  left: 15px;
+  top: 83px; // Ajuste selon la hauteur de ta topbar principale
+  right: 15px;
   z-index: 1300; // Au-dessus de la colonne historique si elle est en overlay
   background-color: rgba($journal-accent, 0.85);
   color: white;
@@ -47,9 +47,7 @@ $journal-history-hover: #EFE5CC;
   }
 
   @media (min-width: 768px) {
-    // Peut être positionné différemment ou caché si la colonne est toujours visible
-    // Pour l'instant, on le garde pour un toggle même sur desktop
-    left: 15px; 
+    display: none; // 🔥 Caché en desktop
   }
 }
 
@@ -64,12 +62,17 @@ $journal-history-hover: #EFE5CC;
   transform: translateX(-100%);
   transition: transform 0.3s ease-in-out;
   z-index: 1200; // En dessous du bouton toggle, au-dessus du contenu principal
-  border-right: 1px solid darken($journal-history-bg, 8%);
+  border-right: 1px solid $journal-history-bg, 8%;
   padding: 1.5rem 1rem;
   padding-top: 60px; // Espace pour le header de l'app si besoin
   overflow-y: auto;
   display: flex;
   flex-direction: column;
+  @media (min-width: 768px) {
+    .journal-history-column {
+      transform: none !important; // 🔒 Empêche tout slide en desktop
+    }
+  }
 
   &.visible {
     transform: translateX(0);
@@ -104,11 +107,11 @@ $journal-history-hover: #EFE5CC;
 
       &:hover {
         background-color: $journal-history-hover;
-        border-left-color: darken($journal-lines, 10%);
+        border-left-color: $journal-lines, 10%;
       }
 
       &.active-session { // Style pour l'entrée dont la session est active
-        background-color: lighten($journal-accent, 35%);
+        background-color: $journal-accent, 35%;
         color: $journal-accent;
         font-weight: 600;
         border-left-color: $journal-accent;
@@ -126,12 +129,12 @@ $journal-history-hover: #EFE5CC;
       .history-entry-date {
         display: block;
         font-size: 0.75rem;
-        color: lighten($journal-history-text, 20%);
+        color: $journal-history-text, 20%;
       }
     }
     .no-history-entries {
         text-align: center;
-        color: lighten($journal-history-text, 15%);
+        color: $journal-history-text, 15%;
         padding: 2rem 0;
         font-style: italic;
     }
@@ -194,7 +197,7 @@ $journal-history-hover: #EFE5CC;
     .notebook-date {
       font-size: 1.5em; // Plus grand pour la date
       font-weight: 700;
-      color: darken($journal-text-color, 10%);
+      color: $journal-text-color, 10%;
       text-align: center; // Ou à gauche
       padding-bottom: 0.5em;
       // border-bottom: 1px solid $journal-lines; // Ligne sous la date
@@ -207,7 +210,7 @@ $journal-history-hover: #EFE5CC;
 
   .notebook-entry-saved {
     margin-bottom: 2em; // Espace entre les entrées sauvegardées, aligné sur les lignes
-    border-bottom: 1px dashed lighten($journal-lines, 5%); // Séparateur subtil
+    border-bottom: 1px dashed $journal-lines, 5%; // Séparateur subtil
     padding-bottom: 1em;
 
     .entry-text-saved {
@@ -220,12 +223,12 @@ $journal-history-hover: #EFE5CC;
       justify-content: space-between;
       align-items: center;
       font-size: 0.8em;
-      color: lighten($journal-text-color, 20%);
+      color: $journal-text-color, 20%;
       margin-top: 0.5em; // Espace avant les méta-données
       font-family: Arial, sans-serif; // Police neutre pour les méta
 
       .delete-entry-btn {
-        background: none; border: none; color: lighten($journal-text-color, 30%); cursor: pointer;
+        background: none; border: none; color: $journal-text-color, 30%; cursor: pointer;
         font-size: 1.1em; padding: 0.2em;
         &:hover { color: #D32F2F; }
       }
@@ -243,7 +246,7 @@ $journal-history-hover: #EFE5CC;
 
 .journal-input-area {
   padding: 1rem 1.5rem;
-  border-top: 1px solid darken($journal-history-bg, 8%);
+  border-top: 1px solid $journal-history-bg, 8%;
   background-color: $journal-history-bg; // Même fond que la colonne historique pour une harmonie
   display: flex;
   align-items: center; // Aligner le textarea et le bouton
@@ -276,10 +279,10 @@ $journal-history-hover: #EFE5CC;
     white-space: nowrap; // Empêche le texte du bouton de passer à la ligne
 
     &:hover {
-      background-color: darken($journal-accent, 10%);
+      background-color: $journal-accent, 10%;
     }
     &:disabled {
-      background-color: lighten($journal-accent, 25%);
+      background-color: $journal-accent, 25%;
       cursor: not-allowed;
     }
   }

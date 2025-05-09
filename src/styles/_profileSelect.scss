@@ -1,35 +1,77 @@
 .profile-select {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: #121212;
-    color: white;
-    min-height: 100vh;
-    padding: 2rem;
-  
-    .profiles {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 2rem;
-      margin-top: 2rem;
-    }
-  
-    .profile-card {
-      background: #1e1e1e;
-      border-radius: 1rem;
-      padding: 1rem;
-      cursor: pointer;
-      transition: transform 0.2s ease;
-      text-align: center;
-  
-      img {
-        width: 100px;
-        border-radius: 50%;
-      }
-  
-      &:hover {
-        transform: scale(1.05);
-      }
-    }
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: #121212;
+  color: white;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.profiles {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-top: 2rem;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .profiles {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
   }
+}
+
+.profile-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 1rem;
+  cursor: pointer;
+  text-align: center;
+  color: white;
+  padding: 2rem 1rem;
+  min-height: 250px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  background-color: #1e1e1e;
+  transition: transform 0.2s ease;
+  flex: 1 1 250px;
+  max-width: 300px;
+}
+
+.profile-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  filter: blur(10px) brightness(0.5);
+  z-index: 0;
+}
+
+.profile-card img {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: contain;
+  border: 2px solid white;
+  z-index: 1;
+  margin-bottom: 1rem;
   
+}
+
+.profile-card h2,
+.profile-card p,
+.profile-card small {
+  z-index: 1;
+  position: relative;
+}
+
+.profile-card:hover {
+  transform: scale(1.05);
+}

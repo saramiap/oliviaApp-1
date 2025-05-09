@@ -1,75 +1,148 @@
+// Styles pour le bouton d'urgence et son tooltip (inchangés car ils semblent corrects)
+.urgence-button-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
 .urgence-button {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  z-index: 9999;
-  
+  background-color: #d32f2f;
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 
-  button {
-    background-color: #d32f2f;
-    color: white;
-    padding: 0.7rem 1.2rem;
-    border: none;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 1rem;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    transition: background-color 0.2s ease;
-
-    &:hover {
-      background-color: #b71c1c;
-    }
+  &:hover {
+    background-color: #b71c1c;
   }
 }
 
+.urgence-tooltip {
+  position: absolute;
+  background: #333;
+  color: white;
+  padding: 0.5rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  white-space: nowrap;
+  z-index: 1000; // Doit être inférieur à la popup d'urgence
+  opacity: 0.95;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+
+  // Positionnement par défaut (par exemple, sous le bouton pour mobile)
+  bottom: 100%; // Ou top: 110% si tu préfères au-dessus
+  left: 100%;
+  transform: translateX(-50%) translateY(-5px); // Petit espace par rapport au bouton
+  margin-bottom: 5px; // Si bottom: 100%
+
+  // Sur desktop : à droite du bouton (ou là où tu le souhaites)
+  @media screen and (min-width: 768px) {
+    margin-bottom: 1;
+    top: 60%;
+    bottom: 0%;
+    left: 50%;
+    transform: translateX(-50%);
+    // top: 100%;
+    // left: 50%;
+    // bottom: 100%; // Annule le positionnement du bas
+    // 
+    // margin-bottom: 0;
+    // margin-left: 5px; // Petit espace
+  }
+}
+
+// Styles pour la Popup d'Urgence
 .urgence-popup {
-  position: fixed;
+  position: fixed; // Se positionne par rapport au viewport
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 9998;
+  
+  // Ces trois lignes sont cruciales pour centrer .urgence-popup__content
   display: flex;
   align-items: center;
   justify-content: center;
-  color: black;
-
+  
+  // Effet de fond
+  background: rgba(0, 0, 0, 0.55); // Fond sombre semi-transparent
+  backdrop-filter: blur(5px);     // Floute ce qui est derrière cet overlay
+  
+  z-index: 9999; // Très élevé pour être au-dessus de tout (sauf son propre contenu)
+  
+  // Styles pour le contenu de la popup
   &__content {
     background: white;
-    padding: 2rem;
-    border-radius: 10px;
+    color: #333333; // Couleur de texte pour le contenu de la popup
+    padding: 2rem 2.5rem; // Un peu plus de padding
+    border-radius: 12px; // Coins plus arrondis
     text-align: center;
-    max-width: 400px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+    width: 90%; // Prend 90% de la largeur sur mobile
+    max-width: 420px; // Limite la largeur maximale
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.25);
+    // z-index: 10000; // N'est pas nécessaire si c'est le seul enfant de .urgence-popup
+                      // Mais ne fait pas de mal pour s'assurer qu'il est au-dessus du fond de la popup.
+
+    h2 { // Si tu as un titre dans la popup
+        margin-top: 0;
+        margin-bottom: 1rem;
+        font-size: 1.4rem; // Ajuste selon tes besoins
+        color: #d32f2f; // Couleur d'urgence pour le titre
+    }
 
     p {
       margin-bottom: 1.5rem;
-      font-size: 1.1rem;
+      font-size: 1rem; // Ajuste selon tes besoins
+      line-height: 1.6;
     }
 
     &__buttons {
       display: flex;
-      justify-content: center;
-      gap: 1rem;
+      flex-direction: column; // Boutons en colonne sur mobile pour meilleure lisibilité
+      gap: 0.75rem; // Espace entre les boutons
+
+      @media screen and (min-width: 480px) { // Sur écrans un peu plus larges, en ligne
+        flex-direction: row;
+        justify-content: center;
+      }
 
       button {
-        padding: 0.5rem 1rem;
+        padding: 0.75rem 1.2rem; // Padding un peu plus grand pour les boutons
         border: none;
-        border-radius: 6px;
+        border-radius: 8px;
         font-weight: bold;
         cursor: pointer;
+        transition: opacity 0.2s ease;
 
-        &:first-child {
+        &:hover {
+            opacity: 0.85;
+        }
+
+        // Style spécifique pour le bouton "Oui" ou "Voir les ressources"
+        &.urgence-popup__button--confirm {
           background-color: #d32f2f;
           color: white;
         }
 
-        &:last-child {
+        // Style spécifique pour le bouton "Non" ou "Fermer"
+        &.urgence-popup__button--cancel {
           background-color: #e0e0e0;
+          color: #333333;
         }
       }
     }
   }
+}
+
+// Classe optionnelle à ajouter au conteneur principal de ta page (ex: <div id="root">)
+// quand la popup est active, pour empêcher le scroll ou d'autres interactions si nécessaire.
+// Le 'filter: blur' ici n'est plus nécessaire si backdrop-filter sur .urgence-popup fait le travail.
+.page-content--interaction-disabled {
+  // overflow: hidden; // Peut empêcher le scroll de la page derrière la popup
+  // pointer-events: none; // Si tu veux désactiver tous les clics sur la page derrière.
+                          // Attention, cela peut empêcher la fermeture de la popup si le
+                          // bouton de fermeture est techniquement "sur" cet élément.
+                          // En général, le z-index de la popup suffit.
 }

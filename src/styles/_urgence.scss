@@ -1,65 +1,168 @@
-.urgence-page {
-  padding: 2rem;
-  max-width: 700px;
-  margin: auto;
+// _urgencePage.scss (ou le nom de ton fichier)
+// Couleurs suggérées pour une ambiance douce et rassurante
+$urgence-bg-main: #F4F8FB; // Un bleu très clair, presque blanc, apaisant
+$urgence-text-primary: #3A4F66; // Un bleu-gris foncé pour une bonne lisibilité
+$urgence-text-secondary: #5C7A99; // Un bleu-gris plus clair pour les descriptions
+$urgence-accent-soft: #A0D2DB; // Un bleu-vert doux pour les accents
+$urgence-accent-action: #FF7E6B; // Un corail doux mais visible pour les boutons d'action
+$urgence-card-bg: #FFFFFF;
+$urgence-card-border: #E0EAF3;
+$urgence-title-color: #2C3E50; // Un bleu nuit pour le titre principal
+
+// Import de police (optionnel, mais peut aider)
+// @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&display=swap');
+
+.urgence-page-container {
+  min-height: 100vh; // Prend toute la hauteur de la vue
+  background-color: $urgence-bg-main;
+  // font-family: 'Nunito', sans-serif; // Si tu importes une police
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; // Stack système
+  padding: 1.5rem; // Padding sur mobile
+
+  @media (min-width: 768px) {
+    padding: 3rem; // Plus de padding sur les grands écrans
+  }
+}
+
+.urgence-page-content {
+  max-width: 800px; // Largeur max du contenu
+  margin: 0 auto; // Centrer le contenu
   text-align: center;
-  background-color: #fffaf6; /* beige doux */
-
-  h1 {
-    color: #cc6655; /* rouge brique adouci */
-    font-size: 2rem;
-    margin-bottom: 1rem;
-  }
-
-  p {
-    margin-bottom: 2rem;
-    font-size: 1.1rem;
-    color: #555;
-  }
 }
 
-.urgence-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
+.urgence-header {
+  margin-bottom: 2.5rem;
 
-.urgence-card {
-  padding: 1rem;
-  border: 2px solid #ffe3dc; /* corail très clair */
-  background-color: #fff2ee; /* rose pêche pastel */
-  border-radius: 12px;
-  text-align: left;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  .urgence-title {
+    color: $urgence-title-color;
+    font-size: 2rem; // Taille pour mobile
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    line-height: 1.3;
 
-  h2 {
-    margin-bottom: 0.5rem;
-    color: #b55344; /* rouge terre cuite */
+    span[role="img"] { // Style pour l'emoji coeur
+      display: inline-block;
+      margin-left: 0.25em;
+    }
+
+    @media (min-width: 768px) {
+      font-size: 2.5rem; // Plus grand sur desktop
+    }
   }
 
-  p {
-    margin-bottom: 0.8rem;
-    color: #666;
-  }
+  .urgence-subtitle {
+    font-size: 1rem; // Taille pour mobile
+    color: $urgence-text-secondary;
+    line-height: 1.6;
+    max-width: 600px; // Limiter la largeur du sous-titre pour une meilleure lisibilité
+    margin: 0 auto; // Centrer le sous-titre
 
-  .urgence-call {
-    display: inline-block;
-    background-color: #ff8a7a; /* corail apaisé */
-    color: white;
-    padding: 0.5rem 1.1rem;
-    border-radius: 6px;
-    text-decoration: none;
-    font-weight: bold;
-    transition: background-color 0.2s ease;
-
-    &:hover {
-      background-color: #e76b60; /* un peu plus foncé au survol */
+    @media (min-width: 768px) {
+      font-size: 1.125rem;
     }
   }
 }
 
-.urgence-footer {
-  margin-top: 2rem;
-  font-style: italic;
-  color: #777;
+.urgence-list {
+  display: grid; // Utiliser grid pour un layout responsive des cartes
+  gap: 1.5rem; // Espace entre les cartes
+
+  // Par défaut 1 colonne sur mobile
+  grid-template-columns: 1fr; 
+
+  @media (min-width: 600px) {
+    // 2 colonnes sur tablettes et petits desktops si l'espace le permet
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+  @media (min-width: 900px) {
+    // Forcer 2 colonnes sur des écrans plus larges si auto-fit en met 3 et que c'est trop serré
+    // Ou ajuste minmax pour mieux contrôler. Si tu veux max 2 colonnes :
+    // grid-template-columns: repeat(2, 1fr);
+    // Pour l'instant, auto-fit est flexible.
+  }
+}
+
+.urgence-card {
+  background-color: $urgence-card-bg;
+  border: 1px solid $urgence-card-border;
+  border-radius: 12px; // Coins arrondis doux
+  padding: 1.5rem; // Bon padding interne
+  text-align: left; // Aligner le texte à gauche dans la carte
+  box-shadow: 0 4px 12px rgba(115, 140, 168, 0.08); // Ombre subtile et douce
+  display: flex;
+  flex-direction: column; // Pour aligner le bouton en bas
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(115, 140, 168, 0.12);
+  }
+  
+  // .urgence-card-icon-wrapper {
+  //   // Styles pour un conteneur d'icône si tu en ajoutes
+  //   margin-bottom: 0.75rem;
+  //   // svg, img { width: 32px; height: 32px; color: $urgence-accent-soft; }
+  // }
+
+  .urgence-card-info {
+    flex-grow: 1; // Permet à cette section de pousser le bouton vers le bas
+  }
+
+  .urgence-card-label {
+    font-size: 1.2rem; // Taille du titre de la carte
+    font-weight: 600;
+    color: $urgence-text-primary;
+    margin-top: 0; // Enlever la marge du haut par défaut du h2
+    margin-bottom: 0.5rem;
+  }
+
+  .urgence-card-description {
+    font-size: 0.9rem;
+    color: $urgence-text-secondary;
+    line-height: 1.5;
+    margin-bottom: 1.2rem; // Espace avant le bouton
+  }
+
+  .urgence-card-call-button {
+    display: inline-flex; // Pour aligner l'icône et le texte
+    align-items: center;
+    gap: 0.5em; // Espace entre l'icône et le texte
+    background-color: $urgence-accent-action;
+    color: white;
+    padding: 0.75rem 1.25rem; // Bouton plus confortable
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.95rem;
+    border: none; // S'assurer qu'il n'y a pas de bordure par défaut sur <a>
+    cursor: pointer;
+    align-self: flex-start; // Aligner le bouton à gauche dans la carte
+    transition: background-color 0.2s ease, transform 0.1s ease;
+
+    .call-icon {
+      // L'icône PhoneOutgoing de lucide-react est déjà un SVG
+      // Tu peux ajuster sa taille via la prop size ou ici si besoin
+    }
+    
+    &:hover {
+      background-color: $urgence-accent-action, 8%;
+      transform: translateY(-1px);
+    }
+    &:active {
+      transform: translateY(0px);
+    }
+  }
+}
+
+.urgence-footer-message {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid $urgence-card-border;
+  
+  p {
+    font-size: 0.95rem;
+    color: $urgence-text-secondary;
+    font-style: italic;
+    line-height: 1.6;
+  }
 }

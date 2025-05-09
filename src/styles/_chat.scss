@@ -1,158 +1,217 @@
-// _chatJournalPage.scss
+// _chat.scss
+
+// Palette de couleurs "Relaxante" (valeurs hexadécimales directes)
+$chat-bg-dark: #2C3A47;          // Bleu-gris nuit (fond général)
+$chat-bg-nav: #3B4A5A;           // Un peu plus clair pour la nav
+$chat-bg-nav-border: #33424E;    // Bordure pour la nav (plus foncée que nav)
+
+$chat-text-light: #EAEFF3;       // Blanc cassé (texte principal sur fond sombre)
+$chat-text-muted: #A8B6C1;       // Gris clair (texte secondaire, labels)
+$chat-text-dark: #1A232B;        // Texte foncé (pour bulles claires, inputs)
+
+$chat-accent-primary: #82AAFF;   // Bleu clair (accent principal, bulles utilisateur)
+$chat-accent-primary-darker: #6C95E0; // Pour hover sur accent primaire
+$chat-accent-primary-lighter: #D6E4FF; // Pour fond actif du mode-switcher
+
+$chat-accent-secondary: #FFCB6B; // Jaune doux (accent secondaire, gras, checkbox)
+
+$chat-bg-main-content: #F0F4F8; // Fond très clair (zone de chat et mode-switcher)
+$chat-bg-main-content-border: #DDE4EA; // Bordure pour mode-switcher
+
+$chat-ai-bubble-bg: #4A5A6A;     // Gris-bleu (bulles IA)
+
+$chat-input-bg: #FFFFFF;         // Blanc (fond textarea)
+$chat-input-border: #D1D9E0;    // Gris clair (bordure textarea)
+
+$chat-button-disabled: #B0BEC5;  // Gris pour boutons désactivés
+
+$chat-danger-bg: #D32F2F;        // Rouge pour suppression/urgence
+$chat-danger-hover: #B71C1C;     // Rouge plus foncé pour hover
+
 
 .chat-journal-layout {
   display: flex;
-  flex-direction: column; // Mobile first: topbar puis contenu
+  flex-direction: column;
   height: 100vh;
-  background-color: #121212; // Fond général sombre
-  color: #E0E0E0;            // Texte clair par défaut
+  background-color: $chat-bg-dark;
+  color: $chat-text-light;
   overflow: hidden;
 
-  @media (min-width: 768px) { // Desktop
+  @media (min-width: 768px) {
     flex-direction: row;
   }
 }
 
 .page-navigation {
-  background-color: #1E1E1E; // Fond de la navigation/topbar (légèrement différent du fond général)
+  background-color: $chat-bg-nav;
+  border-bottom: 1px solid $chat-bg-nav-border;
   padding: 0.75rem 1rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid #2A2A2A; // Bordure subtile
-  flex-wrap: wrap;
+  justify-content: space-between; // Espace initialement les éléments
+  flex-wrap: nowrap; // Empêcher le retour à la ligne des éléments principaux
+  overflow-x: hidden;
+ 
 
-  .olivia-avatar { // Avatar d'Olivia (partie de OliviaAvatar.js)
+  .olivia-avatar {
     width: 40px; 
     height: 40px;
     margin-right: 1rem;
-    border-radius: 8px; // Coins arrondis pour l'avatar d'Olivia
+    border-radius: 8px;
     overflow: hidden;
+    flex-shrink: 0; // Empêche l'avatar de rétrécir
     img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
   }
 
-  .chat__voice-toggle, .chat__silent-toggle {
+  .chat-controls {
     display: flex;
     align-items: center;
-    font-size: 0.8rem;
-    margin: 0.25rem 0.5rem;
-    
+    gap: 0.8rem;
+    margin: 0 0.5rem;
+    flex-shrink: 0; // Empêche ce bloc de rétrécir
+  }
+
+  .chat__voice-toggle, .chat__silent-toggle {
     label { 
-        font-size: 0.8rem; 
-        display: flex;
-        align-items: center;
-        gap: 0.3rem;
-        color: #B0B0B0; // Couleur pour les labels des toggles
-        cursor: pointer;
+      display: flex; // Pour aligner checkbox et texte
+      align-items: center;
+      color: $chat-text-muted;
+      white-space: nowrap;
+      font-size: 0.8rem;
+      cursor: pointer;
+      &:hover { color: $chat-text-light; }
     }
     input[type="checkbox"] { 
-        margin-right: 0.3rem; 
-        accent-color: #CBA6F7; // Couleur d'accent pour la checkbox
+        accent-color: $chat-accent-secondary; 
+        margin-right: 0.3em;
         cursor: pointer;
     }
-    .silent-mode-info { font-size: 0.7rem; color: #888888; margin-left: 0.5rem;}
   }
   
+  .history-chat-wrapper {
+    flex-grow: 1; // Prend l'espace restant
+    display: flex;
+    justify-content: flex-end;
+    align-items: center; // Centrer verticalement le bouton effacer
+    overflow: hidden;
+    min-width: 0; // Important pour que flex-grow fonctionne bien avec overflow
+  }
+
   .history-chat {
-    display: none; // Caché sur mobile par défaut
-    color: #E0E0E0;
-    h3 { font-size: 1rem; margin-bottom: 0.5rem; color: #AAAAAA;}
-    .history-item { 
-        font-size: 0.85rem; 
-        padding: 0.3rem 0.5rem; 
-        margin-bottom: 0.3rem; 
-        background-color: #252525;
-        border-radius: 4px;
-        cursor: pointer;
-        &:hover { background-color: #333333; }
-    }
+    color: $chat-text-light;
+    text-align: right;
+    .no-history-text, h3,
+    .history-item { display: none; } // Cachés sur mobile par défaut
+    
     .clear-history-btn { 
-        font-size: 0.8rem; 
-        padding: 0.4rem 0.6rem; 
-        margin-top: 0.5rem;
-        background-color: #D32F2F; // Rouge pour supprimer
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        &:hover { background-color: #B71C1C; }
+      background-color: transparent;
+      color: $chat-text-muted;
+      border: 1px solid $chat-text-muted;
+      border-radius: 4px;
+      padding: 0.3rem 0.6rem;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: color 0.2s, border-color 0.2s, background-color 0.2s;
+      white-space: nowrap;
+
+      &:hover { 
+        background-color: rgba($chat-text-light, 0.1);
+        color: $chat-text-light; 
+        border-color: $chat-text-light;
+      }
     }
   }
 
-  .confirmation-modal {
+  .confirmation-modal { 
     position: absolute; 
-    top: 60px; // Ajuster en fonction de la hauteur de la topbar
+    top: 60px; // Ou un meilleur positionnement
     left: 50%;
     transform: translateX(-50%);
-    background: #FFFFFF; 
-    color: #333333; 
-    padding: 1rem; 
+    background: $chat-input-bg; 
+    color: $chat-text-dark; 
+    padding: 1.2rem; 
     border-radius: 8px; 
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    box-shadow: 0 3px 12px rgba(0,0,0,0.25);
     z-index: 100;
-    min-width: 250px;
-    p { margin-bottom: 0.75rem; font-weight: 500; }
+    width: 90%;
+    max-width: 300px;
+
+    p { margin-top:0; margin-bottom: 1rem; font-weight: 500; font-size: 0.95rem; }
     .confirmation-actions {
         display: flex;
         justify-content: flex-end;
         gap: 0.5rem;
         button { 
-            padding: 0.4rem 0.8rem; border-radius: 4px; border: none; cursor: pointer;
-            &:first-child { background-color: #D32F2F; color: white; } // Oui
-            &:last-child { background-color: #CCCCCC; color: #333333; } // Non
+            padding: 0.5rem 1rem; border-radius: 6px; border: none; cursor: pointer; font-weight: 500;
+            &:first-child { background-color: $chat-danger-bg; color: white; &:hover{background-color: $chat-danger-hover;} } 
+            &:last-child { background-color: #E0E0E0; color: $chat-text-dark; &:hover{background-color: #D0D0D0;} }
         }
     }
   }
   
-  .journal-navigation-content {
+  .journal-navigation-content { /* Styles pour la nav du journal */
     display: flex;
     align-items: center;
-    .profile-avatar-display {
-      width: 40px; height: 40px; border-radius: 50%; object-fit: cover; margin-right: 1rem;
-      border: 2px solid #CBA6F7; // Petite bordure accentuée
+    .profile-avatar-display { 
+      width: 40px;
+       height: 40px; 
+       border-radius: 50%; 
+      object-fit: cover; margin-right: 1rem;
+      border: 2px solid $chat-accent-primary; 
     }
-    h2 { font-size: 1.1rem; color: #E0E0E0; margin: 0; }
+    h2 { font-size: 1.1rem; color: $chat-text-light; margin: 0; }
   }
 
 
   @media (min-width: 768px) { // Desktop (Sidebar)
-    flex-direction: column;
-    align-items: stretch; // Pour que les éléments enfants prennent toute la largeur
-    justify-content: flex-start;
-    width: 280px;
-    padding: 1.5rem 1rem;
-    border-right: 1px solid #2A2A2A;
-    border-bottom: none;
-    overflow-y: auto;
+    width: 40%;
+    padding: 1.5rem; // Plus de padding interne
+    border-right: 1px solid $chat-bg-nav-border;
+    flex-direction: column; // Les éléments s'empilent verticalement
+    justify-content: flex-start; // Aligner en haut
+    align-items: center; // Centrer horizontalement l'avatar, puis les contrôles à gauche
 
-    .olivia-avatar { // Avatar d'Olivia en mode sidebar
+    .olivia-avatar {
       width: 150px; 
       height: 150px; 
       margin: 0 auto 1.5rem auto;
       border-radius: 12px;
-      img { object-position: center top;}
+    }
+    .chat-controls {
+        flex-direction: column;
+        align-items: flex-start; // Aligner les labels à gauche
+        gap: 0.75rem; // Plus d'espace vertical
+        width: 100%;
+        margin-bottom: 1.5rem; // Espace avant l'historique
     }
     .chat__voice-toggle, .chat__silent-toggle {
-      font-size: 0.95rem; margin-bottom: 1rem; width: 100%; padding: 0.5rem; border-radius: 6px;
-      &:hover { background-color: #252525; }
-      label { font-size: 0.95rem; width: 100%; }
+        width: 100%;
+        label { font-size: 0.95rem; }
+    }
+    .history-chat-wrapper { 
+      display: block; 
+      width: 100%;
+      
+      justify-content: flex-start;
     }
     .history-chat { 
-        display: block; 
-        width: 100%; 
-        max-height: 200px; 
-        overflow-y: auto; 
-        margin-bottom: 1rem;
-        background: #1A1A1A; // Fond légèrement différent pour le bloc historique
-        padding: 0.75rem; 
-        border-radius: 8px;
-    }
-    .journal-navigation-content {
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      .profile-avatar-display { width: 100px; height: 100px; margin-bottom: 1rem;}
-      h2 { font-size: 1.4rem; margin-top: 0.5rem; }
+      text-align: left; 
+      width: 100%;
+      background: rgba($chat-bg-dark, 0.5); // Fond subtil pour le bloc
+      padding: 0.75rem;
+      border-radius: 8px;
+      max-height: 50%; // Limiter la hauteur
+     
+
+      h3 { display: block; color: $chat-text-muted; font-size: 0.9rem; margin-bottom: 0.5rem; }
+      .history-item { 
+        display: block; /* à styler si tu affiches l'historique */ 
+        font-size: 0.85rem; padding: 0.3rem; 
+        border-bottom: 1px solid $chat-bg-nav-border; 
+        &:last-child { border-bottom: none; }
+      }
+      .no-history-text { display: block; font-style: italic; font-size: 0.85rem; }
+      .clear-history-btn { margin-top: 0.75rem; width: 70%; }
     }
   }
 }
@@ -162,42 +221,34 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background-color: #FEFBF6; // Fond principal clair pour la zone de contenu
+  background-color: $chat-bg-main-content;
 }
 
 .mode-switcher {
   display: flex;
-  justify-content: stretch;
-  gap: 0;
-  border-bottom: 1px solid #EAE1D8; // Bordure claire
-
+  border-bottom: 1px solid $chat-bg-main-content-border;
   button {
     flex-grow: 1;
-    background-color: #FDF8F2; // Fond neutre pour les boutons de switch
-    color: #777777;      // Couleur de texte pour les boutons inactifs
+    background-color: $chat-bg-main-content; // Fond de base
+    color: $chat-text-muted;
     border: none;
-    padding: 0.8rem 1rem;
+    padding: 0.9rem 1rem; // Un peu plus de padding
     border-radius: 0;
     border-bottom: 3px solid transparent;
     cursor: pointer;
     font-weight: 500;
     transition: background-color 0.2s, color 0.2s, border-color 0.2s;
-    font-size: 0.9rem;
+    font-size: 0.95rem; // Légèrement plus grand
     text-align: center;
 
     &.active {
-      color: #814CAF; // Couleur d'accent (violet de la page profil) pour le texte actif
-      border-bottom-color: #814CAF; // Ligne en dessous pour l'actif
-      background-color: #F8F0FF; // Léger fond pour l'actif
+      color: $chat-accent-primary;
+      border-bottom-color: $chat-accent-primary;
+      background-color: $chat-accent-primary-lighter;
     }
-
     &:hover:not(.active) {
-      color: #555555;
-      background-color: #F5F5F5;
-    }
-     @media (min-width: 768px) {
-        font-size: 1rem;
-        padding: 1rem 1.2rem;
+      color: $chat-text-dark; // Texte plus foncé au survol
+      background-color: #E7EDF3; // Fond légèrement plus foncé
     }
   }
 }
@@ -207,112 +258,140 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background-color: #FEFBF6; // Fond de la zone des messages du chat
+  background-color: $chat-bg-main-content;
+  position: relative;
 }
 
 .chat-messages-container {
   flex-grow: 1;
   overflow-y: auto;
-  padding: 1rem;
+  padding: 1rem 1rem 0.5rem 1rem; // Moins de padding en bas si le bouton scroll est absolu
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.85rem; // Espace entre les bulles légèrement augmenté
 }
 
 .message-bubble {
-  padding: 0.75rem 1.1rem;
-  border-radius: 18px;
-  line-height: 1.5; // Hauteur de ligne pour une bonne lisibilité
-  word-wrap: break-word; // ou overflow-wrap: break-word; pour couper les mots longs
-  max-width: 75%; // Garder cette contrainte pour la largeur
-  color: #FFFFFF; 
-
-  // Styles pour les paragraphes <p> à l'intérieur de N'IMPORTE QUELLE bulle
+  padding: 0.8rem 1.2rem; // Padding des bulles augmenté
+  border-radius: 20px; // Bulles plus arrondies
+  line-height: 1.55;
+  word-wrap: break-word;
+  max-width: 80%; // Les bulles peuvent être un peu plus larges
+  
   p {   
-    margin-top: 0; // Enlève la marge du haut par défaut des <p>
-    margin-bottom: 0.75em; // Ajoute un espace en dessous de chaque paragraphe
-                           // 0.75em est relatif à la taille de la police, ajuste si besoin
-
-    &:last-child {
-      margin-bottom: 0; // Le dernier paragraphe dans une bulle n'a pas besoin de marge en bas
-    } 
-    strong {
-      font-weight: 600; // Ou 700 si tu préfères un gras plus marqué
+    margin-top: 0;
+    margin-bottom: 0.6em; // Espace entre les <p> dans une bulle
+    &:last-child { margin-bottom: 0; } 
+    strong { 
+        color: $chat-accent-secondary; 
+        font-weight: 700; // Gras plus marqué
     }
   }
 
   &.user-message {
-    background-color: #814CAF; // Violet pour les messages utilisateur (cohérent avec l'accent)
+    background-color: $chat-accent-primary;
+    color: $chat-text-dark;
     margin-left: auto;
-    border-bottom-right-radius: 6px;
-     p {
-       white-space: pre-line; // Conserve les sauts de ligne et les séquences d'espaces pour le formatage
-     }
+    border-bottom-right-radius: 8px; // Style de "queue"
+     p { white-space: pre-line; }
   }
 
   &.ai-message {
-    background-color: #3A3A3C; // Gris foncé pour les messages IA
-    color: #E0E0E0; // Texte clair sur fond foncé
+    background-color: $chat-ai-bubble-bg;
+    color: $chat-text-light;
     margin-right: auto;
-    border-bottom-left-radius: 6px;
+    border-bottom-left-radius: 8px; // Style de "queue"
   
     .chat-list-item {
-      padding-left: 20px; // Ajuste cette valeur pour l'indentation souhaitée
-      // Tu pourrais aussi utiliser margin-left si tu préfères.
-      // Le marqueur de liste (•, 1., etc.) est conservé dans le texte,
-      // donc pas besoin de `list-style-type` ici, sauf si tu voulais le remplacer.
+      padding-left: 1.5em; // Indentation un peu plus grande
+      position: relative;
+      // Ajout d'un style de puce si le texte ne contient pas déjà de puce
+      // &:before {
+      //   content: "•";
+      //   position: absolute;
+      //   left: 0.5em;
+      //   color: $chat-text-muted;
+      // }
     }
   }
 }
 
 .chat-input-area {
   display: flex;
-  align-items: flex-end; // Aligner le bouton avec le bas du textarea quand il grandit
-  padding: 0.75rem 1rem;
-  border-top: 1px solid #EAE1D8; // Bordure claire
-  background-color: #FDF8F2; // Fond de la zone d'input
+  align-items: flex-end;
+  padding: 1rem; // Padding uniforme
+  border-top: 1px solid $chat-bg-main-content-border;
+  background-color: #E7EDF3; // Fond légèrement contrastant pour la zone d'input
 
   textarea {
     flex-grow: 1;
-    padding: 0.75rem 1rem; // Padding interne du textarea
-    border-radius: 20px;
-    border: 1px solid #D1C7BC;
-    resize: none;
-    font-family: inherit;
+    padding: 0.8rem 1rem;
+    border-radius: 22px; // Input arrondi
+    border: 1px solid $chat-input-border;
+    background-color: $chat-input-bg;
+    color: black;
     font-size: 1rem;
-    background-color: #FFFFFF;
-    color: #222222;
+    line-height: 1.5;
+    resize: none;
     margin-right: 0.75rem;
-    min-height: 48px;
-    max-height: 120px;
+    min-height: 50px; // Hauteur de base
+    max-height: 130px;
     overflow-y: auto;
-    line-height: 1.4; // Pour un meilleur espacement vertical du texte
+    &:focus {
+        outline: none;
+        border-color: $chat-accent-primary;
+        box-shadow: 0 0 0 2px rgba($chat-accent-primary, 0.3);
+    }
   }
 
   button {
-    background-color: #814CAF; // Couleur d'accent pour le bouton d'envoi
+    background-color: $chat-accent-primary;
     color: white;
     border: none;
     border-radius: 50%;
-    width: 48px;
-    height: 48px;
-    font-size: 1.5rem;
+    width: 50px;   // Bouton légèrement plus grand
+    height: 50px;
+    font-size: 1.6rem; // Icône plus grande
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: background-color 0.2s;
-    flex-shrink: 0; // Empêche le bouton de rétrécir
+    flex-shrink: 0;
 
-    &:hover {
-      background-color: #6B3F92; // Accent plus foncé au survol
-    }
-    &:disabled {
-        background-color: #B0B0B0; // Gris pour bouton désactivé
-        cursor: not-allowed;
-    }
+    &:hover { background-color: $chat-accent-primary-darker; }
+    &:disabled { background-color: $chat-button-disabled; cursor: not-allowed; }
   }
 }
+
+.scroll-toggle-button {
+    position: absolute;
+    bottom: calc(50px + 1rem + 15px); // hauteur bouton input + padding input-area + marge
+    right: 1.5rem;
+    background-color: rgba($chat-bg-nav, 0.75);
+    color: $chat-text-light;
+    border: 1px solid rgba($chat-text-light, 0.25);
+    border-radius: 50%;
+    width: 38px;  // Bouton de scroll plus petit
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    backdrop-filter: blur(4px);
+    transition: background-color 0.2s, opacity 0.3s, transform 0.2s;
+    // La visibilité est gérée par le rendu conditionnel dans JSX
+    // Les styles ici sont pour l'apparence quand il est rendu.
+    opacity: 0.85; 
+    transform: translateY(0);
+
+    &:hover {
+        background-color: $chat-bg-nav;
+        opacity: 1;
+    }
+}
+
 
 .chat-confirmation-prompt {
     background-color: #F8F0FF; // Fond clair accentué

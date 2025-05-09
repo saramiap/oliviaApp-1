@@ -1,14 +1,21 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import MenuIcon from "@mui/icons-material/Menu";
+import CloseIcon from "@mui/icons-material/Close"; // Pour fermer le menu mobile
 import SearchIcon from "@mui/icons-material/Search";
-import NotificationsIcon from "@mui/icons-material/Notifications";
+import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone"; // Version "outline" pour un look plus léger
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import PersonIcon from '@mui/icons-material/Person';
-import HeadphonesIcon from '@mui/icons-material/Headphones';
-import ChatIcon from '@mui/icons-material/Chat';
-import MedicalServicesIcon from '@mui/icons-material/MedicalServices';
-import SettingsIcon from '@mui/icons-material/Settings';
+import PersonOutlineIcon from "@mui/icons-material/PersonOutline";
+import HeadphonesOutlinedIcon from "@mui/icons-material/HeadphonesOutlined";
+import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
+import SpaOutlinedIcon from "@mui/icons-material/SpaOutlined"; // Pour "Détente"
+import WorkOutlineIcon from "@mui/icons-material/WorkOutline"; // Pour "Trouver un pro"
+import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
+import ExitToAppIcon from "@mui/icons-material/ExitToApp"; // Pour "Déconnexion"
+import EmergencyButton from "./EmergencyButton";
+// import YourLogo from '../assets/logo.svg'; // Décommente et ajuste si tu as un logo
+
+// import '../styles/_navbar.scss'; // Assure-toi d'importer le bon fichier SCSS
 
 function Navbar() {
   const [navBlack, setNavBlack] = useState(false);
@@ -16,92 +23,207 @@ function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
   const lastScrollY = useRef(0);
-  const navRef = useRef();
-
-  // Gère la couleur et la visibilité en scroll
+  const navRef = useRef(); // Pour le menu mobile
+  const dropdownRef = useRef(); // Pour le dropdown du profil
+  // État pour le thème : true pour clair, false pour sombre (par défaut)
+  const [isLightTheme, setIsLightTheme] = useState(false);
   const handleScroll = () => {
     const currentScrollY = window.scrollY;
-    setNavBlack(currentScrollY > 100);
-    setNavVisible(currentScrollY < lastScrollY.current);
+    setNavBlack(currentScrollY > 50); // Se colore plus vite
+    if (isOpen) return; // Ne cache pas la nav si le menu mobile est ouvert
+    setNavVisible(currentScrollY < lastScrollY.current || currentScrollY < 50);
     lastScrollY.current = currentScrollY;
   };
 
   useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [isOpen]); // Ajout de isOpen pour re-évaluer si on peut cacher la nav
 
-  // Ferme le menu mobile si clic en dehors
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (isOpen && navRef.current && !navRef.current.contains(event.target)) {
+      if (
+        isOpen &&
+        navRef.current &&
+        !navRef.current.contains(event.target) &&
+        !event.target.closest(".nav__burger")
+      ) {
         setIsOpen(false);
+      }
+      if (
+        showDropdown &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target) &&
+        !event.target.closest(".nav__profile-avatar-wrapper")
+      ) {
+        setShowDropdown(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen]);
+  }, [isOpen, showDropdown]);
 
   const handleLinkClick = () => {
-    setIsOpen(false); // Ferme le menu mobile après navigation
+    setIsOpen(false);
   };
 
-  const toggleDropdown = () => {
+  const toggleDropdown = (e) => {
+    e.stopPropagation(); // Empêche le clic de se propager au document et de fermer immédiatement
     setShowDropdown(!showDropdown);
   };
 
+  const closeAllMenus = () => {
+    setIsOpen(false);
+    setShowDropdown(false);
+  };
+  const toggleTheme = () => {
+    setIsLightTheme((prevTheme) => {
+      const newThemeIsLight = !prevTheme;
+      localStorage.setItem("navbarTheme", newThemeIsLight ? "light" : "dark");
+      return newThemeIsLight;
+    });
+  };
   return (
     <div
-      ref={navRef}
+      ref={navRef} // Ref sur le conteneur global de la nav pour le menu mobile
       className={`nav ${navBlack || isOpen ? "nav--black" : ""} ${
+        // isOpen force aussi nav--black
         navVisible ? "nav--visible" : "nav--hidden"
-      } ${isOpen ? "show" : ""}`}
+      } ${isOpen ? "nav--mobile-open" : ""}${
+        isLightTheme ? "nav--light-theme" : "nav--dark-theme"
+      }`} // Ajout de la classe de thème`}
     >
-      <button className="nav__burger" onClick={() => setIsOpen(!isOpen)}>
-        <MenuIcon />
-      </button>
+      <div className="nav__content-wrapper">
+        {" "}
+        {/* Wrapper pour le contenu de la nav */}
+        <div className="nav__left">
+          <Link to="/" className="nav__logo-link" onClick={closeAllMenus}>
+            {/* <img src={YourLogo} alt="Logo" className="nav__logo-img" /> */}
+            <span className="nav__logo-placeholder">MonLogo</span>{" "}
+            {/* Placeholder */}
+          </Link>
+          {/* Menu desktop (déplacé à gauche après le logo) */}
+          <nav className="nav__links-desktop">
+            <Link to="/podcast" onClick={closeAllMenus}>
+              Podcast
+            </Link>
+            <Link to="/detente" onClick={closeAllMenus}>
+              Détente
+            </Link>
+            <Link to="/chat" onClick={closeAllMenus}>
+              Chat
+            </Link>
+            <Link to="/sante" onClick={closeAllMenus}>
+              Trouver un pro
+            </Link>
+          </nav>
+        </div>
+        <div className="nav__right">
+          {/* Actions / Profil pour Desktop */}
+          <div className="nav__actions-desktop">
+            <Link
+              to="/search"
+              className="nav__action-icon"
+              title="Rechercher"
+              onClick={closeAllMenus}
+            >
+              <SearchIcon />
+            </Link>
+            <Link
+              to="/notifications"
+              className="nav__action-icon"
+              title="Notifications"
+              onClick={closeAllMenus}
+            >
+              <NotificationsNoneIcon />
+            </Link>
+            <EmergencyButton />
+            <div
+              className="nav__profile-avatar-wrapper"
+              onClick={toggleDropdown}
+              ref={dropdownRef}
+            >
+              <img
+                src={/* user?.avatar || */ "/images/default-avatar.png"}
+                alt="Profil"
+                className="nav__profile-avatar"
+              />
+              <ArrowDropDownIcon
+                className={`nav__profile-arrow ${showDropdown ? "open" : ""}`}
+              />
+              {showDropdown && (
+                <div className="nav__dropdown-menu">
+                  <Link to="/profil" onClick={closeAllMenus}>
+                    Mon profil
+                  </Link>
+                  <Link to="/parametres" onClick={closeAllMenus}>
+                    Paramètres
+                  </Link>
+                  <Link to="/logout" onClick={closeAllMenus}>
+                    Déconnexion
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
+          {/* Burger pour Mobile */}
+          <button
+            className="nav__burger"
+            onClick={() => setIsOpen(!isOpen)}
+            aria-label="Menu"
+            aria-expanded={isOpen}
+          >
+            {isOpen ? <CloseIcon /> : <MenuIcon />}
+          </button>
+        </div>
+      </div>
 
       {/* Menu mobile */}
-      {isOpen && (
-        <div className="nav__mobile-menu">
-          <Link to="/podcast" onClick={handleLinkClick}> <HeadphonesIcon/>Podcast</Link>
-          <Link to="/detente" onClick={handleLinkClick}>Détente</Link>
-          <Link to="/chat" onClick={handleLinkClick}> <ChatIcon/>Chat</Link>
-          <Link to="/sante" onClick={handleLinkClick}> <MedicalServicesIcon/>Trouver un professionnel</Link>
-          <Link to="/" onClick={handleLinkClick}>
-            <SearchIcon /> Rechercher
+      <div className={`nav__mobile-menu ${isOpen ? "open" : ""}`}>
+        <nav className="nav__mobile-links">
+          <Link to="/podcast" onClick={handleLinkClick}>
+            <HeadphonesOutlinedIcon />
+            <span>Podcast</span>
           </Link>
-          <Link to="/" onClick={handleLinkClick}>
-            <NotificationsIcon /> Notifications
+          <Link to="/detente" onClick={handleLinkClick}>
+            <SpaOutlinedIcon />
+            <span>Détente</span>
           </Link>
-          <Link to="/profil" onClick={handleLinkClick}> <PersonIcon/>Mon profil</Link>
-          <Link to="/profilSelect" onClick={handleLinkClick}> <SettingsIcon/>Paramétre</Link>
-          <Link to="/profilSelect" onClick={handleLinkClick}>Se déconnecter</Link>
-        </div>
-      )}
-
-      {/* Menu desktop */}
-      <nav className="nav__links">
-        <Link to="/podcast">Podcast</Link>
-        <Link to="/detente">Détente</Link>
-        <Link to="/chat">Chat</Link>
-        <Link to="/sante">Trouver un professionnel</Link>
-      </nav>
-
-      {/* Actions / Profil */}
-      <div className="nav__actions">
-        <Link to="/"><SearchIcon /></Link>
-        <Link to="/"><NotificationsIcon /></Link>
-        <div className="nav__profile" onClick={toggleDropdown}>
-          😁 <ArrowDropDownIcon />
-          {showDropdown && (
-            <div className="nav__dropdown">
-              <Link to="/profil">👤 Mon profil</Link>
-              <Link to="/parametres">⚙️ Paramètres</Link>
-              <Link to="/logout">🚪 Déconnexion</Link>
-            </div>
-          )}
-        </div>
+          <Link to="/chat" onClick={handleLinkClick}>
+            <ChatBubbleOutlineIcon />
+            <span>Chat</span>
+          </Link>
+          <Link to="/sante" onClick={handleLinkClick}>
+            <WorkOutlineIcon />
+            <span>Trouver un pro</span>
+          </Link>
+          <hr className="nav__mobile-divider" />
+          <Link to="/search" onClick={handleLinkClick}>
+            <SearchIcon />
+            <span>Rechercher</span>
+          </Link>
+          <Link to="/notifications" onClick={handleLinkClick}>
+            <NotificationsNoneIcon />
+            <span>Notifications</span>
+          </Link>
+          <Link to="/profil" onClick={handleLinkClick}>
+            <PersonOutlineIcon />
+            <span>Mon profil</span>
+          </Link>
+          <Link to="/parametres" onClick={handleLinkClick}>
+            <SettingsOutlinedIcon />
+            <span>Paramètres</span>
+          </Link>{" "}
+          {/* Changé la route pour être distincte */}
+          <Link to="/logout" onClick={handleLinkClick}>
+            <ExitToAppIcon />
+            <span>Déconnexion</span>
+          </Link>{" "}
+          {/* Changé la route */}
+          <div className="nav__mobile-emergency">
+            <EmergencyButton />
+          </div>
+        </nav>
       </div>
     </div>
   );

@@ -50,7 +50,7 @@
       transition: background-color 0.2s ease; // Petite transition pour le hover
 
       &:hover {
-        background-color: darken(#814caf, 10%);
+        background-color: #814caf, 10%;
       }
     }
 

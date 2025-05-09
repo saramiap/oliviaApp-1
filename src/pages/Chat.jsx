@@ -3,10 +3,11 @@ import axios from "axios";
 import OliviaAvatar from "../components/OliviaAvatar"; // Tu l'as déjà
 import useSpeech from "../hooks/useSpeech";
 import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
+import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import { useNavigate } from "react-router-dom";
 import Journal from "./Journal"; // Importer le composant Journal
 
-import "../styles/_chat.scss"; // Nous allons créer/modifier ce fichier SCSS
+import "../styles/_chat.scss"
 
 const EMERGENCY_KEYWORDS = [
   "suicide",
@@ -29,10 +30,11 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showScroll, setShowScroll] = useState(false); // Penser à implémenter la logique d'affichage de ce bouton
+  const [showScrollButton, setShowScrollButton] = useState(false); // Pour la flèche up/down
   const [history, setHistory] = useState([]); // Historique des conversations du chat
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [pendingAction, setPendingAction] = useState(null);
+  const [isAtBottom, setIsAtBottom] = useState(true); // Pour gérer l'affichage de la flèche et le scroll
   const [showConfirmClear, setShowConfirmClear] = useState(false);
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
   const [silentMode, setSilentMode] = useState(false); // Pour le mode "vider son sac"
@@ -42,7 +44,9 @@ const Chat = () => {
   const [userProfileAvatar, setUserProfileAvatar] = useState("");
 
   const messagesEndRef = useRef(null);
-  const { speak, isSpeaking } = useSpeech(false); // Initialiser useSpeech avec la voix désactivée par défaut
+  const chatContainerRef = useRef(null); // Référence au conteneur des messages pour le scroll
+  const { speak, isSpeaking, cancelSpeech } = useSpeech(false); // Supposons que cancelSpeech existe
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   useEffect(() => {
     const storedAvatar = localStorage.getItem("userAvatar");
@@ -83,8 +87,42 @@ const Chat = () => {
     }
   }, [history, mode]);
 
+  useEffect(() => {
+    // 3. Scroll initial vers le bas (modifié)
+    // Scrolle seulement si on est considéré "en bas" ou si c'est une nouvelle réponse de l'IA.
+    // Et pas au chargement initial sauf si l'utilisateur était déjà en bas.
+    if (
+      mode === "chat" &&
+      messagesEndRef.current &&
+      !isInitialLoad &&
+      isAtBottom
+    ) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+    if (messages.length > 0 && mode === "chat") {
+      localStorage.setItem("chatMessages", JSON.stringify(messages));
+    }
+  }, [messages, mode, isInitialLoad, isAtBottom]);
+
+  // 2. Problème de son : Arrêter la parole si voiceEnabled est désactivé ou si on quitte le mode chat
+  useEffect(() => {
+    if (!voiceEnabled && isSpeaking && cancelSpeech) {
+      cancelSpeech();
+    }
+  }, [voiceEnabled, isSpeaking, cancelSpeech]);
+
+  useEffect(() => {
+    // Arrêter la parole si on change de mode (chat -> journal)
+    if (mode !== "chat" && isSpeaking && cancelSpeech) {
+      cancelSpeech();
+    }
+  }, [mode, isSpeaking, cancelSpeech]);
   const handleVoiceToggleChange = (event) => {
-    setVoiceEnabled(event.target.checked);
+    const isChecked = event.target.checked;
+    setVoiceEnabled(isChecked);
+    if (!isChecked && isSpeaking && cancelSpeech) {
+      cancelSpeech(); // Arrête la parole immédiatement si on décoche
+    }
   };
 
   const containsEmergencyKeyword = (text) =>
@@ -108,6 +146,8 @@ const Chat = () => {
       // Ne pas parler en mode silencieux
       speak(aiReply);
     }
+    // Après une réponse de l'IA, on s'attend à ce que l'utilisateur soit en bas
+    setIsAtBottom(true);
   };
 
   const sendMessage = async () => {
@@ -183,10 +223,38 @@ const Chat = () => {
       sendMessage();
     }
   };
+  // 4. Flèche de scroll
+  const handleScroll = () => {
+    const container = chatContainerRef.current;
+    if (container) {
+      const atBottom =
+        container.scrollHeight - container.scrollTop <=
+        container.clientHeight + 50; // +50px de marge
+      const hasScroll = container.scrollHeight > container.clientHeight;
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      setIsAtBottom(atBottom);
+      setShowScrollButton(hasScroll); // Afficher le bouton seulement s'il y a du scroll
+    }
   };
+  const toggleScrollToPosition = () => {
+    if (!chatContainerRef.current) return;
+    if (isAtBottom) {
+      // Si on est en bas, on veut scroller en haut
+      chatContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      // Sinon, on veut scroller en bas
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  useEffect(() => {
+    const container = chatContainerRef.current;
+    if (container && mode === "chat") {
+      container.addEventListener("scroll", handleScroll);
+      handleScroll(); // Vérifier l'état initial du scroll
+      return () => container.removeEventListener("scroll", handleScroll);
+    }
+  }, [mode, messages]); // Ré-évaluer si le mode ou les messages changent (pour la hauteur)
 
   const clearChatHistoryAndMessages = () => {
     setMessages([
@@ -217,9 +285,9 @@ const Chat = () => {
         // 2. Détecter si la ligne est un item de liste pour l'indentation
         //    On teste sur 'paragraphText' original (avant remplacement du gras) pour la détection du motif de liste.
         //    Le motif de liste peut être •, *, -, ou un numéro suivi d'un point (ex: 1.)
-        const listItemRegex = /^\s*(?:•|\*|-|\d+\.)\s+/; 
+        const listItemRegex = /^\s*(?:•|\*|-|\d+\.)\s+/;
         const isListItem = listItemRegex.test(paragraphText.trim());
-        
+
         const pClassName = isListItem ? "chat-list-item" : "";
 
         // Utiliser dangerouslySetInnerHTML car 'content' contient maintenant des balises <strong>
@@ -238,57 +306,65 @@ const Chat = () => {
       <nav className="page-navigation">
         {mode === "chat" ? (
           <>
-            <OliviaAvatar isSpeaking={isSpeaking && voiceEnabled} />{" "}
-            {/* L'avatar réagit si la voix est activée ET qu'elle parle */}
-            <div className="chat__voice-toggle">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={voiceEnabled}
-                  onChange={handleVoiceToggleChange}
-                />
-                Voix {voiceEnabled ? "🔊" : "🔇"}
-              </label>
+            <OliviaAvatar
+              isSpeaking={isSpeaking && voiceEnabled && !silentMode}
+            />
+            <div className="chat-controls"> {/* Wrapper pour les toggles */}
+              <div className="chat__voice-toggle">
+                <label title={voiceEnabled ? "Désactiver la voix" : "Activer la voix"}>
+                  <input
+                    type="checkbox"
+                    checked={voiceEnabled}
+                    onChange={handleVoiceToggleChange}
+                  />
+                  Voix {voiceEnabled ? "🔊" : "🔇"}
+                </label>
+              </div>
+              {/* Correction ici : un seul chat__silent-toggle */}
+              <div className="chat__silent-toggle">
+                <label title={silentMode ? "Reprendre le dialogue" : "Mode écoute seule"}>
+                  <input
+                    type="checkbox"
+                    checked={silentMode}
+                    onChange={() => setSilentMode(!silentMode)}
+                  />
+                  Écoute {silentMode ? "✍️" : "💬"}
+                </label>
+                {/* Le small pour silent-mode-info peut être stylé via CSS pour être caché ou affiché si besoin */}
+                {/* {silentMode && (
+                  <small className="silent-mode-info">
+                    Olivia n'interviendra pas.
+                  </small>
+                )} */}
+              </div>
             </div>
-            <div className="chat__silent-toggle">
-              <label>
-                <input
-                  type="checkbox"
-                  checked={silentMode}
-                  onChange={() => setSilentMode(!silentMode)}
-                />
-                Mode Écoute {silentMode ? "✍️" : "💬"}
-              </label>
-              {silentMode && (
-                <small className="silent-mode-info">
-                  Olivia n'interviendra pas.
-                </small>
-              )}
-            </div>
-            <div className="history-chat">
-              <h3>Historique Chat</h3>
-              {history.length > 0 ? (
-                history.map((conv, idx) => (
-                  <div key={idx} className="history-item">
-                    {/* Adapter l'affichage de l'historique */}
-                    Conversation du {new Date(conv.date).toLocaleDateString()}
-                  </div>
-                ))
-              ) : (
-                <p>Aucun historique.</p>
-              )}
-              {messages.length > 2 && ( // Afficher si plus que le message initial
-                <button
-                  className="clear-history-btn"
-                  onClick={() => setShowConfirmClear(true)}
-                >
-                  🗑️ Effacer Chat Actuel
-                </button>
-              )}
+            <div className="history-chat-wrapper">
+              <div className="history-chat">
+                {/* <h3>Historique Chat</h3>  Commenté car caché sur mobile par défaut */}
+                {/* Affichage de l'historique (simplifié pour l'exemple) */}
+                 {history.length > 0 ? (
+                  history.map((conv, idx) => (
+                    <div key={idx} className="history-item">
+                      Conversation du {new Date(conv.date).toLocaleDateString()}
+                    </div>
+                  ))
+                ) : (
+                  <p className="no-history-text">Aucun historique.</p>
+                )} 
+                {messages.length > 1 && ( // Afficher si plus que le message initial d'Olivia
+                  <button
+                    className="clear-history-btn"
+                    onClick={() => setShowConfirmClear(true)}
+                    title="Effacer la conversation actuelle"
+                  >
+                    🗑️ Effacer
+                  </button>
+                )}
+              </div>
             </div>
             {showConfirmClear && (
               <div className="confirmation-modal">
-                <p>Effacer la conversation actuelle et l'historique ?</p>
+                <p>Effacer la conversation actuelle ?</p>
                 <div className="confirmation-actions">
                   <button onClick={clearChatHistoryAndMessages}>Oui</button>
                   <button onClick={() => setShowConfirmClear(false)}>
@@ -299,15 +375,13 @@ const Chat = () => {
             )}
           </>
         ) : (
-          // mode === "journal"
           <div className="journal-navigation-content">
             <img
-              src={userProfileAvatar}
+              src={userProfileAvatar || "/images/default-avatar.png"} // Ajout d'un fallback
               alt="Mon profil"
               className="profile-avatar-display"
             />
             <h2>📖 Mon Carnet</h2>
-            {/* La navigation des sessions du journal sera gérée par le composant Journal lui-même */}
           </div>
         )}
       </nav>
@@ -330,7 +404,7 @@ const Chat = () => {
 
         {mode === "chat" ? (
           <div className="chat-interface-wrapper">
-            <div className="chat-messages-container">
+            <div className="chat-messages-container" ref={chatContainerRef} onScroll={handleScroll}>
               {messages.map((msg, idx) => (
                 <div
                   key={idx}
@@ -356,12 +430,11 @@ const Chat = () => {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Bouton Scroll to bottom (logique d'affichage à implémenter) */}
-            {/* {showScroll && (
-              <div className="scroll-to-bottom" onClick={scrollToBottom}>
-                <ArrowDownwardIcon />
-              </div>
-            )} */}
+            {showScrollButton && (
+              <button className="scroll-toggle-button" onClick={toggleScrollToPosition} title={isAtBottom ? "Remonter en haut" : "Aller en bas"}>
+                {isAtBottom ? <ArrowUpwardIcon fontSize="small"/> : <ArrowDownwardIcon fontSize="small"/>}
+              </button>
+            )}
 
             {pendingAction &&
               !showEmergencyModal && ( // Ne pas afficher si la modale d'urgence est active

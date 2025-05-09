@@ -1,39 +1,134 @@
-.footer{
-    color: grey;
-    padding: 2rem;
-    font-size: 0.8rem;
-    a{
-        text-decoration: none;
-        color: inherit;// couleur herité du parent
-        
+// _footer.scss
+
+// Palette Navbar/Chat adaptée pour le Footer
+$footer-bg: #2C3A47;                // Bleu nuit (comme $nav-bg-gradient-start ou $chat-bg-dark)
+$footer-text-primary: #A8B6C1;     // Gris clair (comme $nav-icon-color ou $chat-text-muted)
+$footer-text-secondary: #7F8C98;   // Gris plus foncé pour le copyright
+$footer-link-hover: #EAEFF3;       // Blanc cassé (comme $nav-text-color ou $chat-text-light)
+$footer-icon-hover: #82AAFF;       // Bleu clair accent (comme $nav-text-hover ou $chat-accent-primary)
+$footer-border-color: #3B4A5A;     // Couleur de bordure (comme $nav-bg-gradient-end ou $chat-bg-nav)
+
+.footer {
+  background-color: $footer-bg;
+  color: $footer-text-primary;
+  padding: 3rem 2%; // Padding vertical augmenté, horizontal basé sur pourcentage
+  font-size: 0.9rem;
+
+  a {
+    text-decoration: none;
+    color: inherit; // Hérite de $footer-text-primary par défaut
+    transition: color 0.2s ease-in-out;
+    &:hover {
+      color: $footer-link-hover;
     }
-&__socials{
-    margin-left: -0.2rem;
-    padding: 1rem 0;
-    .footer__social{
-        margin-right: 1.1rem;
-        svg{
-            font-size: 2.2rem;
-        }
-    }
-    
-    .container{
-        max-width: 900px;
-        margin: 0 auto;
-    }
+  }
 }
-&__links{
+
+.footer__container {
+  max-width: 1200px; // Largeur max du contenu du footer
+  margin: 0 auto; // Centrer
+}
+
+.footer__top-section {
+  display: flex;
+  flex-wrap: wrap; // Permet aux éléments de passer à la ligne sur mobile
+  justify-content: space-between; // Espace logo/slogan et icônes sociales
+  align-items: center;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid $footer-border-color;
+}
+
+.footer__socials {
+  display: flex;
+  gap: 1rem; // Espace entre les icônes sociales
+  margin: 0.5rem 0; // Marge verticale sur mobile si ça passe à la ligne
+
+  .footer__social-link {
+    color: $footer-text-primary; // Couleur initiale des icônes
+    svg {
+      font-size: 1.8rem; // Taille des icônes
+      display: block; // Pour éviter des espaces en dessous parfois
+    }
+    &:hover {
+      color: $footer-icon-hover; // Changement de couleur au survol
+      transform: translateY(-2px); // Léger effet de soulèvement
+    }
+    // Appliquer la transition sur le parent pour l'effet de transform
+    transition: transform 0.2s ease-in-out; 
+  }
+}
+
+// .footer__brand { // Si tu ajoutes un logo/slogan au footer
+//   font-size: 1.2rem;
+//   font-weight: 600;
+//   color: $footer-link-hover;
+// }
+
+.footer__links-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); // 2 colonnes sur mobile
+  gap: 1.5rem 1rem; // Espace vertical et horizontal entre les colonnes de liens
+  padding-bottom: 2rem;
+
+  @media (min-width: 576px) { // Petits écrans et plus
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); // Plus flexible
+  }
+
+  @media (min-width: 768px) { // Tablettes et plus
+    grid-template-columns: repeat(4, 1fr); // 4 colonnes sur écrans plus larges
+    gap: 2rem 1.5rem;
+  }
+}
+
+.footer__links-column {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  // Titre de colonne si tu en avais (non présent dans ton HTML actuel)
+  // .column-title {
+  //   font-weight: 600;
+  //   color: $footer-link-hover;
+  //   margin-bottom: 0.8rem;
+  //   font-size: 1rem;
+  // }
+
+  .footer__link-item {
+    margin-bottom: 0.6rem;
+    a {
+      font-size: 0.85rem; // Taille des liens
+      // Effet de survol sur le lien lui-même déjà géré par le 'a' global du footer
+    }
+  }
+}
+
+.footer__bottom-section {
+  padding-top: 1.5rem;
+  border-top: 1px solid $footer-border-color;
+  text-align: center; // Centrer le copyright
+
+  @media (min-width: 768px) {
     display: flex;
-    flex-wrap: wrap;
-    list-style: none;
-    .footer__link{
-        flex:1 0 50% ; // les colonne vont prendre 25% chacune
-        margin-bottom: 1.1rem;
-        @media screen and (min-width:768px) {
-            flex:1 0 25% ; // les colonne vont prendre 25% chacune
-        }
-    }
-
+    justify-content: space-between; // Copyright à gauche, liens optionnels à droite
+    align-items: center;
+    text-align: left; // Rétablir l'alignement à gauche pour le copyright
+  }
 }
 
+.footer__copyright {
+  font-size: 0.8rem;
+  color: $footer-text-secondary;
+  margin: 0.5rem 0; // Marge pour mobile
 }
+
+// .footer__bottom-links { // Si tu ajoutes des liens en bas (ex: plan du site)
+//   a {
+//     font-size: 0.8rem;
+//     color: $footer-text-secondary;
+//     margin-left: 1rem; // Espace entre les liens du bas
+//     &:hover {
+//       color: $footer-link-hover;
+//     }
+//   }
+// }

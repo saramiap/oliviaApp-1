@@ -12,7 +12,7 @@ import Home from './components/Home';
 import Footer from './components/Footer';
 import ProfileSelect from './pages/ProfileSelect';
 import Sante from './pages/Sante';
-import EmergencyButton from "./components/EmergencyButton";
+
 import Urgence from './pages/Urgence';
 import JournalPage from "./pages/Journal"; 
 function App() {
@@ -32,7 +32,7 @@ function App() {
           
           <Route path="/urgence" element={<Urgence />} />
         </Routes>
-        <EmergencyButton />
+        
       </div>
       < Footer/>
     </Router>
