@@ -164,7 +164,7 @@ $chat-danger-hover: #B71C1C;     // Rouge plus foncé pour hover
 
 
   @media (min-width: 768px) { // Desktop (Sidebar)
-    width: 40%;
+    width: 20%;
     padding: 1.5rem; // Plus de padding interne
     border-right: 1px solid $chat-bg-nav-border;
     flex-direction: column; // Les éléments s'empilent verticalement

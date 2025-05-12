@@ -11,7 +11,7 @@ function Footer() {
     ["À propos", "Carrières", "Presse", "Blog"],
     ["Aide", "FAQ", "Contactez-nous", "Politique de retour"],
     ["Confidentialité", "Conditions d'utilisation", "Préférences cookies", "Accessibilité"],
-    ["Autre lien 1", "Autre lien 2", "Autre lien 3", "Autre lien 4"]
+    
   ];
 
 

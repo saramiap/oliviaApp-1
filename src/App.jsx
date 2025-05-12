@@ -15,6 +15,8 @@ import Sante from './pages/Sante';
 
 import Urgence from './pages/Urgence';
 import JournalPage from "./pages/Journal"; 
+import PreparerSeance from './pages/PreparerSeance';
+
 function App() {
   return (
     <Router>
@@ -29,7 +31,7 @@ function App() {
           <Route path="/detente" element={<Detente />} />
           <Route path="/podcast" element={<Podcast />} />
           <Route path="/sante" element={<Sante />} />
-          
+          <Route path="/preparer-seance" element={<PreparerSeance />} />
           <Route path="/urgence" element={<Urgence />} />
         </Routes>
         

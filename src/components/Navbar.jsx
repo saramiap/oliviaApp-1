@@ -13,6 +13,7 @@ import WorkOutlineIcon from "@mui/icons-material/WorkOutline"; // Pour "Trouver 
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp"; // Pour "Déconnexion"
 import EmergencyButton from "./EmergencyButton";
+import TaskIcon from "@mui/icons-material/Task";
 // import YourLogo from '../assets/logo.svg'; // Décommente et ajuste si tu as un logo
 
 // import '../styles/_navbar.scss'; // Assure-toi d'importer le bon fichier SCSS
@@ -113,6 +114,11 @@ function Navbar() {
             <Link to="/chat" onClick={closeAllMenus}>
               Chat
             </Link>
+            <Link to="/preparer-seance" onClick={handleLinkClick}>
+              
+              <span>Préparer ma séance</span>
+            </Link>
+
             <Link to="/sante" onClick={closeAllMenus}>
               Trouver un pro
             </Link>
@@ -192,6 +198,10 @@ function Navbar() {
           <Link to="/chat" onClick={handleLinkClick}>
             <ChatBubbleOutlineIcon />
             <span>Chat</span>
+          </Link>
+          <Link to="/preparer-seance" onClick={handleLinkClick}>
+            <TaskIcon />
+            <span>Préparer ma séance</span>
           </Link>
           <Link to="/sante" onClick={handleLinkClick}>
             <WorkOutlineIcon />

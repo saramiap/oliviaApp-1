@@ -59,7 +59,7 @@ export default function ProfileSelect() {
       <h1>Que veux-tu aujourd’hui ?</h1>
       <div className="profiles">
         {profiles.map((p, idx) => (
-          <div key={idx} className="profile-card" onClick={() => handleSelect(p)}style={{ backgroundImage: `url(${p.avatar})` }}>
+          <div key={idx} className="profile-card" onClick={() => handleSelect(p)}style={{ backgroundImage: `url(${p.avatar})`, backgroundSize:"cover" }}>
             <img src={p.avatar} alt={p.name} />
             <h2>{p.name}</h2>
             <p>{p.role}</p>
