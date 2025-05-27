@@ -1,0 +1,130 @@
+
+       // Fond clair pour le contenu principal
+       $settings-sidebar-bg: #2C3A47;      // Fond sombre pour la nav des settings (si différente de SidebarProfil)
+       $settings-text-primary: #3A4F66;    // Texte principal sur fond clair
+       $settings-text-secondary: #5C7A99;   // Texte secondaire
+       $settings-accent-primary: #82AAFF;  // Bleu clair accent (pour onglet actif)
+       $settings-border-color: #DDE4EA;   // Bordures
+       $settings-card-bg: #FFFFFF;        // Fond pour les cartes de contenu des sections
+       
+       // src/styles/_stressProgram.scss
+       
+       $sp-bg-main: #F0F4F8;              // Fond de page (bleu très clair/gris)
+       $sp-text-primary: #3A4F66;         // Texte principal (bleu-gris foncé)
+       $sp-text-secondary: #5C7A99;        // Texte secondaire (bleu-gris plus clair)
+       $sp-accent-calm: #82AAFF;         // Accent principal (bleu clair doux) - pour les actions positives
+       $sp-accent-calm-darker: #6592E8;   // Pour hover sur accent calme
+       $sp-card-bg: #FFFFFF;               // Fond des cartes
+       $sp-card-border: #DDE4EA;          // Bordure des cartes
+       $sp-card-shadow: rgba(115, 140, 168, 0.1); // Ombre douce pour les cartes
+       $sp-button-text-light: #FFFFFF;     // Texte pour boutons avec fond coloré
+
+.grounding-exercise-activity {
+  padding: 0.5rem 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center; // Centrer la carte de l'étape
+  gap: 1.5rem; // Espace entre la carte et la navigation
+
+  &.grounding-finished { // Styles pour le message de fin
+    text-align: center;
+    padding: 2rem 1rem;
+    border: 1px dashed $sp-accent-calm;
+    border-radius: 8px;
+    background-color: $sp-accent-calm, 30%;
+    .completion-icon {
+      color: $sp-accent-calm;
+      margin-bottom: 0.75rem;
+    }
+    h4 { margin: 0 0 0.5rem 0; color: $sp-text-primary; font-size: 1.2rem;}
+    p { margin-bottom: 0.5rem; color: $sp-text-secondary; font-size: 0.95rem;}
+  }
+}
+
+.grounding-step-card {
+  background-color: $sp-card-bg;
+  border: 1px solid $sp-card-border;
+  border-left: 5px solid $sp-accent-calm; // Barre latérale d'accent
+  border-radius: 10px;
+  padding: 1.5rem;
+  box-shadow: 0 3px 10px $sp-card-shadow;
+  width: 100%;
+  max-width: 500px; // Limiter la largeur de la carte de l'étape
+  text-align: center;
+
+  .step-header {
+    display: flex;
+    flex-direction: column; // Icône au-dessus du titre
+    align-items: center;
+    margin-bottom: 1rem;
+    
+    .step-icon {
+      color: $sp-accent-calm;
+      margin-bottom: 0.5rem;
+      // L'icône est déjà un SVG avec sa taille définie
+    }
+    .step-sense-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: $sp-text-primary;
+      margin: 0;
+    }
+  }
+
+  .step-instruction {
+    font-size: 1rem;
+    color: $sp-text-secondary;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+
+  .btn--step-done {
+    // Utilise les styles .btn de _stressProgram.scss ou définis un style spécifique
+    // Exemple :
+    background-color: $sp-accent-calm;
+    color: $sp-button-text-light;
+    padding: 0.7rem 1.5rem;
+    font-size: 0.9rem;
+    border-radius: 20px; // Bouton plus arrondi
+    
+    &:hover {
+      background-color: $sp-accent-calm-darker;
+    }
+  }
+
+  .step-confirmation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5em;
+    font-size: 0.95rem;
+    color: $sp-accent-calm-darker; // Couleur plus foncée pour le feedback
+    font-weight: 500;
+    padding: 0.7rem 0; // Espace vertical pour le message
+    
+    .confirmation-icon {
+      color: $sp-accent-calm-darker; // Ou une couleur verte de succès
+    }
+  }
+}
+
+.grounding-navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: 500px; // Même largeur que la carte
+  margin-top: 1rem;
+
+  .btn--nav-grounding {
+    // Hérite de .btn et .btn--nav de _stressProgram.scss
+    // Tu peux surcharger ou créer une variante si besoin
+    padding: 0.5rem 0.8rem;
+    font-size: 0.85rem;
+  }
+  .grounding-step-indicator {
+    font-size: 0.85rem;
+    color: $sp-text-secondary;
+    font-weight: 500;
+  }
+}

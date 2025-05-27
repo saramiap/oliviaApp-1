@@ -1,0 +1,99 @@
+       // Fond clair pour le contenu principal
+       $settings-sidebar-bg: #2C3A47;      // Fond sombre pour la nav des settings (si différente de SidebarProfil)
+       $settings-text-primary: #3A4F66;    // Texte principal sur fond clair
+       $settings-text-secondary: #5C7A99;   // Texte secondaire
+       $settings-accent-primary: #82AAFF;  // Bleu clair accent (pour onglet actif)
+       $settings-border-color: #DDE4EA;   // Bordures
+       $settings-card-bg: #FFFFFF;        // Fond pour les cartes de contenu des sections
+       
+       // src/styles/_stressProgram.scss
+       
+       $sp-bg-main: #F0F4F8;              // Fond de page (bleu très clair/gris)
+       $sp-text-primary: #3A4F66;         // Texte principal (bleu-gris foncé)
+       $sp-text-secondary: #5C7A99;        // Texte secondaire (bleu-gris plus clair)
+       $sp-accent-calm: #82AAFF;         // Accent principal (bleu clair doux) - pour les actions positives
+       $sp-accent-calm-darker: #6592E8;   // Pour hover sur accent calme
+       $sp-card-bg: #FFFFFF;               // Fond des cartes
+       $sp-card-border: #DDE4EA;          // Bordure des cartes
+       $sp-card-shadow: rgba(115, 140, 168, 0.1); // Ombre douce pour les cartes
+       $sp-button-text-light: #FFFFFF;     // Texte pour boutons avec fond coloré
+       $sp-accent-action: #82AAFF;
+
+.support-suggestion-activity {
+  padding: 1rem 0;
+  text-align: center; // Centrer le contenu
+}
+
+.support-message-container {
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background-color: $sp-accent-calm, 30%; // Un fond très clair et doux, différent des cartes habituelles
+  border-radius: 10px;
+  border: 1px solid $sp-accent-calm, 20%;
+
+  .support-icon {
+    color: $sp-accent-calm; // Couleur de l'icône de bouée
+    margin-bottom: 1rem;
+    display: block; // Pour centrer avec margin auto si besoin
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .support-text-main,
+  .support-text-additional {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: $sp-text-primary; // Texte principal
+    margin-bottom: 0.75rem;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  .support-text-additional {
+    font-size: 0.95rem; // Un peu plus petit pour le message additionnel
+    color: $sp-text-secondary;
+  }
+}
+
+.support-actions {
+  display: flex;
+  flex-direction: column; // Boutons en colonne sur mobile
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+
+  .btn--emergency-link {
+    // Hérite du style .btn de _stressProgram.scss, mais on peut le spécialiser
+    background-color: $sp-accent-action; // Couleur d'action pour ce bouton important
+    color: $sp-button-text-light;
+    padding: 0.8rem 1.8rem; // Bouton bien visible
+    font-size: 1rem;
+    text-decoration: none; // S'assurer que le Link n'est pas souligné
+    width: 100%;
+    max-width: 320px; // Limiter la largeur du bouton
+
+    svg {
+      margin-left: 0.5em; // Espace pour l'icône ExternalLink
+      vertical-align: middle; // Mieux aligner l'icône
+    }
+
+    &:hover {
+      background-color: $sp-accent-action, 8%;
+    }
+  }
+
+  // Si tu ajoutes un bouton d'appel direct :
+  // .btn--direct-call {
+  //   background-color: $sp-accent-calm, 5%; 
+  //   color: $sp-button-text-light;
+  //   // ... autres styles similaires à .btn--emergency-link
+  // }
+}
+
+.support-reminder {
+  font-size: 0.9rem;
+  color: $sp-text-secondary;
+  font-style: italic;
+  line-height: 1.5;
+}

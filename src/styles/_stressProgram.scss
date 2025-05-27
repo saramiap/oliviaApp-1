@@ -1,0 +1,264 @@
+
+       // Fond clair pour le contenu principal
+$settings-sidebar-bg: #2C3A47;      // Fond sombre pour la nav des settings (si différente de SidebarProfil)
+$settings-text-primary: #3A4F66;    // Texte principal sur fond clair
+$settings-text-secondary: #5C7A99;   // Texte secondaire
+$settings-accent-primary: #82AAFF;  // Bleu clair accent (pour onglet actif)
+$settings-border-color: #DDE4EA;   // Bordures
+$settings-card-bg: #FFFFFF;        // Fond pour les cartes de contenu des sections
+
+// src/styles/_stressProgram.scss
+
+$sp-bg-main: #F0F4F8;              // Fond de page (bleu très clair/gris)
+$sp-text-primary: #3A4F66;         // Texte principal (bleu-gris foncé)
+$sp-text-secondary: #5C7A99;        // Texte secondaire (bleu-gris plus clair)
+$sp-accent-calm: #82AAFF;         // Accent principal (bleu clair doux) - pour les actions positives
+$sp-accent-calm-darker: #6592E8;   // Pour hover sur accent calme
+$sp-card-bg: #FFFFFF;               // Fond des cartes
+$sp-card-border: #DDE4EA;          // Bordure des cartes
+$sp-card-shadow: rgba(115, 140, 168, 0.1); // Ombre douce pour les cartes
+$sp-button-text-light: #FFFFFF;     // Texte pour boutons avec fond coloré
+
+// Couleurs pour les niveaux de stress (optionnel, pour différencier les boutons)
+$sp-stress-low: #A0D2DB;         // Bleu-vert doux
+$sp-stress-moderate: #FFCB6B;    // Jaune doux (comme $chat-accent-secondary)
+$sp-stress-high: #FF7E6B;          // Corail doux
+
+// --- Styles Généraux de la Page ---
+.stress-program-page {
+  background-color: $sp-bg-main;
+  min-height: calc(100vh - 60px); // Ajuste 60px à la hauteur de ta navbar
+  padding: 1.5rem; // Padding mobile
+  color: $sp-text-primary;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+
+  @media (min-width: 768px) {
+    padding: 2.5rem; // Padding desktop
+  }
+}
+
+.stress-program-container {
+  max-width: 700px; // Limite la largeur du contenu
+  margin: 0 auto; // Centre
+}
+
+.stress-program-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+
+  .header-icon {
+    color: $sp-accent-calm;
+    margin-bottom: 0.5rem;
+    display: block; // Pour centrer l'icône
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  h1 {
+    font-size: 1.8rem; // Mobile
+    font-weight: 700;
+    color: $sp-text-primary;
+    margin-bottom: 0.5rem;
+    @media (min-width: 768px) {
+      font-size: 2.2rem; // Desktop
+    }
+  }
+  .program-subtitle {
+    font-size: 1rem;
+    color: $sp-text-secondary;
+    line-height: 1.6;
+  }
+}
+
+// Style commun pour les cartes (sélection de niveau, affichage activité)
+.card-style {
+  background-color: $sp-card-bg;
+  border: 1px solid $sp-card-border;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 15px $sp-card-shadow;
+  margin-bottom: 2rem;
+
+  @media (min-width: 768px) {
+    padding: 2rem;
+  }
+}
+
+// --- Section de Sélection du Niveau de Stress ---
+.stress-level-selection {
+  text-align: center;
+  h2 {
+    font-size: 1.3rem;
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+    color: $sp-text-primary;
+  }
+  p {
+    color: $sp-text-secondary;
+    margin-bottom: 1.5rem;
+  }
+  .stress-level-buttons {
+    display: flex;
+    flex-direction: column; // Boutons en colonne sur mobile
+    gap: 1rem;
+    align-items: center;
+
+    @media (min-width: 500px) { // Boutons en ligne si assez de place
+      flex-direction: row;
+      justify-content: center;
+    }
+  }
+}
+
+// --- Styles des Boutons ---
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em; // Espace pour les icônes dans les boutons
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  &:active {
+    transform: translateY(0px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  }
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  // Boutons de niveau de stress
+  &--low { background-color: $sp-stress-low; color: $sp-stress-low, 40%; &:hover { background-color: $sp-stress-low, 8%; }}
+  &--moderate { background-color: $sp-stress-moderate; color: $sp-stress-moderate, 40%; &:hover { background-color: $sp-stress-moderate, 8%; }}
+  &--high { background-color: $sp-stress-high; color: $sp-button-text-light; &:hover { background-color: $sp-stress-high, 8%; }}
+
+  // Boutons de navigation d'activité
+  &--nav {
+    background-color: $sp-card-bg; // Fond clair
+    color: $sp-accent-calm;
+    border: 1px solid $sp-accent-calm;
+    padding: 0.6rem 1rem;
+    font-size: 0.9rem;
+    svg { stroke-width: 2.5px; }
+    &:hover { 
+      background-color: $sp-accent-calm; 
+      border-color: $sp-accent-calm-darker;
+      color: $sp-accent-calm-darker;
+    }
+    &:disabled {
+      background-color: $sp-card-bg;
+      border-color: $sp-text-secondary, 20%;
+      color: $sp-text-secondary, 20%;
+    }
+  }
+  
+  // Bouton recommencer
+  &--restart {
+    background-color: transparent;
+    color: $sp-text-secondary;
+    border: 1px solid $sp-text-secondary;
+    margin-top: 1.5rem;
+    display: block; // Pour centrer avec margin auto
+    margin-left: auto;
+    margin-right: auto;
+    font-weight: 500;
+    padding: 0.6rem 1.2rem;
+    &:hover { 
+      background-color: rgba($sp-text-secondary, 0.05); 
+      border-color: $sp-text-primary;
+      color: $sp-text-primary;
+    }
+  }
+}
+
+// --- Affichage de l'Activité ---
+.stress-activity-display {
+  .activity-header {
+    margin-bottom: 1rem;
+    h2 { font-size: 1.4rem; color: $sp-accent-calm; margin-top: 0; margin-bottom: 0.3rem; }
+    .level-description { color: $sp-text-secondary; margin-top: 0; font-size: 0.95rem;}
+  }
+
+  .activity-content {
+    text-align: left; // Contenu de l'activité aligné à gauche
+    .activity-title { 
+      font-size: 1.2rem; margin-top: 0; margin-bottom: 0.75rem; 
+      color: $sp-text-primary; font-weight: 600;
+    }
+    .activity-description { 
+      font-size: 1rem; line-height: 1.6; color: $sp-text-secondary; 
+    }
+  }
+
+  .activity-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem;
+    .activity-step-indicator {
+      font-size: 0.85rem;
+      color: $sp-text-secondary;
+      font-weight: 500;
+    }
+  }
+}
+
+.completion-notice {
+    text-align: center;
+    font-size: 1.1rem;
+    color: $sp-text-primary;
+    line-height: 1.6;
+}
+
+// Styles pour les autres composants (StressDay, StressTracker) s'ils sont utili
+.stress-day-card {
+  background-color: $settings-card-bg;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  margin-bottom: 2rem;
+
+  h2 {
+    color: $settings-text-primary;
+  }
+
+  .complete-button {
+    background-color: $settings-accent-primary;
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: background-color 0.3s;
+
+    &:hover {
+      background-color: $settings-accent-primary, 10%;
+    }
+  }
+}
+
+.stress-tracker {
+  margin-bottom: 1.5rem;
+  color: $settings-text-secondary;
+
+  progress {
+    width: 100%;
+    height: 10px;
+    border-radius: 5px;
+    background-color: $settings-border-color;
+    accent-color: $settings-accent-primary;
+  }
+}

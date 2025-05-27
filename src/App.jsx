@@ -12,10 +12,13 @@ import Home from './components/Home';
 import Footer from './components/Footer';
 import ProfileSelect from './pages/ProfileSelect';
 import Sante from './pages/Sante';
-
+import StressProgramPage from './pages/StressProgramPage';
 import Urgence from './pages/Urgence';
 import JournalPage from "./pages/Journal"; 
 import PreparerSeance from './pages/PreparerSeance';
+import Settings from './pages/Settings';
+
+
 
 function App() {
   return (
@@ -29,10 +32,13 @@ function App() {
           <Route path="/journal" element={<JournalPage />} />
           <Route path="/profil" element={<Profile />} />
           <Route path="/detente" element={<Detente />} />
+          <Route path="/detente/programme" element={<StressProgramPage />} />
+
           <Route path="/podcast" element={<Podcast />} />
           <Route path="/sante" element={<Sante />} />
           <Route path="/preparer-seance" element={<PreparerSeance />} />
           <Route path="/urgence" element={<Urgence />} />
+          <Route path="/parametres" element={<Settings />} />
         </Routes>
         
       </div>

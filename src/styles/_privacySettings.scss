@@ -1,0 +1,71 @@
+// Utilise tes variables de couleurs existantes si tu en as,
+// sinon, voici des exemples basés sur la palette "relaxante"
+$settings-bg-main: #F0F4F8;         // Fond clair pour le contenu principal
+$settings-sidebar-bg: #2C3A47;      // Fond sombre pour la nav des settings (si différente de SidebarProfil)
+$settings-text-primary: #3A4F66;    // Texte principal sur fond clair
+$settings-text-secondary: #5C7A99;   // Texte secondaire
+$settings-accent-primary: #82AAFF;  // Bleu clair accent (pour onglet actif)
+$settings-border-color: #DDE4EA;   // Bordures
+$settings-card-bg: #FFFFFF;        // Fond pour les cartes de contenu des sections
+
+
+.privacy-settings {
+    h2 {
+      font-size: 1.5rem;
+      margin-bottom: 1.5rem;
+      color: $settings-text-primary;
+      font-weight: 600;
+    }
+  
+    .settings-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+  
+      label {
+        display: flex;
+        flex-direction: column;
+        font-weight: 500;
+        color: $settings-text-primary;
+  
+        select,
+        input[type="text"],
+        input[type="email"] {
+          margin-top: 0.5rem;
+          padding: 0.6rem 0.9rem;
+          border-radius: 8px;
+          border: 1px solid $settings-border-color;
+          background-color: white;
+          color: $settings-text-primary;
+          font-size: 1rem;
+  
+          &:focus {
+            outline: none;
+            border-color: $settings-accent-primary;
+            box-shadow: 0 0 0 2px rgba($settings-accent-primary, 0.25);
+          }
+        }
+  
+        input[type="checkbox"] {
+          margin-right: 0.5rem;
+          width: auto;
+          display: inline-block;
+          accent-color: $settings-accent-primary;
+        }
+  
+        // Pour les labels avec checkbox (en ligne)
+        &:has(input[type="checkbox"]) {
+          flex-direction: row;
+          align-items: center;
+        }
+      }
+  
+      .info {
+        font-size: 0.9rem;
+        color: $settings-text-secondary;
+        margin-top: -0.8rem;
+        margin-left: 1.8rem;
+      }
+    }
+  }
+  

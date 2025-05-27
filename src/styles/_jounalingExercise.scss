@@ -1,0 +1,106 @@
+     // Fond clair pour le contenu principal
+     $settings-sidebar-bg: #2C3A47;      // Fond sombre pour la nav des settings (si différente de SidebarProfil)
+     $settings-text-primary: #3A4F66;    // Texte principal sur fond clair
+     $settings-text-secondary: #5C7A99;   // Texte secondaire
+     $settings-accent-primary: #82AAFF;  // Bleu clair accent (pour onglet actif)
+     $settings-border-color: #DDE4EA;   // Bordures
+     $settings-card-bg: #FFFFFF;        // Fond pour les cartes de contenu des sections
+     
+     // src/styles/_stressProgram.scss
+     
+     $sp-bg-main: #F0F4F8;              // Fond de page (bleu très clair/gris)
+     $sp-text-primary: #3A4F66;         // Texte principal (bleu-gris foncé)
+     $sp-text-secondary: #5C7A99;        // Texte secondaire (bleu-gris plus clair)
+     $sp-accent-calm: #82AAFF;         // Accent principal (bleu clair doux) - pour les actions positives
+     $sp-accent-calm-darker: #6592E8;   // Pour hover sur accent calme
+     $sp-card-bg: #FFFFFF;               // Fond des cartes
+     $sp-card-border: #DDE4EA;          // Bordure des cartes
+     $sp-card-shadow: rgba(115, 140, 168, 0.1); // Ombre douce pour les cartes
+     $sp-button-text-light: #FFFFFF;     // Texte pour boutons avec fond coloré
+
+
+.journaling-exercise-activity {
+  padding: 0.5rem 0; // Espace vertical interne
+}
+
+.journaling-prompt-container {
+  display: flex;
+  align-items: flex-start; // Aligner l'icône avec le début du texte
+  gap: 0.8rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+  background-color: $sp-bg-main, 2%; // Fond très légèrement différent
+  border-radius: 8px;
+  border-left: 4px solid $sp-accent-calm;
+
+  .prompt-icon {
+    color: $sp-accent-calm;
+    flex-shrink: 0; // Empêche l'icône de rétrécir
+    margin-top: 0.1em; // Petit ajustement vertical
+  }
+
+  .journaling-prompt {
+    font-size: 1.05rem;
+    color: $sp-text-primary;
+    line-height: 1.6;
+    margin: 0; // Enlever les marges par défaut du <p>
+    font-style: italic; // Pour distinguer le prompt
+  }
+}
+
+.journaling-textarea {
+  width: 100%;
+  min-height: 150px; // Bonne hauteur de base
+  padding: 1rem;
+  border: 1px solid $sp-card-border;
+  border-radius: 8px;
+  font-family: 'Kalam', cursive; // Si tu veux un effet manuscrit pour l'écriture aussi
+  // ou font-family: Arial, sans-serif; // Pour une police standard
+  font-size: 1.05em; // Taille de police pour l'écriture
+  line-height: 1.7; // Bon espacement des lignes
+  color: $sp-text-primary; // Couleur du texte tapé
+  background-color: $sp-card-bg; // Fond blanc pour le textarea
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.06); // Légère ombre intérieure
+  resize: vertical; // Permet le redimensionnement vertical par l'utilisateur
+
+  &:focus {
+    outline: none;
+    border-color: $sp-accent-calm;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.06), 0 0 0 3px rgba($sp-accent-calm, 0.2);
+  }
+}
+
+.journaling-actions { // Si tu actives le bouton "J'ai noté mes pensées"
+  margin-top: 1.5rem;
+  text-align: right; // Aligner le bouton à droite
+
+  .btn--journal-done {
+    // Hérite de .btn ou style spécifique
+    background-color: $sp-accent-calm;
+    color: $sp-button-text-light;
+    font-size: 0.9rem;
+    padding: 0.6rem 1.2rem;
+
+    &.completed {
+      background-color: $sp-accent-calm, 15%;
+      color: $sp-accent-calm, 20%;
+      cursor: default;
+      svg { color: $sp-accent-calm, 20%;}
+    }
+
+    &:hover:not(.completed) {
+      background-color: $sp-accent-calm-darker;
+    }
+    &:disabled {
+        opacity: 0.7;
+    }
+  }
+}
+
+.journaling-tip {
+  margin-top: 1.5rem;
+  font-size: 0.85rem;
+  color: $sp-text-secondary;
+  text-align: center;
+  font-style: italic;
+}

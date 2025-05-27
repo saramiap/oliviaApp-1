@@ -42,7 +42,7 @@ export default function ProfileSelect() {
       case "Podcasta":
         navigate("/podcast");
         break;
-      case "detenta":
+      case "Detenta":
         navigate("/detente");
         break;
       case "Psycholib":

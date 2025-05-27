@@ -7,3 +7,30 @@ $color-anchor: #A19882;
 
 $color-white: #ffffff;
 $color-black: #000000;
+// Palette de couleurs "Relaxante" (valeurs hexadécimales directes)
+$bg-dark: #2C3A47;          // Bleu-gris nuit (fond général)
+$bg-nav: #3B4A5A;           // Un peu plus clair pour la nav
+$bg-nav-border: #33424E;    // Bordure pour la nav (plus foncée que nav)
+
+$text-light: #EAEFF3;       // Blanc cassé (texte principal sur fond sombre)
+$text-muted: #A8B6C1;       // Gris clair (texte secondaire, labels)
+$text-dark: #1A232B;        // Texte foncé (pour bulles claires, inputs)
+
+$accent-primary: #82AAFF;   // Bleu clair (accent principal, bulles utilisateur)
+$accent-primary-darker: #6C95E0; // Pour hover sur accent primaire
+$accent-primary-lighter: #D6E4FF; // Pour fond actif du mode-switcher
+
+$accent-secondary: #FFCB6B; // Jaune doux (accent secondaire, gras, checkbox)
+
+$bg-main-content: #F0F4F8; // Fond très clair (zone de chat et mode-switcher)
+$bg-main-content-border: #DDE4EA; // Bordure pour mode-switcher
+
+$ai-bubble-bg: #4A5A6A;     // Gris-bleu (bulles IA)
+
+$input-bg: #FFFFFF;         // Blanc (fond textarea)
+$input-border: #D1D9E0;    // Gris clair (bordure textarea)
+
+$button-disabled: #B0BEC5;  // Gris pour boutons désactivés
+
+$danger-bg: #D32F2F;        // Rouge pour suppression/urgence
+$danger-hover: #B71C1C;     // Rouge plus foncé pour hover

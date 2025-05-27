@@ -1,0 +1,102 @@
+// Utilise tes variables de couleurs existantes si tu en as,
+// sinon, voici des exemples basés sur la palette "relaxante"
+$settings-bg-main: #F0F4F8;         // Fond clair pour le contenu principal
+$settings-sidebar-bg: #2C3A47;      // Fond sombre pour la nav des settings (si différente de SidebarProfil)
+$settings-text-primary: #3A4F66;    // Texte principal sur fond clair
+$settings-text-secondary: #5C7A99;   // Texte secondaire
+$settings-accent-primary: #82AAFF;  // Bleu clair accent (pour onglet actif)
+$settings-border-color: #DDE4EA;   // Bordures
+$settings-card-bg: #FFFFFF;        // Fond pour les cartes de contenu des sections
+
+
+.settings-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    margin-top: 1rem;
+  
+    label {
+      display: flex;
+      flex-direction: column;
+      font-weight: 500;
+      color: $settings-text-primary;
+  
+      input,
+      select {
+        margin-top: 0.5rem;
+        padding: 0.6rem 0.9rem;
+        border-radius: 8px;
+        border: 1px solid $settings-border-color;
+        background-color: white;
+        font-size: 1rem;
+        color: $settings-text-primary;
+  
+        &:focus {
+          outline: none;
+          border-color: $settings-accent-primary;
+          box-shadow: 0 0 0 2px rgba($settings-accent-primary, 0.3);
+        }
+      }
+  
+      input[type="checkbox"] {
+        margin-right: 0.5rem;
+        width: auto;
+        display: inline-block;
+      }
+    }
+  
+    button {
+      align-self: flex-start;
+      padding: 0.6rem 1.2rem;
+      background-color: $settings-accent-primary;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+  
+      &:hover {
+        background-color: $settings-accent-primary, 8%;
+      }
+    }
+  
+    .success-message {
+      color: green;
+      font-size: 0.95rem;
+    }
+  }
+  
+  .account-deletion {
+    margin-top: 2rem;
+    background-color: #fff3f3;
+    border: 1px solid #f5c2c2;
+    padding: 1rem;
+    border-radius: 8px;
+  
+    h3 {
+      color: #b3261e;
+      margin-bottom: 0.5rem;
+    }
+  
+    p {
+      color: $settings-text-secondary;
+      font-size: 0.95rem;
+    }
+  
+    .danger {
+      margin-top: 1rem;
+      background-color: #dc3545;
+      color: white;
+      padding: 0.5rem 1.2rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+  
+      &:hover {
+        background-color:#dc3545, 10%;
+      }
+    }
+  }
+  

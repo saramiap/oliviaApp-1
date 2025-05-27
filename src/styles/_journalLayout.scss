@@ -1,34 +1,41 @@
 // _journalLayout.scss
-@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=Shadows+Into+Light+Two&display=swap'); // Polices manuscrites
+@import url('https://fonts.googleapis.com/css2?family=Kalam:wght@300;400;700&family=Shadows+Into+Light+Two&display=swap');
 
-// Couleurs (remplace par tes préférences si besoin)
-$journal-bg: #FDF6E3; // Couleur crème/papier vieilli
-$journal-lines: #D4C8B4; // Couleur des lignes du cahier
-$journal-text-color: #4A3B31; // Couleur d'encre foncée (marron/gris)
-$journal-accent: #814CAF; // Ton violet pour les accents (boutons, etc.)
-$journal-history-bg: #F5EFDB; // Fond pour la colonne historique
+// --- Palette de Couleurs (valeurs hexadécimales directes) ---
+$journal-bg: #FDF6E3;                     // Couleur crème/papier vieilli
+$journal-lines: #D4C8B4;                  // Couleur des lignes du cahier
+$journal-text-color: #4A3B31;             // Couleur d'encre foncée (marron/gris)
+$journal-accent: #814CAF;                 // Ton violet pour les accents
+$journal-accent-darker: #6A3D91;          // Pour hover sur $journal-accent
+$journal-accent-lighter: #E8D9F2;         // Pour fond actif ou hover léger
+$journal-history-bg: #F5EFDB;             // Fond pour la colonne historique
+$journal-history-border: #EAE1CD;         // Bordure pour l'historique (plus foncée que le fond)
 $journal-history-text: #5D5046;
-$journal-history-hover: #EFE5CC;
+$journal-history-text-light: #96897F;     // Texte plus clair pour dates, etc.
+$journal-history-hover-bg: #EFE5CC;
+$journal-history-title-border: #C9BEA9;   // Ligne pointillée sous le titre de l'historique
+$journal-delete-btn-hover: #D32F2F;       // Rouge pour hover sur supprimer
+$journal-delete-btn-bg-hover: #FEEFEE;    // Fond léger pour hover sur supprimer
+$journal-input-area-bg: #F0EADC;          // Fond de la zone d'input (légèrement différent de l'historique)
+$journal-textarea-border: #CBBFAC;        // Bordure pour textarea
+$journal-button-disabled-bg: #BCA5D3;     // Accent plus clair pour bouton désactivé
 
 .journal-layout {
   display: flex;
-  height: 100%;
-  position: relative; // Pour le positionnement du bouton toggle
-  background-color: $journal-bg; // Le fond général sera celui du papier
-  overflow: hidden; // Empêcher le double scroll global
-
-  &.history-visible {
-    // Styles spécifiques quand l'historique est visible (utiles pour des transitions ou overlays)
-  }
+  height: 100%; // Parent direct doit avoir une hauteur définie (ex: 100vh - hauteur_navbar)
+  position: relative;
+  background-color: $journal-bg;
+  overflow: hidden; // Empêche le scroll global indésirable dû aux translations
 }
 
+// Bouton de toggle pour l'historique (principalement pour mobile)
 .journal-history-toggle {
-  display: block; // Visible sur mobile
-  position: fixed; // Ou absolute, selon ton layout global
-  top: 83px; // Ajuste selon la hauteur de ta topbar principale
+  display: none; // Caché par défaut, affiché via media query pour mobile
+  position: fixed; // Positionné par rapport au viewport
+  top: 75px;       // Ajuste selon la hauteur de ta navbar principale + un peu d'espace
   right: 15px;
-  z-index: 1300; // Au-dessus de la colonne historique si elle est en overlay
-  background-color: rgba($journal-accent, 0.85);
+  z-index: 1300;   // Au-dessus de l'aside quand il est en overlay
+  background-color: rgba($journal-accent, 0.9);
   color: white;
   border: none;
   border-radius: 50%;
@@ -37,7 +44,7 @@ $journal-history-hover: #EFE5CC;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.25);
   cursor: pointer;
   transition: background-color 0.2s, transform 0.2s;
 
@@ -46,224 +53,202 @@ $journal-history-hover: #EFE5CC;
     transform: scale(1.05);
   }
 
-  @media (min-width: 768px) {
-    display: none; // 🔥 Caché en desktop
+  @media (max-width: 767.98px) {
+    display: flex; // Afficher sur mobile
   }
+   @media (min-width: 768px) { // Si tu veux le garder sur desktop aussi pour toggle
+    // left: 15px; // Ou autre positionnement
+    // right: auto;
+   }
 }
 
+// Colonne de l'historique ("Mes Entrées")
 .journal-history-column {
   background-color: $journal-history-bg;
-  width: 85%; // Large sur mobile quand visible
-  max-width: 320px; // Limite la largeur max sur mobile
-  height: 100%;
-  position: fixed; // Pour un effet de "slide-in" ou overlay sur mobile
-  top: 0;
-  left: 0;
-  transform: translateX(-100%);
-  transition: transform 0.3s ease-in-out;
-  z-index: 1200; // En dessous du bouton toggle, au-dessus du contenu principal
-  border-right: 1px solid $journal-history-bg, 8%;
+  border-right: 1px solid $journal-history-border;
   padding: 1.5rem 1rem;
-  padding-top: 60px; // Espace pour le header de l'app si besoin
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  @media (min-width: 768px) {
-    .journal-history-column {
-      transform: none !important; // 🔒 Empêche tout slide en desktop
+  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+              margin-left 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              width 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+              opacity 0.3s ease-in-out; // Pour le fade sur desktop
+  
+  // Comportement par défaut (caché sur mobile, visible sur desktop)
+  @media (max-width: 767.98px) { // Mobile: Overlay
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh; // Prend toute la hauteur de la vue
+    width: 85%;    // Largeur quand ouvert
+    max-width: 300px;
+    z-index: 1200; // En dessous du toggle, au-dessus du contenu principal
+    transform: translateX(-100%); // Caché à gauche
+    border-right-width: 2px; // Bordure plus marquée pour l'overlay
+    box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+
+    &.visible {
+      transform: translateX(0);
     }
   }
 
-  &.visible {
-    transform: translateX(0);
-    box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+  @media (min-width: 768px) { // Desktop: Colonne fixe
+    position: static; // Revient dans le flux
+    width: 280px;     // Largeur fixe
+    flex-shrink: 0;   // Ne rétrécit pas
+    transform: translateX(0); // Toujours visible (pas de translation)
+    opacity: 1;       // Toujours visible
+
+    // Si on veut pouvoir la cacher sur desktop aussi via le toggle
+    .journal-layout:not(.history-visible) & { // Quand la classe parente N'A PAS .history-visible
+        // width: 0; // Cache en réduisant la largeur
+        // padding-left: 0; padding-right: 0;
+        // opacity: 0;
+        // margin-left: -280px; // Pour un effet de glissement plus propre
+        // Pour l'instant, on la laisse toujours visible sur desktop par défaut
+        // Si tu veux un toggle desktop, décommente ces lignes et ajuste le JSX du bouton toggle
+    }
   }
 
   .journal-history-title {
-    font-family: 'Kalam', cursive; // Police un peu stylée pour le titre
-    font-size: 1.8rem;
+    font-family: 'Kalam', cursive;
+    font-size: 1.7rem; // Légèrement réduit
     color: $journal-text-color;
-    margin-top: 1rem; // Après l'espace pour le header
-    margin-bottom: 1.5rem;
+    margin: 0 0 1.5rem 0;
     text-align: center;
-    padding-bottom: 0.5rem;
-    border-bottom: 1px dashed $journal-lines;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px dashed $journal-history-title-border;
+    flex-shrink: 0; // Pour que le titre ne soit pas écrasé
   }
 
   .journal-history-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    flex-grow: 1;
-
+    list-style: none; padding: 0; margin: 0; flex-grow: 1;
     .history-entry-item {
-      padding: 0.8rem 0.6rem;
-      margin-bottom: 0.5rem;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: background-color 0.2s;
-      color: $journal-history-text;
-      border-left: 3px solid transparent; // Indicateur visuel subtil
-
+      padding: 0.8rem 0.6rem; margin-bottom: 0.5rem; border-radius: 6px;
+      cursor: pointer; transition: background-color 0.2s, border-left-color 0.2s;
+      color: $journal-history-text; border-left: 3px solid transparent;
       &:hover {
-        background-color: $journal-history-hover;
-        border-left-color: $journal-lines, 10%;
+        background-color: $journal-history-hover-bg;
+        border-left-color: $journal-lines; // Ligne de la couleur des lignes du cahier
       }
-
-      &.active-session { // Style pour l'entrée dont la session est active
-        background-color: $journal-accent, 35%;
+      &.active-session {
+        background-color: $journal-accent-lighter;
         color: $journal-accent;
         font-weight: 600;
         border-left-color: $journal-accent;
       }
-
       .history-entry-title {
-        display: block;
-        font-size: 0.95rem;
-        font-weight: 500; // Ou la police manuscrite si lisible en petit
-        margin-bottom: 0.2rem;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis; // Pour les titres longs
+        display: block; font-size: 0.9rem; font-weight: 500; margin-bottom: 0.2rem;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       }
       .history-entry-date {
-        display: block;
-        font-size: 0.75rem;
-        color: $journal-history-text, 20%;
+        display: block; font-size: 0.75rem; color: $journal-history-text-light;
       }
     }
     .no-history-entries {
-        text-align: center;
-        color: $journal-history-text, 15%;
-        padding: 2rem 0;
-        font-style: italic;
+        text-align: center; color: $journal-history-text-light; padding: 2rem 0.5rem; font-style: italic;
     }
-  }
-
-  @media (min-width: 768px) { // Styles pour desktop
-    position: static; // Revient dans le flux normal
-    transform: translateX(0);
-    width: 25%; // Largeur de la colonne sur desktop
-    min-width: 280px;
-    max-width: 350px;
-    box-shadow: none; // Plus besoin d'ombre car c'est une colonne fixe
-    padding-top: 1.5rem; // Rétablir le padding normal
-
-    // Le bouton toggle pourrait être ajusté ou caché si la colonne est toujours visible
-    // Si on veut la garder toggleable :
-    // .journal-layout:not(.history-visible) & { transform: translateX(-100%); }
-    // .journal-layout.history-visible & { transform: translateX(0); }
   }
 }
 
+// Contenu principal (la "page" du cahier)
 .journal-page-column {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  height: 100%;
-  overflow: hidden; // Le scroll sera géré par .journal-notebook-paper ou .notebook-entries-display
-  // Transition pour quand la colonne historique apparaît/disparaît sur desktop
-  transition: margin-left 0.3s ease-in-out; 
-
-  .journal-layout:not(.history-visible) & {
-    @media (min-width: 768px) {
-      margin-left: 0; // Prend toute la largeur si l'historique est cachée
-    }
-  }
-  .journal-layout.history-visible & {
-    @media (min-width: 768px) {
-      // margin-left: 25%; // S'adapte à la largeur de la colonne historique (si elle n'est pas en position:static)
-      // Avec position:static, le flex-grow suffit.
-    }
-  }
+  height: 100%; // Prend la hauteur du parent .journal-layout
+  overflow: hidden; // Scroll géré par .journal-notebook-paper
+  background-color: $journal-bg;
 }
 
 .journal-notebook-paper {
-  flex-grow: 1;
+  flex-grow: 1; // Prend tout l'espace vertical disponible dans .journal-page-column
   background-color: $journal-bg;
-  // Effet de papier ligné (optionnel, peut surcharger si le texte est dense)
-  background-image: linear-gradient($journal-lines 1px, transparent 1px);
-  background-size: 100% 2em; // Ajuste 2em pour l'espacement des lignes
-  padding: 2rem 2.5rem; // Marges intérieures de la page
-  overflow-y: auto; // Permet le scroll du contenu du cahier
-  font-family: 'Kalam', cursive; // Police manuscrite pour tout le contenu du cahier
-  // font-family: 'Shadows Into Light Two', cursive; // Autre option de police
+  background-image: linear-gradient(to bottom, $journal-lines 1px, transparent 1px);
+  background-size: 100% 2.2em; // Espacement des lignes
+  padding: 1.5rem 2rem; // Padding mobile
+  overflow-y: auto;
+  font-family: 'Kalam', cursive;
   color: $journal-text-color;
-  font-size: 1.1em; // Taille de base pour l'écriture manuscrite
-  line-height: 2em; // Doit correspondre à l'espacement des lignes du background-size
+  font-size: 1.05em; // Taille de base
+  line-height: 2.2em; // Doit correspondre à background-size
 
-  .notebook-header {
-    margin-bottom: 1.5em; // Espace après la date, en fonction de la line-height
-    .notebook-date {
-      font-size: 1.5em; // Plus grand pour la date
-      font-weight: 700;
-      color: $journal-text-color, 10%;
-      text-align: center; // Ou à gauche
-      padding-bottom: 0.5em;
-      // border-bottom: 1px solid $journal-lines; // Ligne sous la date
-    }
+  @media (min-width: 768px) {
+    padding: 2rem 2.5rem; // Padding desktop
+    font-size: 1.1em;
   }
 
-  .notebook-entries-display {
-    // Conteneur pour les entrées sauvegardées et l'entrée en cours
+  .notebook-header {
+    margin-bottom: 1.5em;
+    .notebook-date {
+      font-size: 1.4em; // Plus grand pour la date
+      font-weight: 700;
+      color: $journal-text-color; // Couleur d'encre normale
+      text-align: center;
+      padding-bottom: 0.5em;
+    }
   }
 
   .notebook-entry-saved {
-    margin-bottom: 2em; // Espace entre les entrées sauvegardées, aligné sur les lignes
-    border-bottom: 1px dashed $journal-lines, 5%; // Séparateur subtil
-    padding-bottom: 1em;
-
+    margin-bottom: 2.2em; // Alignement sur les lignes
+    border-bottom: 1px dashed rgba($journal-lines, 0.7);
+    padding-bottom: 1.1em; // Espace avant la prochaine entrée, aligné sur une ligne
     .entry-text-saved {
-      // La police est déjà héritée de .journal-notebook-paper
-      margin: 0;
-      white-space: pre-line; // Respecte les sauts de ligne de l'utilisateur
+      margin: 0; white-space: pre-line;
+      word-wrap: break-word; overflow-wrap: break-word; // Assure que le texte ne déborde pas
     }
     .entry-meta-saved {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.8em;
-      color: $journal-text-color, 20%;
-      margin-top: 0.5em; // Espace avant les méta-données
-      font-family: Arial, sans-serif; // Police neutre pour les méta
-
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.75em; color: $journal-history-text-light; margin-top: 0.5em;
+      font-family: Arial, sans-serif; line-height: 1.4; // Rétablir line-height pour non-manuscrit
       .delete-entry-btn {
-        background: none; border: none; color: $journal-text-color, 30%; cursor: pointer;
-        font-size: 1.1em; padding: 0.2em;
-        &:hover { color: #D32F2F; }
+        background: none; border: none; color: $journal-history-text-light; cursor: pointer;
+        font-size: 1em; padding: 0.2em;
+        &:hover { color: $journal-delete-btn-hover; background-color: $journal-delete-btn-bg-hover; border-radius: 50%;}
       }
     }
   }
 
   .notebook-live-entry {
-    // Le texte "en cours" sera ici. La police et line-height sont héritées.
-    // On peut ajouter un min-height pour qu'il y ait toujours un peu d'espace pour écrire
-    min-height: 4em; // Au moins 2 lignes visibles
-    white-space: pre-wrap; // Respecte les sauts de ligne et les espaces
-    word-wrap: break-word; // Coupe les mots si nécessaire
+    min-height: 4.4em; // Au moins 2 lignes visibles
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word; // Assure que le texte ne déborde pas
   }
 }
 
+// Zone d'input en bas
 .journal-input-area {
   padding: 1rem 1.5rem;
-  border-top: 1px solid $journal-history-bg, 8%;
-  background-color: $journal-history-bg; // Même fond que la colonne historique pour une harmonie
+  border-top: 1px solid $journal-history-border;
+  background-color: $journal-input-area-bg;
   display: flex;
-  align-items: center; // Aligner le textarea et le bouton
+  align-items: flex-end; // Aligne verticalement si textarea grandit
+  flex-shrink: 0;
 
   .journal-textarea {
     flex-grow: 1;
     padding: 0.75rem 1rem;
-    border: 1px solid $journal-lines;
+    border: 1px solid $journal-textarea-border;
     border-radius: 6px;
-    font-family: Arial, sans-serif; // Police standard pour l'input, pas la manuscrite
+    font-family: Arial, sans-serif;
     font-size: 1rem;
     background-color: #FFFFFF;
     color: #222222;
-    resize: none; // L'utilisateur ne peut pas redimensionner
-    min-height: 60px;
+    resize: none;
+    min-height: 50px;     // Hauteur minimale
+    max-height: 120px;    // Limite la hauteur avant scroll interne
     line-height: 1.5;
     margin-right: 1rem;
+    overflow-y: auto;     // Active le scroll interne si dépasse max-height
+    width: 100%;          // Pour s'assurer qu'il ne dépasse pas
+    box-sizing: border-box;
+    &:focus {
+        outline: none;
+        border-color: $journal-accent;
+        box-shadow: 0 0 0 2px rgba($journal-accent, 0.3);
+    }
   }
 
   .journal-add-entry-btn {
@@ -271,19 +256,17 @@ $journal-history-hover: #EFE5CC;
     color: white;
     border: none;
     border-radius: 6px;
-    padding: 0.75rem 1.2rem;
-    font-size: 0.95rem;
+    padding: 0.7rem 1.1rem; // Ajusté pour mieux correspondre à hauteur textarea
+    font-size: 0.9rem;
     cursor: pointer;
     transition: background-color 0.2s;
     font-weight: 500;
-    white-space: nowrap; // Empêche le texte du bouton de passer à la ligne
+    white-space: nowrap;
+    min-height: 50px; // Hauteur fixe pour s'aligner
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
 
-    &:hover {
-      background-color: $journal-accent, 10%;
-    }
-    &:disabled {
-      background-color: $journal-accent, 25%;
-      cursor: not-allowed;
-    }
+    &:hover { background-color: $journal-accent-darker; }
+    &:disabled { background-color: $journal-button-disabled-bg; cursor: not-allowed; }
   }
 }

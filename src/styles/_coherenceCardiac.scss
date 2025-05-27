@@ -1,0 +1,125 @@
+     // Fond clair pour le contenu principal
+     $settings-sidebar-bg: #2C3A47;      // Fond sombre pour la nav des settings (si différente de SidebarProfil)
+     $settings-text-primary: #3A4F66;    // Texte principal sur fond clair
+     $settings-text-secondary: #5C7A99;   // Texte secondaire
+     $settings-accent-primary: #82AAFF;  // Bleu clair accent (pour onglet actif)
+     $settings-border-color: #DDE4EA;   // Bordures
+     $settings-card-bg: #FFFFFF;        // Fond pour les cartes de contenu des sections
+     
+     // src/styles/_stressProgram.scss
+     
+     $sp-bg-main: #F0F4F8;              // Fond de page (bleu très clair/gris)
+     $sp-text-primary: #3A4F66;         // Texte principal (bleu-gris foncé)
+     $sp-text-secondary: #5C7A99;        // Texte secondaire (bleu-gris plus clair)
+     $sp-accent-calm: #82AAFF;         // Accent principal (bleu clair doux) - pour les actions positives
+     $sp-accent-calm-darker: #6592E8;   // Pour hover sur accent calme
+     $sp-card-bg: #FFFFFF;               // Fond des cartes
+     $sp-card-border: #DDE4EA;          // Bordure des cartes
+     $sp-card-shadow: rgba(115, 140, 168, 0.1); // Ombre douce pour les cartes
+     $sp-button-text-light: #FFFFFF;     // Texte pour boutons avec fond coloré
+
+     
+     
+.coherence-cardiac-activity {
+  .instructions-panel { /* Styles similaires à _breathingExercise.scss */
+    background-color: $sp-card-bg, 2%;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    border: 1px solid $sp-card-border;
+    color: $sp-text-secondary;
+    font-size: 0.9rem;
+
+    h4 {
+      margin-top: 0;
+      color: $sp-text-primary;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    ul {
+      padding-left: 20px;
+      margin-bottom: 1.5rem;
+      li { margin-bottom: 0.5rem; }
+    }
+    .btn--start-exercise { /* Hérite de .btn ou style spécifique */
+        display: block;
+        margin: 1.5rem auto 0 auto;
+    }
+  }
+
+  .exercise-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .coherence-visualizer {
+    width: 180px;
+    height: 180px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+
+    .visualizer-shape {
+      width: 80px; // Taille de base (rétrécie)
+      height: 80px;
+      background-color: $sp-accent-calm;
+      border-radius: 50%; // Un cercle
+      transition-property: transform, background-color;
+      // La durée de transition doit correspondre à phaseDuration (ex: 5s pour 6 respirations/min)
+      // On la mettra un peu plus courte pour que l'effet soit visible avant le changement de label
+      transition-timing-function: ease-in-out;
+      transform: scale(1); // État de base (expire)
+      
+      &.running.phase--inspire {
+        // La durée de la transition doit être phaseDuration
+        transition-duration: calc(var(--phase-duration) * 1s); // Utilise une variable CSS
+        transform: scale(1.8); // Grandit
+        background-color: $sp-accent-calm, 10%;
+      }
+      &.running.phase--expire {
+        transition-duration: calc(var(--phase-duration) * 1s);
+        transform: scale(1); // Rétrécit
+        background-color: $sp-accent-calm;
+      }
+      // &.paused { /* Optionnel: style différent si en pause */ }
+    }
+
+    .phase-label {
+      position: absolute;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: $sp-accent-calm, 35%;
+      background-color: rgba($sp-card-bg, 0.7);
+      padding: 0.2em 0.5em;
+      border-radius: 4px;
+    }
+  }
+
+  .timer-display {
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: $sp-text-primary;
+  }
+
+  .controls {
+    .btn--control {
+      // Style similaire à .btn--nav ou un style dédié
+      background-color: $sp-card-bg;
+      color: $sp-accent-calm;
+      border: 1px solid $sp-accent-calm;
+      min-width: 150px; // Pour que les boutons aient une taille similaire
+      
+      svg { margin-right: 0.5em; }
+
+      &:hover {
+        background-color: $sp-accent-calm, 25%;
+        border-color: $sp-accent-calm-darker;
+        color: $sp-accent-calm-darker;
+      }
+    }
+  }
+}

@@ -4,6 +4,12 @@ import { useNavigate } from "react-router-dom";
 
 const themes = [
   {
+    title: "Programme anti-stress (7 jours)",
+    description: "Un parcours personnalisé pour mieux gérer ton stress au quotidien.",
+    image: "/images/programme.jpg", // Assure-toi que cette image existe
+    route: "/detente/programme", // Le nouveau chemin de ta route
+  },
+  {
     title: "Apprendre à respirer",
     description: "Découvre des exercices de respiration simples et efficaces.",
     image: "/images/respirer.jpg",

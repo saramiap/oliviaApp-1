@@ -114,11 +114,9 @@ function Navbar() {
             <Link to="/chat" onClick={closeAllMenus}>
               Chat
             </Link>
-            <Link to="/preparer-seance" onClick={handleLinkClick}>
-              
-              <span>Préparer ma séance</span>
+            <Link to="/preparer-seance" onClick={closeAllMenus}>
+              Préparer ma séance
             </Link>
-
             <Link to="/sante" onClick={closeAllMenus}>
               Trouver un pro
             </Link>
@@ -220,10 +218,10 @@ function Navbar() {
             <PersonOutlineIcon />
             <span>Mon profil</span>
           </Link>
-          <Link to="/parametres" onClick={handleLinkClick}>
+          <Link to="/parametre" onClick={handleLinkClick}>
             <SettingsOutlinedIcon />
             <span>Paramètres</span>
-          </Link>{" "}
+          </Link>
           {/* Changé la route pour être distincte */}
           <Link to="/logout" onClick={handleLinkClick}>
             <ExitToAppIcon />

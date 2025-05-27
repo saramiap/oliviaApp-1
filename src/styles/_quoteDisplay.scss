@@ -1,0 +1,90 @@
+       // Fond clair pour le contenu principal
+       $settings-sidebar-bg: #2C3A47;      // Fond sombre pour la nav des settings (si différente de SidebarProfil)
+       $settings-text-primary: #3A4F66;    // Texte principal sur fond clair
+       $settings-text-secondary: #5C7A99;   // Texte secondaire
+       $settings-accent-primary: #82AAFF;  // Bleu clair accent (pour onglet actif)
+       $settings-border-color: #DDE4EA;   // Bordures
+       $settings-card-bg: #FFFFFF;        // Fond pour les cartes de contenu des sections
+       
+       // src/styles/_stressProgram.scss
+       
+       $sp-bg-main: #F0F4F8;              // Fond de page (bleu très clair/gris)
+       $sp-text-primary: #3A4F66;         // Texte principal (bleu-gris foncé)
+       $sp-text-secondary: #5C7A99;        // Texte secondaire (bleu-gris plus clair)
+       $sp-accent-calm: #82AAFF;         // Accent principal (bleu clair doux) - pour les actions positives
+       $sp-accent-calm-darker: #6592E8;   // Pour hover sur accent calme
+       $sp-card-bg: #FFFFFF;               // Fond des cartes
+       $sp-card-border: #DDE4EA;          // Bordure des cartes
+       $sp-card-shadow: rgba(115, 140, 168, 0.1); // Ombre douce pour les cartes
+       $sp-button-text-light: #FFFFFF;     // Texte pour boutons avec fond coloré
+       
+.quote-display-activity {
+  padding: 1rem 0; // Un peu d'espace vertical
+  text-align: center; // Centrer le contenu de la citation
+}
+
+.quote-container {
+  margin: 1rem auto; // Centrer la figure
+  padding: 1.5rem;
+  border-left: 4px solid $sp-accent-calm; // Une barre d'accent à gauche
+  background-color: $sp-bg-main, 2%; // Fond très légèrement différent de la page
+  border-radius: 8px;
+  max-width: 550px; // Limiter la largeur pour une bonne lisibilité
+  position: relative; // Pour le positionnement de l'icône
+
+  .quote-icon {
+    color: $sp-accent-calm;
+    opacity: 0.6;
+    margin-bottom: 1rem;
+    // Positionnement optionnel de l'icône (ex: en haut à gauche)
+    // position: absolute;
+    // top: 1rem;
+    // left: 1rem;
+    // font-size: 2rem; // Si c'était un caractère de guillemet
+  }
+
+  .quote-text {
+    font-size: 1.15rem; // Taille de la citation
+    font-style: italic;
+    line-height: 1.7;
+    color: $sp-text-primary;
+    margin-bottom: 1rem; // Espace avant l'auteur
+
+    &::before, &::after { // Si tu veux des guillemets stylisés (optionnel car déjà dans le texte)
+      // content: '"'; 
+      // font-size: 2em;
+      // color: $sp-accent-calm;
+      // opacity: 0.5;
+      // vertical-align: middle;
+    }
+    // &::before { margin-right: 0.2em; }
+    // &::after { margin-left: 0.2em; }
+  }
+
+  .quote-author {
+    font-size: 0.95rem;
+    color: $sp-text-secondary;
+    font-weight: 500;
+    text-align: right; // Aligner l'auteur à droite
+  }
+}
+
+// Optionnel: Style pour le bouton si tu l'actives
+.quote-actions {
+  margin-top: 2rem;
+  text-align: center;
+
+  .btn--quote-read {
+    // Hérite du style .btn de _stressProgram.scss ou définis un style spécifique
+    // Exemple si tu veux un style propre :
+    // background-color: $sp-accent-calm;
+    // color: $sp-button-text-light;
+    // padding: 0.7rem 1.5rem;
+    // border-radius: 20px; // Bouton plus arrondi
+    // font-weight: 500;
+
+    // &:hover {
+    //   background-color: $sp-accent-calm-darker;
+    // }
+  }
+}

@@ -1,0 +1,103 @@
+
+       // Fond clair pour le contenu principal
+       $settings-sidebar-bg: #2C3A47;      // Fond sombre pour la nav des settings (si différente de SidebarProfil)
+       $settings-text-primary: #3A4F66;    // Texte principal sur fond clair
+       $settings-text-secondary: #5C7A99;   // Texte secondaire
+       $settings-accent-primary: #82AAFF;  // Bleu clair accent (pour onglet actif)
+       $settings-border-color: #DDE4EA;   // Bordures
+       $settings-card-bg: #FFFFFF;        // Fond pour les cartes de contenu des sections
+       
+       // src/styles/_stressProgram.scss
+       
+       $sp-bg-main: #F0F4F8;              // Fond de page (bleu très clair/gris)
+       $sp-text-primary: #3A4F66;         // Texte principal (bleu-gris foncé)
+       $sp-text-secondary: #5C7A99;        // Texte secondaire (bleu-gris plus clair)
+       $sp-accent-calm: #82AAFF;         // Accent principal (bleu clair doux) - pour les actions positives
+       $sp-accent-calm-darker: #6592E8;   // Pour hover sur accent calme
+       $sp-card-bg: #FFFFFF;               // Fond des cartes
+       $sp-card-border: #DDE4EA;          // Bordure des cartes
+       $sp-card-shadow: rgba(115, 140, 168, 0.1); // Ombre douce pour les cartes
+       $sp-button-text-light: #FFFFFF;     // Texte pour boutons avec fond coloré
+
+       
+
+.breathing-exercise-activity {
+  .instructions-panel {
+    background-color: $sp-card-bg, 2%; // Très léger fond
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    border: 1px solid $sp-card-border;
+
+    h4 {
+      margin-top: 0;
+      color: $sp-text-primary;
+      font-weight: 600;
+    }
+    ul {
+      padding-left: 20px;
+      margin-bottom: 1.5rem;
+      li {
+        margin-bottom: 0.5rem;
+        color: $sp-text-secondary;
+        font-size: 0.9rem;
+      }
+    }
+  }
+
+  .exercise-panel {
+    text-align: center;
+  }
+
+  .breathing-visualizer {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background-color: $sp-accent-calm, 25%; // Bleu très pâle
+    margin: 1rem auto 1.5rem auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+
+    .visualizer-circle { // Le cercle qui s'anime
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background-color: $sp-accent-calm; // Cercle bleu
+      position: absolute;
+      top: 0;
+      left: 0;
+      transition: transform 1s ease-in-out; // Transition douce pour la taille
+
+      &.phase--inspire { transform: scale(1); }
+      &.phase--hold { transform: scale(1); } // Peut rester stable
+      &.phase--expire { transform: scale(0.5); } // Rétrécit à l'expiration
+      &.phase--idle, &.phase--finished { transform: scale(0.8); } // État initial/final
+    }
+    
+    .phase-text {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color:$sp-accent-calm, 30%;
+      position: relative; // Pour être au-dessus du cercle
+      z-index: 1;
+    }
+  }
+  .cycle-count {
+    font-size: 0.9rem;
+    color: $sp-text-secondary;
+    margin-bottom: 1rem;
+  }
+
+  // Boutons (peuvent hériter de .btn ou avoir des styles spécifiques)
+  .btn--start-exercise, .btn--restart-exercise {
+    // Hérite des styles .btn, mais tu peux surcharger si besoin
+    // Exemple:
+    // background-color: $sp-accent-calm;
+    // color: $sp-button-text-light;
+    // &:hover { background-color: $sp-accent-calm-darker; }
+  }
+}

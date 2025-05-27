@@ -1,0 +1,118 @@
+// src/styles/_settingsPage.scss
+
+// Utilise tes variables de couleurs existantes si tu en as,
+// sinon, voici des exemples basés sur la palette "relaxante"
+$settings-bg-main: #F0F4F8;         // Fond clair pour le contenu principal
+$settings-sidebar-bg: #2C3A47;      // Fond sombre pour la nav des settings (si différente de SidebarProfil)
+$settings-text-primary: #3A4F66;    // Texte principal sur fond clair
+$settings-text-secondary: #5C7A99;   // Texte secondaire
+$settings-accent-primary: #82AAFF;  // Bleu clair accent (pour onglet actif)
+$settings-border-color: #DDE4EA;   // Bordures
+$settings-card-bg: #FFFFFF;        // Fond pour les cartes de contenu des sections
+
+.settings-page-layout {
+  display: flex;
+  min-height: calc(100vh - 60px); // Ajuste 60px à la hauteur de ta navbar globale
+  background-color: $settings-bg-main; // Fond général de la page
+}
+
+.settings-page-main-content {
+  flex-grow: 1;
+  padding: 1.5rem 2rem; // Padding pour mobile
+  overflow-y: auto; // Si le contenu des sections est long
+
+  @media (min-width: 768px) {
+    padding: 2rem 3rem; // Plus de padding sur desktop
+  }
+}
+
+.settings-header {
+  margin-bottom: 2rem;
+  h1 {
+    font-size: 1.8rem;
+    color: $settings-text-primary;
+    font-weight: 700;
+    @media (min-width: 768px) {
+      font-size: 2.2rem;
+    }
+  }
+}
+
+.settings-content-wrapper {
+  display: flex;
+  flex-direction: column; // Navigation au-dessus du contenu sur mobile
+  gap: 1.5rem;
+
+  @media (min-width: 992px) { // Point de rupture pour passer en layout avec nav à gauche
+    flex-direction: row;
+    gap: 2rem;
+  }
+}
+
+.settings-navigation {
+  display: flex;
+  flex-direction: row; // Onglets horizontaux sur mobile
+  gap: 0.5rem; // Petit espace entre les onglets mobiles
+  overflow-x: auto; // Permet de scroller les onglets si trop nombreux sur mobile
+  padding-bottom: 1rem; // Espace en dessous des onglets mobiles
+  margin-bottom: 1rem; // Espace avant le contenu de la section sur mobile
+  border-bottom: 1px solid $settings-border-color; // Séparateur sur mobile
+  flex-shrink: 0; // Pour que la nav ne soit pas compressée
+
+  @media (min-width: 992px) {
+    flex-direction: column; // Navigation verticale sur desktop
+    min-width: 200px; // Largeur de la navigation des paramètres
+    max-width: 240px;
+    border-right: 1px solid $settings-border-color;
+    border-bottom: none;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    padding-right: 1.5rem; // Espace à droite de la nav verticale
+    overflow-x: visible;
+  }
+
+  .settings-nav-item {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    color: $settings-text-secondary;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap; // Empêche le texte de passer à la ligne
+    transition: background-color 0.2s ease, color 0.2s ease;
+
+    &:hover {
+      background-color: $settings-bg-main, 3%;
+      color: $settings-text-primary;
+    }
+
+    &.active {
+      background-color: $settings-accent-primary;
+      color: white; // Ou une couleur de texte contrastante sur l'accent
+      font-weight: 600;
+      &:hover {
+        background-color: $settings-accent-primary, 5%;
+      }
+    }
+  }
+}
+
+.settings-section-content {
+  flex-grow: 1;
+  // Les styles spécifiques à chaque section (AccountSettings, PrivacySettings, etc.)
+  // peuvent être définis ici ou dans leurs propres fichiers SCSS si elles deviennent complexes.
+  // Exemple de style pour une "carte" de section :
+  > div { // Cible les divs directes (AccountSettings, etc.)
+    background-color: $settings-card-bg;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    color: $settings-text-primary;
+
+    h2, h3 { // Titres dans les sections
+        margin-top: 0;
+        margin-bottom: 1rem;
+        color: $settings-text-primary, 10%;
+    }
+    // Styles pour les formulaires, toggles, etc. à l'intérieur des sections
+  }
+}
