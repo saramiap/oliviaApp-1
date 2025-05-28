@@ -1,57 +1,133 @@
+// _detente.scss (ou ton fichier de style pour la page Detente)
+
+// Utilise ta palette de couleurs
+$detente-bg: #F0F4F8;                     // Fond de page (similaire à $sp-bg-main)
+$detente-text-primary: #3A4F66;          // Texte principal
+$detente-text-secondary: #5C7A99;         // Texte d'intro, descriptions de cartes
+$detente-title-color: #2C3E50;           // Titre principal
+$detente-card-bg: #FFFFFF;                // Fond des cartes
+$detente-card-border: #E0EAF3;           // Bordure des cartes
+$detente-card-shadow: rgba(115, 140, 168, 0.08); // Ombre douce
+$detente-card-action-text: #82AAFF;      // Couleur du texte "Explorer"
+
 .detente {
-    padding: 2rem;
-    text-align: center;
-  
-    h1 {
+  background-color: $detente-bg;
+  min-height: calc(100vh - 60px); // Hauteur moins la navbar
+  padding: 2rem 1.5rem; // Padding mobile
+  color: $detente-text-primary;
+
+  @media (min-width: 768px) {
+    padding: 3rem;
+  }
+}
+
+.detente__header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+
+  h1 {
+    color: $detente-title-color;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    span[role="img"] { margin-left: 0.3em; } // Pour l'emoji 🌿
+    @media (min-width: 768px) {
       font-size: 2.5rem;
-      margin-bottom: 1rem;
-    }
-  
-    .intro {
-      font-size: 1.1rem;
-      color: #555;
-      margin-bottom: 2rem;
-    }
-  
-    .detente__cards {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1.5rem;
-      justify-content: center;
-    }
-  
-    .detente__card {
-      width: 280px;
-      background: #f9f9f9;
-      border-radius: 16px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      overflow: hidden;
-      cursor: pointer;
-      transition: transform 0.2s;
-  
-      &:hover {
-        transform: translateY(-5px);
-      }
-  
-      img {
-        width: 100%;
-        height: 160px;
-        object-fit: cover;
-      }
-  
-      .detente__card-content {
-        padding: 1rem;
-        h3 {
-          margin: 0;
-          font-size: 1.2rem;
-          color: black;
-        }
-        p {
-          font-size: 0.95rem;
-          color: #666;
-          margin-top: 0.5rem;
-        }
-      }
     }
   }
-  
+
+  .detente__intro {
+    font-size: 1rem;
+    color: $detente-text-secondary;
+    line-height: 1.6;
+    max-width: 650px;
+    margin: 0 auto;
+    @media (min-width: 768px) {
+      font-size: 1.125rem;
+    }
+  }
+}
+
+.detente__cards-grid {
+  display: grid;
+  gap: 1.5rem; // Espace entre les cartes
+  grid-template-columns: 1fr; // 1 colonne sur mobile
+
+  @media (min-width: 600px) {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+  @media (min-width: 992px) {
+    // Sur les écrans plus larges, tu peux forcer 2, 3 ou 4 colonnes si auto-fit ne donne pas le résultat souhaité
+    // Par exemple, pour un maximum de 3 colonnes bien espacées :
+    // grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+    // Ou si tu veux toujours 3 colonnes :
+    // grid-template-columns: repeat(3, 1fr);
+    // Pour 2 colonnes max :
+    // grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
+
+  }
+}
+
+.detente__card {
+  background-color: $detente-card-bg;
+  border: 1px solid $detente-card-border;
+  border-radius: 12px;
+  overflow: hidden; // Pour que l'image respecte le border-radius
+  box-shadow: 0 4px 12px $detente-card-shadow;
+  display: flex;
+  flex-direction: column; // Pour que le contenu s'étende et que l'action soit en bas
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+
+  &:hover, &:focus-visible { // Ajout de focus-visible pour l'accessibilité
+    transform: translateY(-6px);
+    box-shadow: 0 8px 20px rgba(115, 140, 168, 0.15);
+    outline: 2px solid $detente-card-action-text; // Indication de focus
+    outline-offset: 2px;
+  }
+
+  .detente__card-image-wrapper {
+    width: 100%;
+    height: 200px; // Hauteur fixe pour les images
+    overflow: hidden; // Pour s'assurer que l'image ne déborde pas
+  }
+  .detente__card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; // Remplit l'espace sans déformer
+    display: block; // Enlève l'espace en dessous de l'image
+    transition: transform 0.4s ease;
+  }
+  &:hover .detente__card-image {
+    transform: scale(1.05); // Léger zoom sur l'image au survol
+  }
+
+  .detente__card-content {
+    padding: 1.25rem;
+    flex-grow: 1; // Permet à cette section de grandir pour pousser l'action en bas
+    h3.detente__card-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: $detente-text-primary;
+      margin: 0 0 0.5rem 0;
+    }
+    p.detente__card-description {
+      font-size: 0.9rem;
+      color: $detente-text-secondary;
+      line-height: 1.5;
+      margin: 0;
+    }
+  }
+
+  .detente__card-action {
+    padding: 0 1.25rem 1.25rem 1.25rem;
+    text-align: right; // Aligner le texte "Explorer" à droite
+    span {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: $detente-card-action-text;
+      text-transform: uppercase; // Optionnel
+      letter-spacing: 0.5px;  // Optionnel
+    }
+  }
+}

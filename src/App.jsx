@@ -17,7 +17,7 @@ import Urgence from './pages/Urgence';
 import JournalPage from "./pages/Journal"; 
 import PreparerSeance from './pages/PreparerSeance';
 import Settings from './pages/Settings';
-
+import SoundJourney from './pages/SoundJourney';
 
 
 function App() {
@@ -33,7 +33,7 @@ function App() {
           <Route path="/profil" element={<Profile />} />
           <Route path="/detente" element={<Detente />} />
           <Route path="/detente/programme" element={<StressProgramPage />} />
-
+          <Route path="/detente/voyage-sonore" element={<SoundJourney />} />
           <Route path="/podcast" element={<Podcast />} />
           <Route path="/sante" element={<Sante />} />
           <Route path="/preparer-seance" element={<PreparerSeance />} />
