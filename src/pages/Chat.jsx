@@ -6,7 +6,7 @@ import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import { useNavigate } from "react-router-dom";
 import Journal from "./Journal"; // Importer le composant Journal
-
+import { Zap, Waves, BookOpen, Info, ExternalLink } from 'lucide-react';
 import "../styles/_chat.scss"
 
 const EMERGENCY_KEYWORDS = [
@@ -23,6 +23,45 @@ const EMERGENCY_KEYWORDS = [
   "on m’a agressé",
   "je me sens en insécurité",
 ];
+
+const parseActionTag = (text) => {
+  const tagRegex = /#([A-Z_]+)\{([^}]+)\}/; // Regex pour #ACTION{params}
+  const match = text.match(tagRegex);
+
+  if (match) {
+    const actionName = match[1];
+    const paramsString = match[2];
+    let params = {};
+    try {
+      // Tentative de parser les paramètres comme un objet JSON-like
+      // Attention: ceci est une simplification. Une vraie grammaire ou un parser plus robuste serait mieux.
+      // Pour des paires clé:"valeur", clé:nombre
+      const paramPairs = paramsString.match(/(\w+)\s*:\s*("[^"]*"|\d+\.?\d*|true|false)/g);
+      if (paramPairs) {
+        paramPairs.forEach(pair => {
+          const [key, valueString] = pair.split(/\s*:\s*/);
+          let value = valueString;
+          if (valueString.startsWith('"') && valueString.endsWith('"')) {
+            value = valueString.slice(1, -1); // Enlève les guillemets
+          } else if (!isNaN(parseFloat(valueString))) {
+            value = parseFloat(valueString);
+          } else if (valueString === 'true') {
+            value = true;
+          } else if (valueString === 'false') {
+            value = false;
+          }
+          params[key] = value;
+        });
+      }
+    } catch (e) {
+      console.error("Erreur parsing des paramètres du tag:", e);
+    }
+    return { actionName, params, originalText: text.replace(tagRegex, "").trim() };
+  }
+  return { originalText: text, actionName: null, params: null }; // Retourne le texte original si pas de tag
+};
+
+
 
 const Chat = () => {
   // Renommé pour plus de clarté, mais tu peux garder Chat
