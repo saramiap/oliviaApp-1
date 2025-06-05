@@ -179,13 +179,31 @@ const Chat = () => {
     setLoading(true);
 
     try {
-      // Utilise directement updatedMessages comme avant pour l'appel API
-      const res = await axios.post("http://localhost:3000/ask", {
-        messages: updatedMessages, // REVENIR À CETTE LIGNE, comme dans ton code original
+      const response = await fetch("/ask", { // URL relative pour le proxy et le déploiement
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ messages: updatedMessages }), // updatedMessages doit être défini avant
       });
 
-      let aiReply =
-        res.data.response || "Désolée, je n'ai pas pu traiter cela.";
+      if (!response.ok) {
+        // Si le serveur renvoie une erreur (4xx, 5xx)
+        // Essayer de lire le message d'erreur JSON du backend
+        let errorMsg = `Erreur HTTP ${response.status} - ${response.statusText}`;
+        try {
+          const errorData = await response.json();
+          errorMsg = errorData.error || errorData.message || errorMsg; // Utilise le message du backend si disponible
+        } catch (e) {
+          // Si le corps de la réponse d'erreur n'est pas du JSON ou est vide
+          console.warn("Impossible de parser la réponse d'erreur JSON du serveur.", e);
+        }
+        throw new Error(errorMsg); // Cela va au bloc catch
+      }
+
+      const data = await response.json(); // Parse la réponse JSON si response.ok est true
+
+      let aiReply = data.response || "Désolée, je n'ai pas pu traiter cela.";
       const actionMatch = aiReply.match(/#goto:([a-zA-Z0-9_-]+)/);
       const shouldRedirect = Boolean(actionMatch);
       const redirectTarget = shouldRedirect ? actionMatch[1] : null;
@@ -194,25 +212,25 @@ const Chat = () => {
         aiReply = aiReply.replace(/#goto:[a-zA-Z0-9_-]+/, "");
       }
 
-      // Passe updatedMessages à handleAIResponse pour qu'il ajoute la réponse de l'IA
-      // à la suite des messages existants (y compris le dernier message utilisateur)
       handleAIResponse(
         aiReply,
         updatedMessages,
         redirectTarget,
         shouldRedirect
       );
+
     } catch (error) {
-      console.error("Erreur IA :", error);
-      // En cas d'erreur, ajoute un message d'erreur à la suite des messages actuels
+      console.error("Erreur IA ou réseau :", error);
+      // error.message contiendra soit "Failed to fetch" (erreur réseau)
+      // soit le message que nous avons construit avec "Erreur HTTP..."
       handleAIResponse(
-        "Oups, quelque chose s'est mal passé avec ma réflexion.",
+        `Oups, quelque chose s'est mal passé : ${error.message}`,
         updatedMessages,
         null,
         false
       );
     } finally {
-      setLoading(false);
+      setLoading(false); // Assure-toi que setLoading est défini quelque part
     }
   };
 

@@ -54,24 +54,45 @@ const PreparerSeance = () => {
       text: msg.text,
     }));
 
+    // Supposons que setIsLoadingAI(true) est appelé avant ce bloc try
     try {
-      const res = await axios.post("http://localhost:3000/ask", {
-        messages: messagesForAPI,
+      const response = await fetch("/ask", { // URL relative
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ messages: messagesForAPI }), // messagesForAPI doit être défini avant
       });
 
-      const aiResponseText = res.data.response || "Je n'ai pas bien compris, peux-tu reformuler ?";
+      if (!response.ok) {
+        let errorMsg = `Erreur HTTP ${response.status} - ${response.statusText}`;
+        try {
+          const errorData = await response.json();
+          // Si ton backend renvoie { "error": "message" } ou { "response": "message d'erreur" }
+          errorMsg = errorData.error || (errorData.response && typeof errorData.response === 'string' ? errorData.response : null) || errorMsg;
+        } catch (e) {
+          console.warn("Impossible de parser la réponse d'erreur JSON du serveur.", e);
+        }
+        throw new Error(errorMsg); // Va au bloc catch
+      }
+
+      const data = await response.json();
+      const aiResponseText = data.response || "Je n'ai pas bien compris, peux-tu reformuler ?";
       setInteractionHistory(prev => [...prev, { from: 'ai', text: aiResponseText }]);
+
     } catch (error) {
       console.error("Erreur lors de la communication avec l'API :", error);
-      let errorMessage = "Oups, une erreur technique est survenue.";
-      if (error.response?.data?.error) {
-        errorMessage = `Erreur du serveur : ${error.response.data.error}`;
-      } else if (error.request) {
-        errorMessage = "Impossible de joindre le serveur. Vérifie ta connexion.";
+      let errorMessage = error.message; // Contient déjà "Erreur HTTP..." ou "Failed to fetch"
+      if (error.message === "Failed to fetch") { // Message spécifique pour les erreurs réseau pures
+          errorMessage = "Impossible de joindre le serveur. Vérifie ta connexion.";
       }
+      // Les erreurs du serveur (comme "Clé API manquante" ou "Le champ 'messages' est requis")
+      // devraient maintenant être dans error.message grâce au throw new Error(errorMsg)
+      // exemple: "Erreur HTTP 500 - Configuration serveur incomplete: clé API manquante."
+
       setInteractionHistory(prev => [...prev, { from: 'ai', text: errorMessage }]);
     } finally {
-      setIsLoadingAI(false);
+      setIsLoadingAI(false); // Assure-toi que setIsLoadingAI est défini
     }
   };
 
