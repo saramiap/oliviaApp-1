@@ -86,3 +86,18 @@ app.post("/ask", async (req, res) => {
 app.listen(PORT, () => {
   console.log(` Serveur démarré sur http://localhost:${PORT}`);
 });
+
+// Exemple simple dans ton backend Node.js (à adapter)
+app.post("/search-pixabay-audio", async (req, res) => {
+  const { query } = req.body;
+  const PIXABAY_API_KEY_SERVER = process.env.PIXABAY_API_KEY; // Stocke la clé dans .env du serveur
+  const PIXABAY_AUDIO_API_URL_SERVER = `https://pixabay.com/api/music/?key=${PIXABAY_API_KEY_SERVER}`;
+  try {
+    console.log("ça passe ici ce n'est pas l'api");
+      const response = await fetch(`${PIXABAY_AUDIO_API_URL_SERVER}&q=${encodeURIComponent(query)}&safesearch=true&per_page=9&order=popular`);
+      const data = await response.json();
+      res.json(data);
+  } catch (error) {
+      res.status(500).json({ error: "Erreur Pixabay via serveur" });
+  }
+});

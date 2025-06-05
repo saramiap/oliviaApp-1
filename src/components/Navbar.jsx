@@ -14,7 +14,7 @@ import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp"; // Pour "Déconnexion"
 import EmergencyButton from "./EmergencyButton";
 import TaskIcon from "@mui/icons-material/Task";
-// import YourLogo from '../assets/logo.svg'; // Décommente et ajuste si tu as un logo
+import Logo from '../../public/logoOliviaApp.jpg'; // Décommente et ajuste si tu as un logo
 
 // import '../styles/_navbar.scss'; // Assure-toi d'importer le bon fichier SCSS
 
@@ -99,8 +99,8 @@ function Navbar() {
         {/* Wrapper pour le contenu de la nav */}
         <div className="nav__left">
           <Link to="/" className="nav__logo-link" onClick={closeAllMenus}>
-            {/* <img src={YourLogo} alt="Logo" className="nav__logo-img" /> */}
-            <span className="nav__logo-placeholder">MonLogo</span>{" "}
+             <img src={Logo} alt="Logo" className="nav__logo-img" /> 
+            
             {/* Placeholder */}
           </Link>
           {/* Menu desktop (déplacé à gauche après le logo) */}

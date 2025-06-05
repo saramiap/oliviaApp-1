@@ -1,0 +1,226 @@
+// src/styles/_soundJourneyPage.scss
+
+// Palette "Relaxante" (ajuste ces couleurs à ta charte globale)
+$sj-overlay-bg: rgba(26, 35, 43, 0.75); // Plus sombre pour un meilleur contraste
+$sj-text-light: #EAEFF3;
+$sj-accent-primary: #82AAFF;         // Bleu clair pour accents, boutons principaux
+$sj-accent-primary-darker: #6592E8;  // Hover pour accent primaire
+$sj-card-bg: rgba(44, 58, 71, 0.88); // Fond semi-transparent plus opaque pour cartes
+$sj-card-border: rgba(130, 170, 255, 0.25);
+$sj-button-text-on-accent: #1A232B; // Texte foncé sur fond $sj-accent-primary
+$sj-button-secondary-bg: rgba(255,255,255,0.1);
+$sj-button-secondary-hover-bg: rgba(255,255,255,0.2);
+$sj-button-tertiary-border: rgba(222, 226, 230, 0.5); // Pour bouton "Retour à détente"
+
+.sound-journey-page {
+  min-height: calc(100vh - 60px); // Hauteur de la navbar
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #1a2027; // Fond sombre si pas d'image
+  transition: background-image 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  display: flex; // Pour que l'overlay prenne toute la place
+  flex-direction: column;
+}
+
+.sound-journey-overlay {
+  flex-grow: 1;
+  background-color: $sj-overlay-bg;
+  padding: 2rem;
+  color: $sj-text-light;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  overflow-y: auto;
+}
+
+.page-icon { // Icône principale pour les sections (sélection, fin)
+  color: $sj-accent-primary;
+  margin-bottom: 1rem;
+}
+.page-subtitle {
+    font-size: 1.1rem;
+    opacity: 0.85;
+    margin-top: 0.5rem;
+    margin-bottom: 2rem;
+    max-width: 500px;
+}
+
+// --- Section de Sélection des Thèmes ---
+.theme-selection-section {
+  width: 100%;
+  max-width: 900px; // Ajuste selon le nombre de cartes par ligne
+  h2 {
+    font-size: 1.8rem; margin-bottom: 0.5rem; font-weight: 600;
+    @media (min-width: 768px) { font-size: 2.2rem; }
+  }
+}
+
+.themes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.8rem; // Plus d'espace entre les cartes
+}
+
+.theme-card {
+  background-color: $sj-card-bg;
+  border: 1px solid $sj-card-border;
+  border-radius: 12px;
+  overflow: hidden;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  display: flex; flex-direction: column;
+  color: $sj-text-light;
+  border: none; // Pour les éléments <button>
+
+  &:hover {
+    transform: translateY(-6px) scale(1.03);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  }
+
+  .theme-card-image {
+    width: 100%; height: 180px; object-fit: cover; display: block;
+  }
+  .theme-card-content {
+    padding: 1.2rem 1.4rem; flex-grow: 1;
+    h3 { font-size: 1.2rem; margin: 0 0 0.6rem 0; font-weight: 600; }
+    p { font-size: 0.9rem; line-height: 1.5; opacity: 0.8; margin: 0; }
+  }
+}
+
+// --- Messages d'Intro/Outro ---
+.journey-message { // Utilisé pour .intro-message et .outro-message
+  padding: 2rem;
+  border-radius: 10px;
+  max-width: 550px;
+  margin: 1rem auto;
+  background-color: $sj-card-bg;
+  border: 1px solid $sj-card-border;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+  
+  .olivia-text, p { // Pour le texte d'Olivia ou autre paragraphe
+    font-size: 1.15rem;
+    line-height: 1.7;
+    margin-bottom: 2rem;
+    color: $sj-text-light;
+  }
+  h3 { // Pour le titre dans l'outro
+    font-size: 1.7rem;
+    color: $sj-accent-primary;
+    margin-bottom: 0.75rem;
+  }
+  // Pour les boutons dans l'intro/outro
+  button.btn { margin: 0.5rem; } 
+}
+.outro-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: center;
+    margin-top: 1.5rem;
+    @media(min-width: 500px){
+        flex-direction: row; // Boutons en ligne si assez de place
+        justify-content: center;
+    }
+}
+
+
+// --- Conteneur du Lecteur en cours ---
+.player-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem; // Espace vertical entre les éléments
+  padding: 1rem;
+  width: 100%;
+  height: 100%; // Pour centrer
+  position: relative; 
+}
+
+.btn--back-player {
+    position: absolute;
+    top: 1.5rem;
+    left: 1.5rem;
+    background: rgba(255,255,255,0.1);
+    color: $sj-text-light;
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    border-radius: 20px;
+    z-index: 5;
+    &:hover { background: rgba(255,255,255,0.2); }
+}
+
+.current-theme-title-playing {
+  font-size: 1.7rem;
+  font-weight: 500;
+  margin: 0;
+  text-shadow: 0 2px 5px rgba(0,0,0,0.6);
+  max-width: 90%;
+  @media (min-width: 768px) { font-size: 2rem; }
+}
+
+.player-buttons {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem; // Espace entre les gros boutons de contrôle
+}
+
+// --- Styles des Boutons Communs (adaptés de la version précédente) ---
+.btn {
+  padding: 0.8rem 1.6rem;
+  border: none;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+  font-size: 0.95rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center; // Important pour les boutons avec icône seule
+  gap: 0.6em;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+
+  &:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+  &:active { transform: translateY(0px) scale(0.98); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+  &--start-journey, &--restart-journey { // Boutons principaux
+    background-color: $sj-accent-primary;
+    color: $sj-button-text-on-accent;
+    &:hover { background-color: $sj-accent-primary-darker; }
+  }
+  &--cancel-journey { // Bouton secondaire (choisir autre thème)
+    background-color: $sj-button-secondary-bg;
+    color: $sj-text-light;
+    border: 1px solid $sj-card-border;
+    &:hover { background-color: $sj-button-secondary-hover-bg; }
+  }
+   &--tertiary { // Bouton pour "Retour à Détente"
+    background-color: transparent;
+    color: $sj-text-light;
+    border: 1px solid $sj-button-tertiary-border;
+     &:hover { background-color: rgba($sj-button-tertiary-border, 0.2); }
+   }
+
+  &--control { // Boutons play/pause/mute
+    background-color: rgba(255,255,255,0.18);
+    color: $sj-text-light;
+    border-radius: 50%;
+    width: 64px; height: 64px;
+    padding: 0;
+    svg { margin: 0; font-size: 1.8rem; } // Ajuste la taille de l'icône interne si besoin
+    &:hover { background-color: rgba(255,255,255,0.28); }
+  }
+  &--finish-playing {
+    margin-top: 1.5rem;
+    background-color: $sj-button-secondary-bg;
+    border: 1px solid $sj-card-border;
+    color: $sj-text-light;
+    &:hover { background-color: $sj-button-secondary-hover-bg; }
+  }
+}

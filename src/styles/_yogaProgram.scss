@@ -1,0 +1,227 @@
+// src/styles/_yogaProgramPage.scss
+
+// Palette de couleurs (inspirée de tes thèmes précédents)
+$yoga-bg-main: #F0F4F8;             // Fond de page (bleu très clair/gris)
+$yoga-text-primary: #3A4F66;        // Texte principal (bleu-gris foncé)
+$yoga-text-secondary: #5C7A99;       // Texte secondaire
+$yoga-accent-primary: #82AAFF;      // Accent principal (bleu clair)
+$yoga-accent-secondary: #A0D2DB;    // Accent plus doux (bleu-vert)
+$yoga-card-bg: #FFFFFF;              // Fond des cartes
+$yoga-card-border: #E0EAF3;         // Bordure des cartes
+$yoga-card-shadow: rgba(115, 140, 168, 0.1);
+$yoga-button-text-light: #FFFFFF;
+
+// --- Styles Généraux de la Page ---
+.yoga-program-page {
+  background-color: $yoga-bg-main;
+  min-height: calc(100vh - 60px); // Hauteur moins la navbar
+  padding: 1.5rem;
+  color: $yoga-text-primary;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+
+  @media (min-width: 768px) {
+    padding: 2rem 3rem;
+  }
+}
+
+.yoga-program-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid $yoga-card-border;
+
+  .program-icon {
+    color: $yoga-accent-secondary;
+    margin-bottom: 0.75rem;
+  }
+  h1 {
+    font-size: 2rem; font-weight: 700; color: $yoga-text-primary; margin-bottom: 0.5rem;
+    @media (min-width: 768px) { font-size: 2.4rem; }
+  }
+  .program-description {
+    font-size: 1rem; color: $yoga-text-secondary; line-height: 1.6; max-width: 700px; margin: 0 auto;
+    @media (min-width: 768px) { font-size: 1.1rem; }
+  }
+}
+
+// --- Liste des Séances ---
+.yoga-sessions-list {
+  h2 {
+    text-align: center;
+    font-size: 1.5rem;
+    color: $yoga-text-primary;
+    margin-bottom: 2rem;
+    font-weight: 600;
+  }
+}
+
+.sessions-grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: 1fr; // 1 colonne sur mobile
+
+  @media (min-width: 600px) {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+   @media (min-width: 992px) { // Max 3 colonnes sur desktop
+    grid-template-columns: repeat(auto-fit, minmax(300px, calc(33.333% - 1rem))); // Ajuste le calc pour le gap
+   }
+}
+
+.session-card {
+  background-color: $yoga-card-bg;
+  border: 1px solid $yoga-card-border;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px $yoga-card-shadow;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+
+  &:hover, &:focus-visible {
+    transform: translateY(-5px);
+    box-shadow: 0 7px 18px rgba(115, 140, 168, 0.18);
+    outline: 2px solid $yoga-accent-primary;
+    outline-offset: 2px;
+  }
+
+  .session-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    .session-day {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: $yoga-accent-primary;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .session-duration {
+      font-size: 0.8rem;
+      color: $yoga-text-secondary;
+      background-color: $yoga-bg-main, 2%;
+      padding: 0.2em 0.5em;
+      border-radius: 4px;
+    }
+  }
+
+  .session-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: $yoga-text-primary;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.3;
+  }
+  .session-focus {
+    font-size: 0.9rem;
+    color: $yoga-text-secondary;
+    line-height: 1.5;
+    margin-bottom: 1.5rem; // Espace avant le bouton
+    flex-grow: 1; // Pousse le bouton vers le bas
+  }
+  .btn--select-session { // Hérite de .btn s'il existe globalement
+    background-color: $yoga-accent-primary;
+    color: $yoga-button-text-light;
+    padding: 0.6rem 1.2rem;
+    border-radius: 20px; // Bouton arrondi
+    font-weight: 500;
+    font-size: 0.9rem;
+    align-self: flex-start; // Aligner le bouton à gauche
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    transition: background-color 0.2s;
+    &:hover { background-color: $yoga-accent-primary, 10%; }
+  }
+}
+
+// --- Vue de la Séance en Cours (avec lecteur vidéo) ---
+.yoga-session-player-view {
+  padding: 1rem 0; // Espace autour de la vue du lecteur
+  max-width: 800px; // Limite la largeur du lecteur et des détails
+  margin: 0 auto; // Centre
+
+  .btn--back-to-program {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4em;
+    font-size: 0.9rem;
+    color: $yoga-text-secondary;
+    background-color: transparent;
+    border: 1px solid $yoga-card-border;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    margin-bottom: 1.5rem;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s, background-color 0.2s;
+    &:hover { 
+        color: $yoga-text-primary; 
+        border-color: $yoga-text-secondary;
+        background-color: $yoga-bg-main, 2%;
+    }
+
+    &.btn--bottom { // Pour le bouton en bas de la page de lecture
+        display: block;
+        margin: 2rem auto 0 auto; // Centrer
+        width: fit-content;
+    }
+  }
+
+  .current-session-title {
+    font-size: 1.6rem;
+    color: $yoga-text-primary;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    text-align: center;
+  }
+  .current-session-focus, .current-session-duration {
+    font-size: 0.95rem;
+    color: $yoga-text-secondary;
+    text-align: center;
+    margin-bottom: 0.25rem;
+    span { font-weight: 600; color: $yoga-text-primary; }
+  }
+  .current-session-duration { margin-bottom: 1.5rem; }
+
+  .video-responsive-wrapper { // Pour un iframe/video responsive
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    padding-top: 56.25%; // Ratio 16:9 (height / width * 100)
+    margin-bottom: 2rem;
+    border-radius: 10px; // Coins arrondis pour le conteneur vidéo
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+
+    iframe, video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      width: 100%;
+      height: 100%;
+      border: none; // Pour enlever la bordure par défaut de l'iframe
+    }
+  }
+
+  .current-session-details { // Reprend le style .card-style
+    background-color: $yoga-card-bg;
+    border: 1px solid $yoga-card-border;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 12px $yoga-card-shadow;
+    text-align: left;
+    h3, h4 { 
+      font-size: 1.1rem; color: $yoga-text-primary; font-weight: 600; margin: 0 0 0.75rem 0; 
+    }
+    h4 { font-size: 1rem; margin-top: 1.2rem; }
+    p, ul { 
+      font-size: 0.95rem; color: $yoga-text-secondary; line-height: 1.6; margin-bottom: 0.5rem; 
+    }
+    ul { padding-left: 1.2rem; }
+  }
+}

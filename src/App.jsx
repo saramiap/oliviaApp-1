@@ -18,6 +18,7 @@ import JournalPage from "./pages/Journal";
 import PreparerSeance from './pages/PreparerSeance';
 import Settings from './pages/Settings';
 import SoundJourney from './pages/SoundJourney';
+import YogaProgram from './pages/YogaProgram';
 
 
 function App() {
@@ -34,6 +35,7 @@ function App() {
           <Route path="/detente" element={<Detente />} />
           <Route path="/detente/programme" element={<StressProgramPage />} />
           <Route path="/detente/voyage-sonore" element={<SoundJourney />} />
+          <Route path="/detente/programme-yoga" element={<YogaProgram />} />
           <Route path="/podcast" element={<Podcast />} />
           <Route path="/sante" element={<Sante />} />
           <Route path="/preparer-seance" element={<PreparerSeance />} />

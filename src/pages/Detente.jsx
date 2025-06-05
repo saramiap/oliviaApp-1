@@ -6,21 +6,21 @@ const themes = [
   {
     title: "Programme anti-stress (7 jours)",
     description: "Un parcours personnalisé pour mieux gérer ton stress au quotidien.",
-    image: "/images/programme.jpg", // Assure-toi que cette image existe
+    image: "../../public/antiStress.jpg", // Assure-toi que cette image existe
     route: "/detente/programme", // Le nouveau chemin de ta route
   },
   {
     id: 'voyage-sonore', // Nouvel id
     title: "Voyages Sonores Immersifs", // Nouveau titre
     description: "Laisse-toi transporter par des ambiances sonores apaisantes et personnalisées.", // Nouvelle description
-    image: "../../public/voyage-sonore.jpg", // Tu auras besoin d'une image pour cela
+    image: "../../public/voyage-immersif.jpg", // Tu auras besoin d'une image pour cela
     route: "/detente/voyage-sonore", // <<<< NOUVELLE ROUTE VERS SoundJourneyPage
   },
   {
-    title: "Apprendre à respirer",
-    description: "Découvre des exercices de respiration simples et efficaces.",
-    image: "/images/respirer.jpg",
-    route: "/detente/respirer",
+    title: "Yoga",
+    description: "Découvre des exercices de yoga.",
+    image: "../../public/soundJourneyImage/yoga.jpg",
+    route: "/detente/programme-yoga",
   },
   {
     title: "Pourquoi le stress nous bloque",
