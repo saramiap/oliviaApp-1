@@ -1,0 +1,183 @@
+// src/styles/_understandingStressPage.scss
+
+// Palette de couleurs (inspirée de tes thèmes précédents)
+$usp-bg: #F0F4F8;                         // Fond de page (bleu très clair/gris)
+$usp-text-primary: #3A4F66;              // Texte principal (bleu-gris foncé)
+$usp-text-secondary: #5C7A99;             // Texte secondaire (intro, légendes)
+$usp-title-color: #2C3E50;               // Titre principal
+$usp-section-title-color: #34495E;       // Titres de section
+$usp-accent-color: #82AAFF;              // Accent pour temps de lecture, bouton retour
+$usp-image-border: #DDE4EA;             // Bordure subtile pour images
+$usp-footer-bg: darken($usp-bg, 3%);     // Fond légèrement différent pour le footer
+$usp-sticky-time-bg: rgba(44, 62, 80, 0.9); // Fond pour le temps de lecture sticky
+$usp-sticky-time-text: #EAEFF3;
+
+.understanding-stress-page {
+  background-color: $usp-bg;
+  color: $usp-text-primary;
+  line-height: 1.7; // Bonne lisibilité pour les longs textes
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  padding-bottom: 3rem; // Espace pour le footer
+}
+
+.usp-header {
+  text-align: center;
+  padding: 2.5rem 1.5rem 2rem 1.5rem; // Padding mobile
+  background-color: darken($usp-bg, 2%); // Léger contraste pour le header
+  border-bottom: 1px solid $usp-image-border;
+  margin-bottom: 2rem;
+
+  h1 {
+    color: $usp-title-color;
+    font-size: 2rem; font-weight: 700; margin: 0 0 0.75rem 0;
+    @media (min-width: 768px) { font-size: 2.6rem; }
+  }
+  .usp-intro {
+    font-size: 1.05rem; color: $usp-text-secondary; max-width: 700px; margin: 0 auto 1rem auto;
+    @media (min-width: 768px) { font-size: 1.15rem; }
+  }
+  .usp-reading-time {
+    font-size: 0.85rem; color: $usp-accent-color; font-weight: 500;
+    background-color: lighten($usp-accent-color, 35%);
+    padding: 0.3em 0.8em;
+    border-radius: 15px;
+    display: inline-block;
+  }
+}
+
+.usp-sticky-reading-time {
+  position: sticky;
+  top: 65px; // Juste en dessous de ta navbar principale (ajuste cette valeur)
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: $usp-sticky-time-bg;
+  color: $usp-sticky-time-text;
+  padding: 0.4rem 1rem;
+  border-radius: 0 0 8px 8px; // Coins arrondis en bas
+  font-size: 0.8rem;
+  font-weight: 500;
+  z-index: 900; // En dessous de la navbar mais au-dessus du contenu
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  width: fit-content; // S'adapte au contenu
+  margin: 0 auto 1rem auto; // Centrer et espacer
+  opacity: 0.95;
+  transition: opacity 0.3s ease;
+  // Cache si plus de temps restant (géré par JS)
+  &:empty { display: none; } 
+}
+
+
+.usp-content {
+  max-width: 800px; // Largeur de lecture confortable
+  margin: 0 auto;
+  padding: 0 1.5rem; // Padding mobile
+  @media (min-width: 768px) { padding: 0 2rem; }
+}
+
+.usp-section {
+  margin-bottom: 3rem; // Espace entre les sections
+  display: grid; // Utiliser grid pour le layout image + texte
+  grid-template-columns: 1fr; // Par défaut, une colonne
+  gap: 1.5rem;
+
+  @media (min-width: 768px) {
+    // Image à gauche, texte à droite (ou alterner)
+    // Pour alterner :
+    // &:nth-child(odd) { grid-template-columns: 1fr 1.5fr; } // Texte plus large
+    // &:nth-child(even) { grid-template-columns: 1.5fr 1fr; .usp-section-image-container { order: 1; } }
+    // Pour l'instant, image toujours à gauche si présente
+    grid-template-columns: 0.8fr 1.2fr; // Ajuste les proportions
+    gap: 2.5rem;
+    align-items: flex-start; // Aligner en haut si le texte est plus long que l'image
+  }
+
+  .usp-section-image-container {
+    // display: none; // Option: cacher les images sur très petits écrans si besoin
+    // @media (min-width: 576px) { display: block; }
+
+    .usp-section-image {
+      width: 100%;
+      max-height: 350px; // Limiter la hauteur de l'image
+      object-fit: cover; // Couvre bien sans déformer
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      display: block; // Pour enlever l'espace en dessous
+    }
+  }
+  // Si pas d'image, le texte prend toute la largeur grâce à grid
+  &:has(.usp-section-image-container:empty) .usp-section-text, // S'il n'y a pas d'image
+  &:not(:has(.usp-section-image-container)) .usp-section-text {  // Si le conteneur d'image n'existe pas
+    @media (min-width: 768px) {
+        grid-column: 1 / -1; // Le texte prend toute la largeur de la grille
+    }
+  }
+
+
+  .usp-section-text {
+    h2 {
+      font-size: 1.5rem; color: $usp-section-title-color; margin: 0 0 1rem 0; font-weight: 600;
+      @media (min-width: 768px) { font-size: 1.75rem; }
+    }
+    p, li {
+      font-size: 1rem; margin-bottom: 1em; color: $usp-text-primary;
+      @media (min-width: 768px) { font-size: 1.05rem; }
+    }
+    strong { font-weight: 600; color: darken($usp-text-primary, 10%); }
+    ul { 
+        padding-left: 1.5rem; 
+        li { margin-bottom: 0.5em; }
+    }
+    .usp-subsection {
+        margin-top: 1.5rem;
+        padding-left: 1rem;
+        border-left: 3px solid $usp-accent-color;
+        h4 {
+            font-size: 1.1rem;
+            color: $usp-section-title-color;
+            margin: 0 0 0.75rem 0;
+            font-weight: 600;
+        }
+    }
+  }
+}
+
+.usp-scroll-top-button {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: $usp-accent-color;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+  cursor: pointer;
+  z-index: 950; // En dessous du temps de lecture sticky et de la navbar
+  transition: transform 0.2s ease-in-out, opacity 0.2s ease-in-out;
+  opacity: 0.85;
+
+  &:hover {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  svg { stroke-width: 2px; }
+}
+
+.usp-footer {
+  margin-top: 3rem;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  background-color: $usp-footer-bg;
+  border-top: 1px solid $usp-image-border;
+  p {
+    font-size: 0.95rem;
+    color: $usp-text-secondary;
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+}
