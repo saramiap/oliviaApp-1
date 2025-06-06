@@ -2,6 +2,8 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 
+const path = require("path");
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -45,8 +47,16 @@ Tu donnes des conseils **basés sur des principes établis et reconnus, sans jam
 Tu donnes des conseils psychologiques 
 `;
 
+// ---- SERVIR LE FRONTEND STATIQUE ----
+// Le chemin vers le dossier 'dist' de ton build Vite
+const frontendDistPath = path.join(__dirname, '../frontend/dist');
+app.use(express.static(frontendDistPath));
 
 app.post("/ask", async (req, res) => {
+  if (!GEMINI_API_KEY) { // Re-vérifier ici au cas où le serveur a démarré sans
+    return res.status(500).json({ error: "Configuration serveur incomplete: clé API manquante." });
+  }
+
   const { messages } = req.body;
 
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -90,8 +100,19 @@ app.post("/ask", async (req, res) => {
   }
 });
 
+// ---- GESTION DES ROUTES DU FRONTEND (pour SPA) ----
+// Pour toutes les autres requêtes GET non gérées par l'API ou les fichiers statiques,
+// renvoyer index.html (gestion du routing côté client par Vite/React/Vue/etc.)
+// Cela doit être APRÈS routes API et AVANT app.listen.
+app.get('*', (req, res) => {
+  res.sendFile(path.join(frontendDistPath, 'index.html'));
+});
+
 app.listen(PORT, () => {
-  console.log(` Serveur démarré sur http://localhost:${PORT}`);
+  console.log(`Serveur démarré sur http://localhost:${PORT}`);
+  if (!GEMINI_API_KEY) {
+    console.warn("⚠️ ATTENTION: La clé API GEMINI_API_KEY n'est pas définie. La route /ask ne fonctionnera pas.");
+  }
 });
 
 // Exemple simple dans ton backend Node.js (à adapter)
