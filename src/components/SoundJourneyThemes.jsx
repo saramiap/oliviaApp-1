@@ -31,7 +31,7 @@ export const soundJourneyThemes = [
       backgroundImage: '/public/soundJourneyImage/patoger-dans-leau.jpg',
       audioTracks: [
         { src: '/public/audio/bruit-de-leau.mp3', volume: 0.7, loop: true },
-        { src: '/public/audio/relaxation-music-fond.mp3', volume: 0.5, loop: true, delay: 3000 },
+        { src: '/public/audio/relaxation-music-fond.mp3', volume: 0.9, loop: true, delay: 3000 },
       ],
       oliviaIntro: "Préparez-vous pour un voyage au cœur de la mer. Laissez votre esprit s'étendre dans l'immensité...",
       oliviaOutro: "Revenez doucement sur Terre, avec une nouvelle perspective. Prenez une grande inspiration."

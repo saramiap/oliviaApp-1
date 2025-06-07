@@ -161,6 +161,73 @@
       input[type="file"] {
         padding: 0.25rem; // Moins de padding pour l'input file
       }
+
+      .avatar-selection-fieldset {
+        margin-top: 1.5rem;
+        border: 1px solid #ddd; // Ajuste la couleur de la bordure
+        border-radius: 8px;
+        padding: 1rem;
+  
+        legend {
+          font-weight: bold;
+          padding: 0 0.5em;
+          margin-left: 0.5em; // Ou centrer le legend
+          color: #333; // Ajuste la couleur
+        }
+      }
+  
+      .predefined-avatars-container {
+        display: flex;
+        flex-wrap: wrap; // Permet aux avatars de passer à la ligne
+        gap: 0.75rem; // Espace entre les avatars
+        margin-bottom: 1rem; // Espace avant l'option d'upload
+        justify-content: center; // Centrer les avatars s'ils ne remplissent pas une ligne
+  
+        .avatar-option-button {
+          background-color: transparent;
+          border: 2px solid transparent; // Bordure par défaut
+          border-radius: 50%; // Pour des avatars ronds
+          padding: 0.2rem; // Petit padding autour de l'image
+          cursor: pointer;
+          transition: border-color 0.2s ease, transform 0.2s ease;
+          width: 64px; // Taille du bouton (ajuste avec l'image)
+          height: 64px;
+  
+          img {
+            width: 100%; // L'image prend toute la place du bouton (moins le padding)
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%; // Image ronde
+            display: block;
+          }
+  
+          &:hover {
+            border-color: #bca0dc; // Couleur de survol (ton violet plus clair)
+            transform: scale(1.05);
+          }
+  
+          &.selected {
+            border-color: #814CAF; // Couleur de sélection (ton violet principal)
+            box-shadow: 0 0 0 2px #814CAF; // Effet de "halo" pour la sélection
+            transform: scale(1.1);
+          }
+  
+          &:focus-visible { // Style de focus pour l'accessibilité
+              outline: 2px solid #814CAF;
+              outline-offset: 2px;
+          }
+        }
+      }
+  
+      .avatar-upload-label {
+        display: block;
+        margin-top: 1rem;
+        margin-bottom: 0.5rem;
+        font-weight: normal; // Différent du label principal
+        font-size: 0.9rem;
+        color: #555; // Ajuste la couleur
+      }
+      
       
       .modal__buttons {
         margin-top: 1.5rem;
