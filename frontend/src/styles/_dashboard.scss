@@ -1,0 +1,226 @@
+// src/styles/_dashboardPage.scss
+
+// Palette (inspirée de tes thèmes existants)
+$db-bg-main: #F0F4F8;               // Fond de page (bleu très clair/gris)
+$db-text-primary: #3A4F66;          // Texte principal
+$db-text-secondary: #5C7A99;         // Texte secondaire
+$db-title-color: #2C3E50;            // Titre principal de la page
+$db-accent-primary: #82AAFF;        // Bleu clair accent (boutons principaux, icônes)
+$db-accent-primary-darker: #6592E8; // Hover pour accent
+$db-card-bg: #FFFFFF;                // Fond des cartes
+$db-card-border: #E0EAF3;           // Bordure des cartes
+$db-card-shadow: rgba(115, 140, 168, 0.08);
+$db-button-text-on-accent: #FFFFFF; // Texte sur les boutons avec fond accentué
+
+.dashboard-page {
+  background-color: $db-bg-main;
+  min-height: calc(100vh - 60px); // Hauteur moins la navbar
+  padding: 1.5rem; // Padding mobile
+  color: $db-text-primary;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+
+  @media (min-width: 768px) {
+    padding: 2rem 3rem;
+  }
+}
+
+.dashboard-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+
+  h1 {
+    color: $db-title-color;
+    font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;
+    @media (min-width: 768px) { font-size: 2.4rem; }
+  }
+  .dashboard-welcome-message {
+    font-size: 1.05rem; color: $db-text-secondary; line-height: 1.6;
+    max-width: 600px; margin: 0 auto; font-style: italic;
+    @media (min-width: 768px) { font-size: 1.15rem; }
+  }
+}
+
+.dashboard-grid {
+  display: grid;
+  gap: 1.5rem; // Espace entre les cartes
+  grid-template-columns: 1fr; // 1 colonne sur mobile
+
+  @media (min-width: 768px) {
+    // 2 colonnes sur tablette, avec la suggestion d'Olivia plus large
+    grid-template-columns: repeat(2, 1fr);
+    // Pour que la suggestion d'Olivia prenne plus de place si c'est la première :
+    // .card-olivia-suggestion { grid-column: span 2; } // Option 1: pleine largeur
+    // Ou si tu as 3 colonnes :
+    // grid-template-columns: repeat(3, 1fr);
+    // .card-olivia-suggestion { grid-column: span 2; }
+  }
+  @media (min-width: 1024px) {
+    // Exemple : 2 colonnes, mais la première plus large
+    grid-template-columns: 1.5fr 1fr; 
+    // Ou 3 colonnes égales
+    // grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.dashboard-card {
+  background-color: $db-card-bg;
+  border: 1px solid $db-card-border;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 15px $db-card-shadow;
+  display: flex;
+  flex-direction: column;
+
+  h2 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: $db-text-primary;
+    margin: 0 0 1rem 0;
+    display: flex;
+    align-items: center; // Pour l'icône si présente
+  }
+
+  .card-icon-top { // Pour les icônes au-dessus du titre h2
+    color: $db-accent-primary;
+    margin-bottom: 0.75rem;
+    svg { width: 32px; height: 32px; }
+  }
+
+  p {
+    font-size: 0.95rem;
+    color: $db-text-secondary;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+    flex-grow: 1; // Pour que le bouton soit en bas si la carte a une hauteur variable
+  }
+
+  .btn { // Style de base pour les boutons dans les cartes
+    padding: 0.7rem 1.2rem;
+    border: none;
+    border-radius: 20px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    text-decoration: none; // Pour les <Link> stylés comme des boutons
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5em;
+    font-size: 0.9rem;
+
+    &:hover { transform: translateY(-1px); }
+
+    &--primary {
+      background-color: $db-accent-primary;
+      color: $db-button-text-on-accent;
+      &:hover { background-color: $db-accent-primary-darker; }
+    }
+    &--secondary {
+      background-color: transparent;
+      color: $db-accent-primary;
+      border: 1px solid $db-accent-primary;
+      &:hover { background-color: $db-accent-primary, 35%; }
+    }
+  }
+}
+
+// Styles spécifiques aux cartes
+.card-olivia-suggestion {
+  // Peut-être un fond ou une bordure d'accent pour la mettre en valeur
+  // background-color: $db-accent-primary, 38%;
+  // border-left: 4px solid $db-accent-primary;
+  h3 { // Titre de la suggestion (ex: nom de l'exercice)
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: $db-text-primary;
+    margin: 0 0 0.5rem 0;
+  }
+  .btn { align-self: flex-start; } // Bouton à gauche
+}
+
+.card-last-activities {
+  .quick-access-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    li { margin-bottom: 0.5rem; }
+  }
+  .quick-access-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background-color: transparent;
+    transition: background-color 0.2s ease;
+    color: $db-text-primary;
+    border: 1px solid transparent; // Pour un effet de bordure au survol
+
+    &:hover {
+      background-color: $db-bg-main, 1%;
+      border-color: $db-card-border;
+      .item-arrow { transform: translateX(3px); }
+    }
+
+    .item-icon {
+      margin-right: 0.8rem;
+      color: $db-accent-primary;
+      flex-shrink: 0;
+      svg {display: block;}
+    }
+    .item-info {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      .item-type { font-size: 0.75rem; color: $db-text-secondary; text-transform: uppercase; letter-spacing: 0.5px; }
+      .item-title { font-size: 0.95rem; font-weight: 500; }
+    }
+    .item-progress {
+      font-size: 0.8rem;
+      color: $db-text-secondary;
+      margin-left: 0.5rem;
+      background-color: $db-bg-main, 2%;
+      padding: 0.2em 0.5em;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+    .item-arrow {
+        color: $db-text-secondary;
+        transition: transform 0.2s ease;
+        margin-left: 0.5rem;
+    }
+  }
+}
+
+.card-mood-summary {
+  text-align: center;
+  .mood-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin: 1rem 0 0.5rem 0;
+    .mood-emoji { font-size: 2.5rem; }
+    .mood-text { font-size: 1.2rem; font-weight: 600; color: $db-text-primary; }
+  }
+  .mood-date { font-size: 0.85rem; color: $db-text-secondary; margin-bottom: 1.5rem; }
+  .btn { margin-top: auto; } // Pousse le bouton en bas de la carte
+}
+
+.card-explore {
+    .explore-links {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        a {
+            display: block;
+            padding: 0.6rem 0;
+            color: $db-accent-primary;
+            font-weight: 500;
+            text-decoration: underline;
+            text-decoration-color: transparent;
+            transition: text-decoration-color 0.2s;
+            &:hover {
+                text-decoration-color: $db-accent-primary;
+            }
+        }
+    }
+}

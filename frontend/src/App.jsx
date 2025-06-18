@@ -20,7 +20,7 @@ import Settings from './pages/Settings';
 import SoundJourney from './pages/SoundJourney';
 import YogaProgram from './pages/YogaProgram';
 import UnderstandingStress from './pages/UnderstandingStress';
-
+import Dashboard from './pages/Dashboard';
 
 function App() {
   return (
@@ -28,8 +28,9 @@ function App() {
       <Navbar />
       <div className="page-container">
         <Routes>
-        <Route path="/" element={<ProfileSelect />} />
-          <Route path="/home" element={<Home />} />
+        <Route path="/home" element={<ProfileSelect />} />
+        <Route path="/" element={<Dashboard />} />
+          {/* <Route path="/home" element={<Home />} /> */}
           <Route path="/chat" element={<Chat />} />
           <Route path="/journal" element={<JournalPage />} />
           <Route path="/profil" element={<Profile />} />

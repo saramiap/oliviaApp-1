@@ -30,13 +30,13 @@ const urgenceContacts = [
     number: "119",
     description: "Service national d'accueil téléphonique pour l'enfance en danger (SNATED).",
   },
-  // Tu peux ajouter d'autres numéros pertinents
-  // {
-  //   id: "drogues-info",
-  //   label: "Drogues Info Service",
-  //   number: "0800231313",
-  //   description: "Aide et écoute pour les problèmes liés aux drogues et dépendances.",
-  // },
+{
+  id:"harcèlement",
+  label:"Harcelement",
+  number: "3020",
+  description: "le numéro national contre toutes les formes de harcèlement, y compris cyberharcèlement à l'école",
+},
+
 ];
 
 const Urgence = () => {

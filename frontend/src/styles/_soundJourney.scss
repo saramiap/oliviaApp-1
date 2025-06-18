@@ -185,7 +185,9 @@ $sj-button-tertiary-border: rgba(222, 226, 230, 0.5); // Pour bouton "Retour à 
   justify-content: center; // Important pour les boutons avec icône seule
   gap: 0.6em;
   box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  //@media (min-width: 768px) { top: 2rem; }
 
+  
   &:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
   &:active { transform: translateY(0px) scale(0.98); box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
 

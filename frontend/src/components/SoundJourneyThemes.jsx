@@ -18,8 +18,8 @@ export const soundJourneyThemes = [
       description: 'Le rythme régulier des vagues pour une relaxation profonde et un esprit clair.',
       backgroundImage: '/public/soundJourneyImage/la-mer.jpg',
       audioTracks: [
-        { src: '/public/audio/ocean-beach-waves-332383.mp3', volume: 0.9, loop: true },
-        { src: '/public/audio/relaxation-music-fond.mp3', volume: 0.6, loop: true, delay: 5000 },
+        { src: '/public/audio/ocean-beach-waves-332383.mp3', volume: 0.7, loop: true },
+        { src: '/public/audio/relaxation-music-fond.mp3', volume: 1.5, loop: true, delay: 5000 },
       ],
       oliviaIntro: "Imaginez-vous au bord de l'océan. Sentez la brise, écoutez le va-et-vient des vagues...",
       oliviaOutro: "Gardez cette sensation de calme et d'espace en vous. Revenez à votre rythme."
