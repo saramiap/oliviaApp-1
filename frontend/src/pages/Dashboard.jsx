@@ -1,13 +1,18 @@
-// src/pages/DashboardPage.js
+
+
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import '../styles/_dashboard.scss'; // Nouveau fichier SCSS
-import { Zap, Headphones, BookText, Smile, Edit3, ArrowRight } from 'lucide-react'; // Icônes
+import { Zap, Headphones, BookText, Smile, Edit3, ArrowRight, Compass, HelpCircle } from 'lucide-react'; // Icônes
+import { 
+  getUserNameFromStorage, 
+  getLastActivitiesFromStorage,
+  getMoodSummaryFromStorage 
+  // addActivityToStorage sera utilisé dans les pages d'activité elles-mêmes
+} from '../utils/localStorageManager'; // Ajuste le chemin
+// src/utils/localStorageManager.js (exemple)
 
-// Données simulées (à remplacer par de vraies données plus tard)
-const mockUserData = {
-  name: "Alex", // Ou récupérer le vrai nom de l'utilisateur connecté
-};
+
 
 const mockLastActivities = [
   { id: 'sound_journey_forest', type: 'Voyage Sonore', title: 'Forêt Sereine', route: '/detente/voyage-sonore', icon: <Headphones size={20}/>, progress: null },
@@ -30,41 +35,80 @@ const mockMoodSummary = { // Simule la dernière humeur enregistrée
   date: "Aujourd'hui", // ou la date du dernier enregistrement
 };
 
-
 const Dashboard = () => {
-  const [userName, setUserName] = useState(mockUserData.name);
+
   const [lastActivities, setLastActivities] = useState(mockLastActivities);
   const [oliviaSuggestion, setOliviaSuggestion] = useState(mockOliviaSuggestion);
-  const [moodSummary, setMoodSummary] = useState(mockMoodSummary); // À implémenter vraiment plus tard
+  const [moodSummary, setMoodSummary] = useState(mockMoodSummary);
   const [welcomeMessage, setWelcomeMessage] = useState('');
-
+  const [cardsVisible, setCardsVisible] = useState(false); // Pour l'animation d'apparition
+const [userName, setUserName] = useState(''); 
   const navigate = useNavigate();
 
-  useEffect(() => {
-    // Simuler un message de bienvenue personnalisé d'Olivia
-    // À terme, cela pourrait être un appel API à Olivia avec un prompt comme :
-    // "Génère un message de bienvenue court et positif pour [userName] pour son tableau de bord, 
-    // incluant un petit conseil général pour la journée (ex: prendre une pause, s'hydrater, sourire)."
+ useEffect(() => {
+    // --- Chargement des Données depuis localStorage ---
+    const loadedUserName = getUserNameFromStorage();
+    setUserName(loadedUserName);
+    setLastActivities(getLastActivitiesFromStorage());
+    setMoodSummary(getMoodSummaryFromStorage());
+
+    // --- Message de Bienvenue et Suggestion d'Olivia ---
     const timeOfDay = new Date().getHours();
     let greeting = "Bonjour";
     if (timeOfDay < 12) greeting = "Bonjour";
     else if (timeOfDay < 18) greeting = "Bon après-midi";
     else greeting = "Bonsoir";
-
-    const oliviaTips = [
-        "N'oubliez pas de prendre quelques instants pour respirer profondément aujourd'hui.",
-        "Un petit moment de gratitude peut illuminer votre journée.",
-        "Pensez à vous hydrater régulièrement, c'est bon pour le corps et l'esprit.",
-        "Une courte marche peut faire des merveilles pour clarifier les idées.",
-        "Souriez, même un petit peu, cela peut influencer positivement votre humeur."
-    ];
+    const oliviaTips = [ /* ... */ ];
     const randomTip = oliviaTips[Math.floor(Math.random() * oliviaTips.length)];
-
     setWelcomeMessage(`${greeting} ${userName} ! Olivia vous suggère : "${randomTip}"`);
+    // Pour la suggestion d'Olivia, tu ferais idéalement un appel API ici
+    // Pour l'instant, on garde le mock mais on l'intègre au message de bienvenue.
+    // setWelcomeMessage(`${greeting} ${loadedUserName} ! ${oliviaSuggestion.description}`);
+    // Ou si tu veux séparer le message d'accueil du conseil:
+    setWelcomeMessage(`${greeting} ${loadedUserName} ! Prêt·e pour une journée plus sereine ?`);
 
-    // Charger les vraies données utilisateur, dernières activités, etc. ici
-    // Par exemple, depuis localStorage ou une API si l'utilisateur est connecté.
-  }, [userName]);
+
+    // Animation des cartes
+    const timer = setTimeout(() => {
+      setCardsVisible(true);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, []); // Se déclenche une seule fois au montage
+
+
+
+  // Définition des sections de l'application pour la carte d'introduction
+  const appSections = [
+    { name: "Espace Détente", description: "Explorez des voyages sonores, des programmes de yoga et des exercices de respiration pour vous relaxer.", icon: <Headphones size={20}/>, link: "/detente" },
+    { name: "Dialogue avec Olivia", description: "Discutez avec Olivia, votre IA de soutien, pour explorer vos pensées et émotions.", icon: <BookText size={20}/>, link: "/chat" },
+    { name: "Préparer ma Séance", description: "Structurez vos idées et émotions avant vos consultations professionnelles.", icon: <Edit3 size={20}/>, link: "/preparer-seance" },
+    { name: "Mon Journal", description: "Un espace personnel pour écrire librement et suivre votre parcours.", icon: <Smile size={20}/>, link: "/journal" }, // Icône à adapter
+  ];
+     const iconMap = { // Exemple pour getActivityIcon
+    Headphones: <Headphones size={20}/>,
+    Zap: <Zap size={20}/>,
+    Edit3: <Edit3 size={20}/>,
+    BookText: <BookText size={20}/>,
+    Smile: <Smile size={20}/>,
+    Compass: <Compass size={20} />,
+    HelpCircle: <HelpCircle size={20} />,
+  };
+ // Helper pour rendre les icônes des activités récentes dynamiquement
+const getActivityIcon = (activity) => {
+  if (activity.iconName && iconMap[activity.iconName]) {
+    return iconMap[activity.iconName];
+  }
+    const sectionIcon = appSections.find(s => s.name.toLowerCase().includes(activity.type.toLowerCase()))?.icon;
+      if (activity.type.toLowerCase().includes('sonore') || activity.type.toLowerCase().includes('podcast')) return <Headphones size={20}/>;
+    if (sectionIcon) return React.cloneElement(sectionIcon, {size: 20});
+
+    // Icônes par défaut basées sur le type d'activité stocké
+    if (activity.type.toLowerCase().includes('sonore') || activity.type.toLowerCase().includes('podcast')) return <Headphones size={20}/>;
+    if (activity.type.toLowerCase().includes('stress') || activity.type.toLowerCase().includes('respiration')) return <Zap size={20}/>;
+    if (activity.type.toLowerCase().includes('journal')) return <Edit3 size={20}/>;
+    if (activity.type.toLowerCase().includes('séance')) return <BookText size={20}/>;
+    return <HelpCircle size={20} />; // Icône par défaut
+  };
 
 
   return (
@@ -74,8 +118,35 @@ const Dashboard = () => {
         <p className="dashboard-welcome-message">{welcomeMessage}</p>
       </header>
 
-      <div className="dashboard-grid">
-        {/* Section Suggestion d'Olivia */}
+      {/* Nouvelle Section d'Introduction */}
+      <section className={`dashboard-card card-introduction ${cardsVisible ? 'visible' : ''}`}>
+        <div className="card-icon-top"><Compass size={32} /></div>
+        <h2>Bienvenue sur Sérenis!</h2>
+        <p>
+          Nous sommes ravis de vous accompagner dans votre parcours vers un meilleur équilibre mental. 
+          Voici un aperçu de ce que vous pouvez explorer :
+        </p>
+        <ul className="intro-sections-list">
+            {appSections.map(section => (
+                <li key={section.name}>
+                    <Link to={section.link} className="intro-section-link">
+                        <span className="intro-section-icon">{section.icon}</span>
+                        <div className="intro-section-text">
+                            <strong>{section.name}</strong>
+                            <span>{section.description}</span>
+                        </div>
+                        <ArrowRight size={18} className="item-arrow"/>
+                    </Link>
+                </li>
+            ))}
+        </ul>
+        <p className="intro-tip">
+            N'hésitez pas à commencer par ce qui vous attire le plus ou à demander conseil à Olivia dans le chat !
+        </p>
+      </section>
+
+      <div className={`dashboard-grid ${cardsVisible ? 'visible' : ''}`}>
+        
         <section className="dashboard-card card-olivia-suggestion">
           <div className="card-icon-top">{oliviaSuggestion.icon || <Zap size={28} />}</div>
           <h2>Suggestion d'Olivia</h2>
@@ -87,7 +158,7 @@ const Dashboard = () => {
         </section>
 
         {/* Section Dernières Activités */}
-        <section className="dashboard-card card-last-activities">
+       <section className="dashboard-card card-last-activities">
           <h2>Accès Rapides</h2>
           {lastActivities.length > 0 ? (
             <ul className="quick-access-list">
@@ -110,8 +181,9 @@ const Dashboard = () => {
           )}
         </section>
 
+
         {/* Section Humeur (si implémentée) */}
-        {moodSummary && (
+       {moodSummary && (
           <section className="dashboard-card card-mood-summary">
              <div className="card-icon-top"><Smile size={28} /></div>
             <h2>Mon Humeur Récente</h2>
@@ -126,7 +198,8 @@ const Dashboard = () => {
           </section>
         )}
 
-        {/* Tu pourrais ajouter d'autres cartes ici : Objectifs, Statistiques, etc. */}
+
+        {/* Section Explorer Plus */}
         <section className="dashboard-card card-explore">
           <h2>Explorer Plus</h2>
           <div className="explore-links">
@@ -136,7 +209,6 @@ const Dashboard = () => {
             <Link to="/journal" className="explore-link">Mon Journal</Link>
           </div>
         </section>
-
       </div>
     </div>
   );

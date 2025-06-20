@@ -381,8 +381,6 @@ $chat-danger-hover: #B71C1C;     // Rouge plus foncé pour hover
     z-index: 10;
     backdrop-filter: blur(4px);
     transition: background-color 0.2s, opacity 0.3s, transform 0.2s;
-    // La visibilité est gérée par le rendu conditionnel dans JSX
-    // Les styles ici sont pour l'apparence quand il est rendu.
     opacity: 0.85; 
     transform: translateY(0);
 

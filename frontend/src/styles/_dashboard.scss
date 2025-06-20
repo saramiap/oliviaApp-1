@@ -1,67 +1,100 @@
-// src/styles/_dashboardPage.scss
+// src/styles/_dashboard.scss
 
-// Palette (inspirée de tes thèmes existants)
-$db-bg-main: #F0F4F8;               // Fond de page (bleu très clair/gris)
-$db-text-primary: #3A4F66;          // Texte principal
-$db-text-secondary: #5C7A99;         // Texte secondaire
-$db-title-color: #2C3E50;            // Titre principal de la page
-$db-accent-primary: #82AAFF;        // Bleu clair accent (boutons principaux, icônes)
-$db-accent-primary-darker: #6592E8; // Hover pour accent
-$db-card-bg: #FFFFFF;                // Fond des cartes
-$db-card-border: #E0EAF3;           // Bordure des cartes
-$db-card-shadow: rgba(115, 140, 168, 0.08);
-$db-button-text-on-accent: #FFFFFF; // Texte sur les boutons avec fond accentué
+// --- Variables de Couleur pour le Dashboard ---
+// (Tu peux centraliser tes variables de couleur globales dans un fichier _variables.scss et les importer ici)
+$db-bg-main: #F0F4F8;              // Fond de page (bleu très clair/gris)
+$db-text-primary: #3A4F66;         // Texte principal (bleu-gris foncé)
+$db-text-secondary: #5C7A99;        // Texte secondaire (intro, descriptions)
+$db-title-color: #2C3E50;           // Titre principal de la page H1
+$db-card-title-color: #34495E;      // Titres H2 dans les cartes
+$db-accent-primary: #82AAFF;       // Bleu clair accent (boutons, icônes)
+$db-accent-primary-darker: #6592E8; // Pour hover sur accent
+$db-accent-primary-lighter: #D6E4FF; // Pour fond léger (ex: mood summary)
+$db-card-bg: #FFFFFF;               // Fond des cartes
+$db-card-border: #E0EAF3;          // Bordure des cartes
+$db-card-shadow: rgba(115, 140, 168, 0.08); // Ombre par défaut
+$db-card-shadow-hover: rgba(115, 140, 168, 0.18); // Ombre au survol
+$db-button-text-on-accent: #FFFFFF; // Texte sur les boutons avec fond $db-accent-primary
 
+// --- Styles Généraux de la Page Dashboard ---
 .dashboard-page {
   background-color: $db-bg-main;
-  min-height: calc(100vh - 60px); // Hauteur moins la navbar
+  min-height: calc(100vh - 60px); // Hauteur de la page moins la navbar (ajuste 60px si besoin)
   padding: 1.5rem; // Padding mobile
   color: $db-text-primary;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 
   @media (min-width: 768px) {
-    padding: 2rem 3rem;
+    padding: 2rem 3rem; // Padding pour tablettes et desktop
   }
 }
 
+// --- Header du Dashboard ---
 .dashboard-header {
   text-align: center;
   margin-bottom: 2.5rem;
 
   h1 {
     color: $db-title-color;
-    font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem;
-    @media (min-width: 768px) { font-size: 2.4rem; }
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    @media (min-width: 768px) {
+      font-size: 2.4rem;
+    }
   }
+
   .dashboard-welcome-message {
-    font-size: 1.05rem; color: $db-text-secondary; line-height: 1.6;
-    max-width: 600px; margin: 0 auto; font-style: italic;
-    @media (min-width: 768px) { font-size: 1.15rem; }
+    font-size: 1.05rem;
+    color: $db-text-secondary;
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto;
+    font-style: italic;
+    @media (min-width: 768px) {
+      font-size: 1.15rem;
+    }
   }
 }
 
+// --- Grille des Cartes du Dashboard ---
 .dashboard-grid {
   display: grid;
-  gap: 1.5rem; // Espace entre les cartes
-  grid-template-columns: 1fr; // 1 colonne sur mobile
+  gap: 1.5rem;
+  grid-template-columns: 1fr; // 1 colonne par défaut sur mobile
 
   @media (min-width: 768px) {
-    // 2 colonnes sur tablette, avec la suggestion d'Olivia plus large
-    grid-template-columns: repeat(2, 1fr);
-    // Pour que la suggestion d'Olivia prenne plus de place si c'est la première :
-    // .card-olivia-suggestion { grid-column: span 2; } // Option 1: pleine largeur
-    // Ou si tu as 3 colonnes :
-    // grid-template-columns: repeat(3, 1fr);
-    // .card-olivia-suggestion { grid-column: span 2; }
+    grid-template-columns: repeat(2, 1fr); // 2 colonnes sur tablette
   }
   @media (min-width: 1024px) {
-    // Exemple : 2 colonnes, mais la première plus large
-    grid-template-columns: 1.5fr 1fr; 
-    // Ou 3 colonnes égales
-    // grid-template-columns: repeat(3, 1fr);
+    // Exemple pour un layout plus complexe :
+    // La première carte (Introduction) prend toute la largeur si c'est le premier enfant
+    // Ou : la carte Olivia prend 2 colonnes sur 3, etc.
+    // Pour un layout simple à 2 colonnes avec la première plus large :
+    // grid-template-columns: 1.5fr 1fr;
+    // Pour l'instant, on garde 2 colonnes égales sur desktop, tu pourras ajuster.
+  }
+
+  // Animation d'apparition pour la grille elle-même et ses enfants
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+
+  &.visible {
+    opacity: 1;
+    transform: translateY(0);
+    // Apparition en cascade des cartes enfants
+    .dashboard-card {
+      @for $i from 1 through 6 { // Adapte "6" au nombre max de cartes que tu pourrais avoir
+        &:nth-child(#{$i}) {
+          transition-delay: #{$i * 0.08}s; // Délai plus court pour un effet plus rapide
+        }
+      }
+    }
   }
 }
 
+// --- Style de Base pour Toutes les Cartes du Dashboard ---
 .dashboard-card {
   background-color: $db-card-bg;
   border: 1px solid $db-card-border;
@@ -70,156 +103,228 @@ $db-button-text-on-accent: #FFFFFF; // Texte sur les boutons avec fond accentué
   box-shadow: 0 4px 15px $db-card-shadow;
   display: flex;
   flex-direction: column;
+  // Animation d'apparition (héritée de .dashboard-grid si enfant direct, sinon la définir ici)
+  opacity: 0; // S'assurer que les cartes sont aussi invisibles initialement
+  transform: translateY(20px);
+  transition: opacity 0.4s ease-out, transform 0.4s ease-out, box-shadow 0.3s ease-in-out;
+
+  &.visible { // Appliquée via JS pour l'animation
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  &:hover {
+    transform: translateY(-5px) scale(1.015); // Effet de survol
+    box-shadow: 0 8px 25px $db-card-shadow-hover;
+  }
 
   h2 {
     font-size: 1.3rem;
     font-weight: 600;
-    color: $db-text-primary;
+    color: $db-card-title-color; // Couleur spécifique pour les titres de carte
     margin: 0 0 1rem 0;
     display: flex;
-    align-items: center; // Pour l'icône si présente
+    align-items: center;
   }
 
-  .card-icon-top { // Pour les icônes au-dessus du titre h2
+  .card-icon-top {
     color: $db-accent-primary;
     margin-bottom: 0.75rem;
+    display: flex; // Pour centrer l'icône si elle est seule
+    justify-content: center;
     svg { width: 32px; height: 32px; }
   }
 
-  p {
+  p { // Paragraphes par défaut dans les cartes
     font-size: 0.95rem;
     color: $db-text-secondary;
     line-height: 1.6;
     margin-bottom: 1rem;
-    flex-grow: 1; // Pour que le bouton soit en bas si la carte a une hauteur variable
-  }
-
-  .btn { // Style de base pour les boutons dans les cartes
-    padding: 0.7rem 1.2rem;
-    border: none;
-    border-radius: 20px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.2s ease, transform 0.1s ease;
-    text-decoration: none; // Pour les <Link> stylés comme des boutons
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5em;
-    font-size: 0.9rem;
-
-    &:hover { transform: translateY(-1px); }
-
-    &--primary {
-      background-color: $db-accent-primary;
-      color: $db-button-text-on-accent;
-      &:hover { background-color: $db-accent-primary-darker; }
-    }
-    &--secondary {
-      background-color: transparent;
-      color: $db-accent-primary;
-      border: 1px solid $db-accent-primary;
-      &:hover { background-color: $db-accent-primary, 35%; }
-    }
+    flex-grow: 1; // Pousse le contenu (ex: bouton) en bas
   }
 }
 
-// Styles spécifiques aux cartes
+// --- Styles des Boutons Communs dans les Cartes ---
+.dashboard-card .btn {
+  padding: 0.7rem 1.2rem;
+  border: none;
+  border-radius: 20px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center; // Centre le texte/icône dans le bouton
+  gap: 0.5em;
+  font-size: 0.9rem;
+  align-self: flex-start; // Par défaut, les boutons ne prennent pas toute la largeur
+
+  &:hover { transform: translateY(-1px); }
+
+  &--primary {
+    background-color: $db-accent-primary;
+    color: $db-button-text-on-accent;
+    &:hover { background-color: $db-accent-primary-darker; }
+  }
+  &--secondary {
+    background-color: transparent;
+    color: $db-accent-primary;
+    border: 1px solid $db-accent-primary;
+    &:hover { background-color: $db-accent-primary-lighter; color: $db-accent-primary-darker; }
+  }
+}
+
+// --- Carte d'Introduction ---
+.card-introduction {
+  // Pour qu'elle apparaisse en premier si la grille a des délais enfants
+  transition-delay: 0s !important; 
+  text-align: left;
+
+  h2 { margin-bottom: 1.2rem; }
+  p { margin-bottom: 1.5rem; font-size: 1rem; }
+
+  .intro-sections-list {
+    list-style: none; padding: 0; margin: 0 0 1.5rem 0;
+    display: flex; flex-direction: column; gap: 1rem;
+
+    .intro-section-link {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 0.8rem 1rem; border-radius: 8px;
+      border: 1px solid $db-card-border;
+      color: $db-text-primary;
+      transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+
+      &:hover {
+        background-color: #f9fbfd; // Très léger hover
+        transform: translateX(4px);
+        box-shadow: 2px 2px 8px rgba(0,0,0,0.03);
+        .item-arrow { color: $db-accent-primary; }
+      }
+
+      .intro-section-icon {
+        color: $db-accent-primary;
+        background-color: $db-accent-primary-lighter;
+        padding: 0.6rem; border-radius: 50%; display: flex;
+        align-items: center; justify-content: center; flex-shrink: 0;
+        svg { display: block; }
+      }
+      .intro-section-text {
+        display: flex; flex-direction: column; flex-grow: 1;
+        strong { font-weight: 600; font-size: 1rem; margin-bottom: 0.2rem;}
+        span { font-size: 0.85rem; color: $db-text-secondary; line-height: 1.4;}
+      }
+      .item-arrow { color: $db-text-secondary; transition: color 0.2s ease; }
+    }
+  }
+  .intro-tip {
+    font-style: italic; font-size: 0.9rem; text-align: center;
+    padding-top: 1rem; border-top: 1px dashed $db-card-border;
+    color: $db-text-secondary;
+  }
+}
+
+// --- Carte Suggestion d'Olivia ---
 .card-olivia-suggestion {
-  // Peut-être un fond ou une bordure d'accent pour la mettre en valeur
-  // background-color: $db-accent-primary, 38%;
-  // border-left: 4px solid $db-accent-primary;
-  h3 { // Titre de la suggestion (ex: nom de l'exercice)
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: $db-text-primary;
-    margin: 0 0 0.5rem 0;
+  // Si tu veux un style particulier pour cette carte, par exemple pour la mettre en avant:
+  // background-color: lighten($db-accent-primary, 38%);
+  // border-left: 4px solid $db-accent-primary; 
+  // Si c'est la première carte de la grille et tu veux qu'elle prenne plus de place:
+  // @media (min-width: 768px) { grid-column: span 2; } // Exemple si grille de 2 colonnes
+  // @media (min-width: 1024px) { grid-column: 1 / span 2; } // Exemple si grille de 3, prend 2/3
+
+  h3 { // Titre de la suggestion
+    font-size: 1.1rem; font-weight: 600; color: $db-text-primary; margin: 0 0 0.5rem 0;
   }
-  .btn { align-self: flex-start; } // Bouton à gauche
 }
 
+// --- Carte Dernières Activités ---
 .card-last-activities {
   .quick-access-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    li { margin-bottom: 0.5rem; }
+    list-style: none; padding: 0; margin: 0;
+    li { margin-bottom: 0.5rem; &:last-child { margin-bottom: 0; } }
   }
   .quick-access-item {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    background-color: transparent;
-    transition: background-color 0.2s ease;
-    color: $db-text-primary;
-    border: 1px solid transparent; // Pour un effet de bordure au survol
+    display: flex; align-items: center; padding: 0.75rem 1rem; border-radius: 8px;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+    color: $db-text-primary; border: 1px solid transparent;
 
     &:hover {
-      background-color: $db-bg-main, 1%;
-      border-color: $db-card-border;
-      .item-arrow { transform: translateX(3px); }
+      background-color: #f9fbfd; border-color: $db-card-border;
+      .item-arrow { transform: translateX(4px); color: $db-accent-primary; }
+      .item-title { color: $db-accent-primary; } // Met le titre en couleur d'accent au survol
     }
 
-    .item-icon {
-      margin-right: 0.8rem;
-      color: $db-accent-primary;
-      flex-shrink: 0;
-      svg {display: block;}
-    }
+    .item-icon { margin-right: 0.8rem; color: $db-accent-primary; flex-shrink: 0; svg{display:block;}}
     .item-info {
-      flex-grow: 1;
-      display: flex;
-      flex-direction: column;
+      flex-grow: 1; display: flex; flex-direction: column;
       .item-type { font-size: 0.75rem; color: $db-text-secondary; text-transform: uppercase; letter-spacing: 0.5px; }
       .item-title { font-size: 0.95rem; font-weight: 500; }
     }
     .item-progress {
-      font-size: 0.8rem;
-      color: $db-text-secondary;
-      margin-left: 0.5rem;
-      background-color: $db-bg-main, 2%;
-      padding: 0.2em 0.5em;
-      border-radius: 4px;
-      flex-shrink: 0;
+      font-size: 0.8rem; color: $db-text-secondary; margin-left: 0.5rem;
+      background-color: #eef2f7; padding: 0.2em 0.5em; border-radius: 4px; flex-shrink: 0;
     }
-    .item-arrow {
-        color: $db-text-secondary;
-        transition: transform 0.2s ease;
-        margin-left: 0.5rem;
-    }
+    .item-arrow { color: $db-text-secondary; transition: transform 0.2s, color 0.2s; margin-left: 0.5rem;}
   }
-}
-
-.card-mood-summary {
-  text-align: center;
-  .mood-display {
+   .no-recent-activity { // Style pour le message quand il n'y a pas d'activités
+    font-style: italic;
+    color: $db-text-secondary;
+    text-align: center;
+    padding: 1rem 0;
+    flex-grow: 1; // Pour occuper l'espace si la carte est vide
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
-    margin: 1rem 0 0.5rem 0;
+  }
+}
+
+// --- Carte Résumé Humeur ---
+.card-mood-summary {
+  text-align: center;
+  .mood-display {
+    display: flex; align-items: center; justify-content: center;
+    gap: 0.75rem; margin: 1rem 0 0.5rem 0;
     .mood-emoji { font-size: 2.5rem; }
     .mood-text { font-size: 1.2rem; font-weight: 600; color: $db-text-primary; }
   }
   .mood-date { font-size: 0.85rem; color: $db-text-secondary; margin-bottom: 1.5rem; }
-  .btn { margin-top: auto; } // Pousse le bouton en bas de la carte
+  .btn { margin-top: auto; width: 100%; 
+    @media(min-width:400px)
+    {
+      width: auto;
+    }
+  } // Bouton prend toute la largeur sur petit mobile
 }
 
+// --- Carte Explorer Plus ---
 .card-explore {
     .explore-links {
-        display: flex;
-        flex-direction: column;
-        gap: 0.75rem;
-        a {
-            display: block;
-            padding: 0.6rem 0;
+        display: flex; flex-direction: column; gap: 0.6rem; // Espace plus petit
+        a.explore-link { // Cible spécifiquement les liens avec cette classe
+            padding: 0.5rem 0; // Moins de padding vertical
             color: $db-accent-primary;
             font-weight: 500;
-            text-decoration: underline;
-            text-decoration-color: transparent;
-            transition: text-decoration-color 0.2s;
+            text-decoration: none; // Pas de soulignement par défaut
+            position: relative;
+            transition: color 0.2s, padding-left 0.2s ease-out;
+
+            &::before { // Indicateur subtil au survol
+                content: '›';
+                position: absolute;
+                left: -1em; // Caché initialement
+                opacity: 0;
+                transition: left 0.2s ease-out, opacity 0.2s ease-out;
+                color: $db-accent-primary;
+            }
+
             &:hover {
-                text-decoration-color: $db-accent-primary;
+                color: $db-accent-primary-darker;
+                // padding-left: 0.3rem; // Décommente si tu préfères un décalage du texte
+                &::before {
+                    left: -0.5em; // Fait apparaître la flèche
+                    opacity: 1;
+                }
             }
         }
     }

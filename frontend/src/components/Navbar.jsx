@@ -98,7 +98,7 @@ function Navbar() {
         {" "}
         {/* Wrapper pour le contenu de la nav */}
         <div className="nav__left">
-          <Link to="/" className="nav__logo-link" onClick={closeAllMenus}>
+          <Link to="/home" className="nav__logo-link" onClick={closeAllMenus}>
              <img src={Logo} alt="Logo" className="nav__logo-img" /> 
             
             {/* Placeholder */}

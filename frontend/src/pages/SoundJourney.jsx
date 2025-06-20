@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom'; // Si tu veux un bouton "Retour à Détente"
 import { soundJourneyThemes } from '../components/SoundJourneyThemes';
+import { addActivityToStorage } from '../utils/localStorageManager'; // Importe la fonction
+import { Headphones } from 'lucide-react';
 import { Play, Pause, Volume2, VolumeX, RefreshCcw, ChevronLeft, CheckCircle, ListMusic } from 'lucide-react';
 import '../styles/_soundJourney.scss';
 // Hook pour gérer plusieurs pistes audio
@@ -120,6 +122,15 @@ const SoundJourney = () => {
       stopAndResetAll(); // Arrête les sons du thème précédent si en cours
     }
     setSelectedTheme(theme);
+ // SAUVEGARDE L'ACTIVITÉ
+    addActivityToStorage({
+      id: `sound_journey_${theme.id}`, // Assure un ID unique
+      type: 'Voyage Sonore',
+      title: theme.title,
+      route: `/detente/voyage-sonore`, // Ou une route plus spécifique si tu en as une par thème
+      iconName: 'Headphones' // Ou une référence à l'icône
+    });
+
     setupTracks(theme.audioTracks); // Prépare les pistes du nouveau thème
     if (theme.oliviaIntro) {
       setPageState('intro');
