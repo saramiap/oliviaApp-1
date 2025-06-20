@@ -14,7 +14,7 @@ import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp"; // Pour "Déconnexion"
 import EmergencyButton from "./EmergencyButton";
 import TaskIcon from "@mui/icons-material/Task";
-import Logo from '../../public/logoOliviaApp.jpg'; // Décommente et ajuste si tu as un logo
+import Logo from '../../public/LogoSerenisBig.png'; // Décommente et ajuste si tu as un logo
 
 // import '../styles/_navbar.scss'; // Assure-toi d'importer le bon fichier SCSS
 

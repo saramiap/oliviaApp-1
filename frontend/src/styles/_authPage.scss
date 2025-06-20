@@ -1,0 +1,184 @@
+// src/styles/_authPage.scss
+
+// Palette (inspirée de tes thèmes)
+$auth-bg: #F0F4F8;                   // Fond de page clair et doux
+$auth-text-primary: #3A4F66;        // Texte principal
+$auth-text-secondary: #5C7A99;       // Texte plus clair
+$auth-accent: #82AAFF;              // Accent principal pour les boutons/liens
+$auth-accent-darker: #6592E8;
+$auth-container-bg: #FFFFFF;         // Fond du conteneur de formulaire
+$auth-border-color: #DDE4EA;        // Bordures
+$auth-input-bg: #F8F9FA;            // Fond des inputs
+$auth-error-color: #D32F2F;         // Rouge pour les erreurs
+$auth-google-btn-bg: #FFFFFF;
+$auth-google-btn-text: #4A4A4A;
+$auth-google-btn-border: #D1D9E0;
+
+.auth-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 0px); // Prend toute la hauteur (ajuste si tu as une navbar visible ici)
+  background-color: $auth-bg;
+  padding: 2rem 1rem; // Padding pour petits écrans
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+
+.auth-container {
+  background-color: $auth-container-bg;
+  padding: 2rem; // Padding mobile
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(115, 140, 168, 0.15);
+  width: 100%;
+  max-width: 420px; // Limite la largeur du formulaire
+  text-align: center;
+
+  @media (min-width: 576px) {
+    padding: 2.5rem 3rem; // Plus de padding sur écrans plus larges
+  }
+}
+
+.auth-header {
+  margin-bottom: 2rem;
+  .auth-logo { // Si tu ajoutes un logo
+    max-height: 50px;
+    margin-bottom: 1.5rem;
+  }
+  h1 {
+    font-size: 1.8rem;
+    color: $auth-text-primary;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+  }
+  p {
+    font-size: 1rem;
+    color: $auth-text-secondary;
+    line-height: 1.6;
+  }
+}
+
+.btn { // Style de base pour les boutons (tu l'as peut-être déjà globalement)
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6em;
+  font-size: 0.95rem;
+  width: 100%; // Boutons pleine largeur
+  text-decoration: none; // Pour les <Link> stylés comme boutons
+
+  &:hover { transform: translateY(-1px); }
+  &:active { transform: translateY(0px); }
+  &:disabled { opacity: 0.7; cursor: not-allowed; }
+}
+
+.btn--google {
+  background-color: $auth-google-btn-bg;
+  color: $auth-google-btn-text;
+  border: 1px solid $auth-google-btn-border;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  &:hover { background-color: #f7f7f7; }
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: $auth-text-secondary;
+  font-size: 0.8rem;
+  margin: 1.5rem 0;
+  span {
+    padding: 0 1em;
+  }
+  &::before, &::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid $auth-border-color;
+  }
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem; // Espace entre les groupes de formulaire
+  text-align: left; // Aligner labels et inputs à gauche
+}
+
+.form-group {
+  label {
+    display: flex; // Pour aligner icône et texte du label
+    align-items: center;
+    gap: 0.4em;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: $auth-text-primary;
+    margin-bottom: 0.5rem;
+    svg { color: $auth-text-secondary; }
+  }
+  input[type="email"], input[type="password"] {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid $auth-border-color;
+    border-radius: 6px;
+    background-color: $auth-input-bg;
+    font-size: 1rem;
+    color: $auth-text-primary;
+    box-sizing: border-box; // S'assurer que padding et border sont inclus dans la largeur
+    transition: border-color 0.2s, box-shadow 0.2s;
+    &:focus {
+      outline: none;
+      border-color: $auth-accent;
+      box-shadow: 0 0 0 3px rgba($auth-accent, 0.2);
+    }
+  }
+}
+
+.auth-error-message {
+  color: $auth-error-color;
+  background-color: lighten($auth-error-color, 38%);
+  border: 1px solid lighten($auth-error-color, 25%);
+  padding: 0.75rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  text-align: center;
+  margin-top: 0; // S'il remplace un gap, ou ajuste le gap de .auth-form
+}
+
+.btn--submit {
+  background-color: $auth-accent;
+  color: white; // Texte blanc sur fond accentué
+  margin-top: 0.5rem; // Espace avant le bouton de soumission
+  &:hover { background-color: $auth-accent-darker; }
+}
+
+.auth-switcher {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+  color: $auth-text-secondary;
+  p { margin: 0; } // Enlève marge par défaut
+  button { // Style pour les liens "Inscrivez-vous" / "Connectez-vous"
+    background: none;
+    border: none;
+    color: $auth-accent;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 0;
+    text-decoration: underline;
+    font-size: inherit; // Hérite la taille de police du <p>
+    &:hover { color: $auth-accent-darker; }
+  }
+}
+
+.forgot-password-link {
+  font-size: 0.85rem;
+  color: $auth-text-secondary;
+  text-decoration: none;
+  &:hover { text-decoration: underline; color: $auth-accent; }
+}

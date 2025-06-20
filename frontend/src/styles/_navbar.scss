@@ -63,7 +63,8 @@ $nav-mobile-shadow: rgba(0, 0, 0, 0.4);
 .nav__logo-link {
   display: flex;
   align-items: center;
-   img.nav__logo-img { height: 45px; width: auto; }
+  margin-bottom: 10px;
+   img.nav__logo-img { height: 55px; width: auto; }
   .nav__logo-placeholder { // Style pour le placeholder texte
     font-size: 1.5rem;
     font-weight: 700;

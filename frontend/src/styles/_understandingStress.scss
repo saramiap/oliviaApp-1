@@ -8,7 +8,7 @@ $usp-title-color: #2C3E50;               // Titre principal
 $usp-section-title-color: #34495E;       // Titres de section
 $usp-accent-color: #82AAFF;              // Accent pour temps de lecture, bouton retour
 $usp-image-border: #DDE4EA;             // Bordure subtile pour images
-$usp-footer-bg: darken($usp-bg, 3%);     // Fond légèrement différent pour le footer
+$usp-footer-bg: $usp-bg, 3%;     // Fond légèrement différent pour le footer
 $usp-sticky-time-bg: rgba(44, 62, 80, 0.9); // Fond pour le temps de lecture sticky
 $usp-sticky-time-text: #EAEFF3;
 
@@ -23,7 +23,7 @@ $usp-sticky-time-text: #EAEFF3;
 .usp-header {
   text-align: center;
   padding: 2.5rem 1.5rem 2rem 1.5rem; // Padding mobile
-  background-color: darken($usp-bg, 2%); // Léger contraste pour le header
+  background-color: $usp-bg, 2%; // Léger contraste pour le header
   border-bottom: 1px solid $usp-image-border;
   margin-bottom: 2rem;
 
@@ -38,7 +38,7 @@ $usp-sticky-time-text: #EAEFF3;
   }
   .usp-reading-time {
     font-size: 0.85rem; color: $usp-accent-color; font-weight: 500;
-    background-color: lighten($usp-accent-color, 35%);
+    background-color: $usp-accent-color, 35%;
     padding: 0.3em 0.8em;
     border-radius: 15px;
     display: inline-block;
@@ -122,7 +122,7 @@ $usp-sticky-time-text: #EAEFF3;
       font-size: 1rem; margin-bottom: 1em; color: $usp-text-primary;
       @media (min-width: 768px) { font-size: 1.05rem; }
     }
-    strong { font-weight: 600; color: darken($usp-text-primary, 10%); }
+    strong { font-weight: 600; color: $usp-text-primary, 10%; }
     ul { 
         padding-left: 1.5rem; 
         li { margin-bottom: 0.5em; }
