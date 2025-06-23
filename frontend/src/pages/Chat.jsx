@@ -1,11 +1,12 @@
-import React, { useState, useRef, useEffect } from "react";
-import OliviaAvatar from "../components/OliviaAvatar"; // Tu l'as déjà
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import axios from "axios"; // Ou fetch si tu préfères pour la cohérence avec le backend
+import OliviaAvatar from "../components/OliviaAvatar";
 import useSpeech from "../hooks/useSpeech";
-import ArrowDownwardIcon from "@mui/icons-material/ArrowDownward";
-import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import { ArrowDownward as ArrowDownwardIcon, ArrowUpward as ArrowUpwardIcon } from '@mui/icons-material';
 import { useNavigate } from "react-router-dom";
-import Journal from "./Journal"; // Importer le composant Journal
-import { Zap, Waves, BookOpen, Info, ExternalLink } from 'lucide-react';
+import Journal from "./Journal";
+import { Zap, Waves, BookOpen, Info, ExternalLink, MessageSquare, Edit3, Settings, Users, Headphones, CloudRain, Sun, Wind, Music2 } from 'lucide-react'; // Ajout d'icônes
+
 import "../styles/_chat.scss"
 
 const EMERGENCY_KEYWORDS = [
@@ -23,41 +24,48 @@ const EMERGENCY_KEYWORDS = [
   "je me sens en insécurité",
 ];
 
-const parseActionTag = (text) => {
-  const tagRegex = /#([A-Z_]+)\{([^}]+)\}/; // Regex pour #ACTION{params}
-  const match = text.match(tagRegex);
+// Fonction utilitaire pour parser les tags d'action
+const parseActionTag = (textWithTag) => {
+  if (!textWithTag) return { displayText: '', rawText: '', actionName: null, params: {} };
+  
+  const tagRegex = /#([A-Z_]+)\{((?:[^}{]+|\{[^}{]*\})*)\}/; // Regex améliorée pour gérer les objets JSON potentiels dans les params (mais on parse plus simplement pour l'instant)
+  const match = textWithTag.match(tagRegex);
 
   if (match) {
     const actionName = match[1];
     const paramsString = match[2];
     let params = {};
     try {
-      // Tentative de parser les paramètres comme un objet JSON-like
-      // Attention: ceci est une simplification. Une vraie grammaire ou un parser plus robuste serait mieux.
-      // Pour des paires clé:"valeur", clé:nombre
-      const paramPairs = paramsString.match(/(\w+)\s*:\s*("[^"]*"|\d+\.?\d*|true|false)/g);
-      if (paramPairs) {
-        paramPairs.forEach(pair => {
-          const [key, valueString] = pair.split(/\s*:\s*/);
-          let value = valueString;
-          if (valueString.startsWith('"') && valueString.endsWith('"')) {
-            value = valueString.slice(1, -1); // Enlève les guillemets
-          } else if (!isNaN(parseFloat(valueString))) {
-            value = parseFloat(valueString);
-          } else if (valueString === 'true') {
-            value = true;
-          } else if (valueString === 'false') {
-            value = false;
-          }
-          params[key] = value;
-        });
+      // Parser des paires clé:valeur simples. Les valeurs string sont entre guillemets.
+      // Regex pour extraire clé: "valeur", clé: nombre, clé: true/false
+      const paramRegex = /(\w+)\s*:\s*(?:"([^"\\]*(?:\\.[^"\\]*)*)"|(\d+\.?\d*|true|false))/g;
+      let paramMatch;
+      while ((paramMatch = paramRegex.exec(paramsString)) !== null) {
+        const key = paramMatch[1];
+        let value = paramMatch[2] !== undefined ? paramMatch[2] : paramMatch[3]; // paramMatch[2] pour string, paramMatch[3] pour nombre/booléen
+
+        if (typeof value === 'string') {
+          // Pas besoin de slice les guillemets car la regex les capture à l'intérieur de paramMatch[2]
+        } else if (value === 'true') {
+          value = true;
+        } else if (value === 'false') {
+          value = false;
+        } else if (!isNaN(parseFloat(value))) {
+          value = parseFloat(value);
+        }
+        params[key] = value;
       }
     } catch (e) {
-      console.error("Erreur parsing des paramètres du tag:", e);
+      console.error("Erreur parsing des paramètres du tag:", paramsString, e);
     }
-    return { actionName, params, originalText: text.replace(tagRegex, "").trim() };
+    return { 
+        actionName, 
+        params, 
+        displayText: textWithTag.replace(tagRegex, "").trim(), // Texte sans le tag
+        rawText: textWithTag // Texte original complet avec le tag
+    };
   }
-  return { originalText: text, actionName: null, params: null }; // Retourne le texte original si pas de tag
+  return { displayText: textWithTag, rawText: textWithTag, actionName: null, params: {} };
 };
 
 
@@ -166,109 +174,57 @@ const Chat = () => {
   const containsEmergencyKeyword = (text) =>
     EMERGENCY_KEYWORDS.some((word) => text.toLowerCase().includes(word));
 
-  const handleAIResponse = (
-    aiReply,
-    currentMessages,
-    redirectTarget,
-    shouldRedirect
-  ) => {
-    const aiMessage = { from: "model", text: aiReply };
-    const finalMessages = [...currentMessages, aiMessage]; // Utiliser currentMessages passé en argument
-    setMessages(finalMessages);
-    // Sauvegarder la conversation complète dans l'historique
-    setHistory((prev) => [...prev, { date: new Date(), convo: finalMessages }]); // Ceci ajoute chaque échange comme une nouvelle convo, vérifier si c'est le but
-    if (shouldRedirect) {
-      setPendingAction(redirectTarget);
-    }
-    if (voiceEnabled && !silentMode) {
-      // Ne pas parler en mode silencieux
-      speak(aiReply);
-    }
-    // Après une réponse de l'IA, on s'attend à ce que l'utilisateur soit en bas
+ const handleAIResponse = (aiReplyText, contextMessages) => {
+    const parsed = parseActionTag(aiReplyText);
+    const aiMessage = { 
+        from: "model", 
+        text: aiReplyText, // Texte brut avec tag pour sauvegarde et re-parsing
+        displayText: parsed.displayText, 
+        actionName: parsed.actionName, 
+        actionParams: parsed.params 
+    };
+    setMessages(prev => [...prev, aiMessage]);
     setIsAtBottom(true);
+    if (voiceEnabled && !silentMode && parsed.displayText) speak(parsed.displayText);
+
+    if (parsed.actionName === "REDIRECT" && parsed.params?.path) {
+        setTimeout(() => navigate(parsed.params.path), 700);
+    }
   };
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-
-    const userMessage = { from: "user", text: input };
-    let updatedMessages = [...messages, userMessage]; // Renommé pour clarté, anciennement 'updated'
-
-    if (silentMode) {
-      setMessages(updatedMessages);
-      setInput("");
-      return;
-    }
-
-    if (containsEmergencyKeyword(input.toLowerCase())) {
-      const emergencyMsg = `Tu n'es pas seul·e. Il semble que tu sois en détresse. Je peux te diriger vers une page d’urgence avec des ressources utiles.`;
-      setMessages([...updatedMessages, { from: "model", text: emergencyMsg }]);
-
-      // if (voiceEnabled) speak(emergencyMsg);
-      setPendingAction("urgence");
-      setShowEmergencyModal(true);
-      setInput("");
-      return;
-    }
-
-    setMessages(updatedMessages); // Affiche le message de l'utilisateur immédiatement
-    const currentInput = input; // Conserve la valeur de input avant de le vider
+    const userMessageText = input;
+    const userMessageForUI = { from: "user", text: userMessageText, displayText: userMessageText };
+    
+    setMessages(prev => [...prev, userMessageForUI]);
+    setIsAtBottom(true);
     setInput("");
+
+    if (silentMode) { setLoading(false); return; }
+
+    if (containsEmergencyKeyword(userMessageText.toLowerCase())) {
+      const emergencyMsgText = `Je comprends ton inquiétude. Il est important de chercher de l'aide rapidement. Je te redirige vers nos ressources d'urgence. #REDIRECT{path:"/urgence"}`;
+      handleAIResponse(emergencyMsgText, messages.concat(userMessageForUI));
+      setShowEmergencyModal(true);
+      setLoading(false);
+      return;
+    }
+    
     setLoading(true);
+    const messagesForAPI = messages.concat(userMessageForUI).map(m => ({ from: m.from, text: m.text }));
 
     try {
-      const response = await fetch("/ask", { // URL relative pour le proxy et le déploiement
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ messages: updatedMessages }), // updatedMessages doit être défini avant
-      });
-
-      if (!response.ok) {
-        // Si le serveur renvoie une erreur (4xx, 5xx)
-        // Essayer de lire le message d'erreur JSON du backend
-        let errorMsg = `Erreur HTTP ${response.status} - ${response.statusText}`;
-        try {
-          const errorData = await response.json();
-          errorMsg = errorData.error || errorData.message || errorMsg; // Utilise le message du backend si disponible
-        } catch (e) {
-          // Si le corps de la réponse d'erreur n'est pas du JSON ou est vide
-          console.warn("Impossible de parser la réponse d'erreur JSON du serveur.", e);
-        }
-        throw new Error(errorMsg); // Cela va au bloc catch
-      }
-
-      const data = await response.json(); // Parse la réponse JSON si response.ok est true
-
-      let aiReply = data.response || "Désolée, je n'ai pas pu traiter cela.";
-      const actionMatch = aiReply.match(/#goto:([a-zA-Z0-9_-]+)/);
-      const shouldRedirect = Boolean(actionMatch);
-      const redirectTarget = shouldRedirect ? actionMatch[1] : null;
-
-      if (shouldRedirect) {
-        aiReply = aiReply.replace(/#goto:[a-zA-Z0-9_-]+/, "");
-      }
-
-      handleAIResponse(
-        aiReply,
-        updatedMessages,
-        redirectTarget,
-        shouldRedirect
-      );
-
+      const res = await axios.post("http://localhost:3000/ask", { messages: messagesForAPI });
+      handleAIResponse(res.data.response || "Pardon, je n'ai pas saisi.", messages.concat(userMessageForUI));
     } catch (error) {
-      console.error("Erreur IA ou réseau :", error);
-      // error.message contiendra soit "Failed to fetch" (erreur réseau)
-      // soit le message que nous avons construit avec "Erreur HTTP..."
+      console.error("Erreur API Chat:", error);
       handleAIResponse(
-        `Oups, quelque chose s'est mal passé : ${error.message}`,
-        updatedMessages,
-        null,
-        false
+        `Navrée, une erreur technique est survenue. (${error.message})`,
+        messages.concat(userMessageForUI)
       );
     } finally {
-      setLoading(false); // Assure-toi que setLoading est défini quelque part
+      setLoading(false);
     }
   };
 
@@ -356,6 +312,30 @@ const Chat = () => {
         );
       });
   };
+    const handleActionClick = (actionName, params) => {
+    console.log("Action cliquée:", actionName, params);
+    switch (actionName) {
+      case "EXERCICE_RESPIRATION":
+        navigate(`/detente/programme`, { state: { type: params?.type, duration: params?.duree_sec, cycles: params?.cycles } });
+        break;
+      case "VOYAGE_SONORE":
+        navigate(`/detente/voyage-sonore`, { state: { autoSelectThemeId: params?.themeId } });
+        break;
+      case "SUGGESTION_JOURNAL":
+        setMode('journal'); // Switch vers le mode journal
+        // Tu devras passer le prompt au composant Journal, peut-être via un contexte ou un état dans App.js
+        // Pour l'instant, on loggue juste le prompt :
+        console.log("Prompt pour le journal:", params?.prompt);
+        alert(`Olivia suggère d'écrire sur : ${params?.prompt}`);
+        break;
+      case "INFO_STRESS":
+        navigate(`/detente/comprendre-stress${params?.sujet ? '#' + params.sujet : ''}`);
+        break;
+      // REDIRECT est géré dans handleAIResponse
+      default:
+        console.warn("Action non reconnue:", actionName);
+    }
+  };
 
   return (
     <div className="chat-journal-layout">
@@ -387,11 +367,11 @@ const Chat = () => {
                   Écoute {silentMode ? "✍️" : "💬"}
                 </label>
                 {/* Le small pour silent-mode-info peut être stylé via CSS pour être caché ou affiché si besoin */}
-                {/* {silentMode && (
+                 {silentMode && (
                   <small className="silent-mode-info">
                     Olivia n'interviendra pas.
                   </small>
-                )} */}
+                )} 
               </div>
             </div>
             <div className="history-chat-wrapper">
@@ -462,56 +442,39 @@ const Chat = () => {
           <div className="chat-interface-wrapper">
             <div className="chat-messages-container" ref={chatContainerRef} onScroll={handleScroll}>
               {messages.map((msg, idx) => (
-                <div
-                  key={idx}
-                  className={`message-bubble ${
-                    msg.from === "user" ? "user-message" : "ai-message"
-                  }`}
-                >
-                  {/* Applique formatResponse pour les messages de l'IA, 
-                      pour les messages utilisateur, on les affiche tels quels dans un <p> 
-                      (si tu veux aussi gérer les \n pour l'utilisateur, il faudrait appliquer une logique similaire) */}
-                  {msg.from === "model" ? (
-                    formatResponse(msg.text)
-                  ) : (
-                    <p>{msg.text}</p>
+                <div key={idx} className={`message-bubble-wrapper ${msg.from === "user" ? "user-message-wrapper" : "ai-message-wrapper"}`}>
+                  <div className={`message-bubble ${msg.from === "user" ? "user-message" : "ai-message"}`}>
+                    {msg.from === "model" ? formatResponse(msg.displayText) : <p>{msg.displayText}</p>}
+                  </div>
+                  {msg.from === "model" && msg.actionName && msg.actionParams && (
+                    <button 
+                      className="btn btn--action-tag" 
+                      onClick={() => handleActionClick(msg.actionName, msg.actionParams)}
+                      title={`Action: ${msg.actionName}`}
+                    >
+                      {msg.actionName === "EXERCICE_RESPIRATION" && <><Zap size={16}/> Pratiquer la respiration</>}
+                      {msg.actionName === "VOYAGE_SONORE" && <><Waves size={16}/> Démarrer le voyage sonore</>}
+                      {msg.actionName === "SUGGESTION_JOURNAL" && <><BookOpen size={16}/> Écrire dans mon journal</>}
+                      {msg.actionName === "INFO_STRESS" && <><Info size={16}/> En savoir plus</>}
+                      {msg.actionName === "REDIRECT" && <><ExternalLink size={16}/> Voir les ressources</>}
+                      {!["EXERCICE_RESPIRATION", "VOYAGE_SONORE", "SUGGESTION_JOURNAL", "INFO_STRESS", "REDIRECT"].includes(msg.actionName) && 
+                        `Suggestion: ${msg.actionName.toLowerCase().replace(/_/g, ' ')}`}
+                    </button>
                   )}
                 </div>
               ))}
-              {loading && (
+             {loading && (
                 <div className="message-bubble ai-message">
                   <p>Olivia est en train de réfléchir...</p>
                 </div>
               )}
               <div ref={messagesEndRef} />
             </div>
-
             {showScrollButton && (
               <button className="scroll-toggle-button" onClick={toggleScrollToPosition} title={isAtBottom ? "Remonter en haut" : "Aller en bas"}>
-                {isAtBottom ? <ArrowUpwardIcon fontSize="small"/> : <ArrowDownwardIcon fontSize="small"/>}
+                {chatContainerRef.current && chatContainerRef.current.scrollTop > 100 && !isAtBottom ? <ArrowDownwardIcon fontSize="small"/> : <ArrowUpwardIcon fontSize="small"/>}
               </button>
             )}
-
-            {pendingAction &&
-              !showEmergencyModal && ( // Ne pas afficher si la modale d'urgence est active
-                <div className="chat-confirmation-prompt">
-                  <p>
-                    Souhaites-tu que je t’emmène vers un espace de détente ?
-                  </p>
-                  <button
-                    onClick={() => {
-                      navigate(`/${pendingAction}`);
-                      setPendingAction(null);
-                    }}
-                  >
-                    Oui, j’y vais
-                  </button>
-                  <button onClick={() => setPendingAction(null)}>
-                    Non, merci
-                  </button>
-                </div>
-              )}
-
             <div className="chat-input-area">
               <textarea
                 placeholder="Écris ton message ici..."
