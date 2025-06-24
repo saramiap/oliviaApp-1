@@ -89,7 +89,7 @@ function AppContent() {
         <Routes>
           <Route path="/accueil" element={<ProfileSelect />} /> 
           <Route path="/auth" element={<AuthPage />} />
-          <Route path="/home" element={<Dashboard />} /> {/* Assure-toi d'utiliser le bon nom de composant */}
+          <Route path="/" element={<Dashboard />} /> {/* Assure-toi d'utiliser le bon nom de composant */}
           <Route path="/chat" element={<Chat />} />
           <Route path="/journal" element={<Journal />} />
           <Route path="/profil" element={<Profile />} />

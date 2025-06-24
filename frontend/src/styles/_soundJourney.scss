@@ -50,8 +50,61 @@ $sj-button-tertiary-border: rgba(222, 226, 230, 0.5); // Pour bouton "Retour à 
 
 // --- Section de Sélection des Thèmes ---
 .theme-selection-section {
-  width: 100%;
+   width: 100%;
   max-width: 900px; // Ajuste selon le nombre de cartes par ligne
+  display: flex; // Pour centrer le contenu verticalement
+  flex-direction: column;
+  align-items: center; // Centrer horizontalement les enfants directs
+  padding-top: 1rem; // Un peu d'espace en haut pour le bouton retour
+  .theme-selection-header {
+    display: flex;
+    flex-direction: column; // Icône et titre en colonne par défaut
+    align-items: center;   // Centrer l'icône et le titre
+    position: relative;    // Pour positionner le bouton retour absolument par rapport à ce header si besoin
+    width: 100%;           // Prend toute la largeur pour un bon alignement
+    margin-bottom: 1rem;   // Espace avant le sous-titre
+
+    .btn--back-to-detente {
+      // Positionnement en haut à gauche du conteneur .theme-selection-section ou .theme-selection-header
+      // Si .theme-selection-header est centré, il est plus simple de le mettre en flex avant le titre.
+      // Pour l'instant, on le met en tant qu'élément de flux avant l'icône et le titre.
+      background: transparent;
+      border: 1px solid $sj-button-tertiary-border; // Style de bouton tertiaire
+      color: $sj-text-light;
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      border-radius: 20px;
+      margin-bottom: 1.5rem; // Espace sous le bouton retour
+      align-self: flex-start; // Aligner à gauche si le parent est flex column et align-items center
+
+      @media (min-width: 768px) {
+        // Sur desktop, on pourrait le positionner absolument en haut à gauche de la section
+        // position: absolute;
+        // top: -10px; // Ajuste pour être juste au-dessus du titre ou à côté
+        // left: -10px; // Ajuste
+        // Ou le garder dans le flux mais plus petit ou avec un style différent
+        margin-bottom: 1rem; // Réduire la marge sur desktop
+      }
+      
+      svg { stroke-width: 2.5px; }
+      &:hover {
+        background-color: rgba($sj-button-tertiary-border, 0.2);
+      }
+    }
+     .theme-selection-icon { // La classe que j'ai ajoutée à ListMusic
+      color: $sj-accent-primary; // Ou une autre couleur
+      margin-bottom: 0.75rem; // Espace entre l'icône et le titre h2
+    }
+    
+    h2 {
+      font-size: 1.8rem; 
+      margin-top: 0; // Enlève la marge du haut si l'icône est au-dessus
+      margin-bottom: 0.5rem; 
+      font-weight: 600;
+      color: $sj-text-light; // Assurer la couleur du texte
+      @media (min-width: 768px) { font-size: 2.2rem; }
+    }
+  }
   h2 {
     font-size: 1.8rem; margin-bottom: 0.5rem; font-weight: 600;
     @media (min-width: 768px) { font-size: 2.2rem; }

@@ -173,14 +173,31 @@ const SoundJourney = () => {
     return 'none'; // Pas d'image pour la sélection de thème initiale ou si aucun thème
   };
 
+    // Nouvelle fonction pour naviguer vers la page Détente principale
+  const navigateToDetente = () => {
+    stopAndResetAll(); // S'assurer que tout son est arrêté avant de naviguer
+    navigate('/detente'); // Navigue vers la page principale de détente
+  };
+
+
   return (
     <div className="sound-journey-page" style={{ backgroundImage: getBackgroundImage() }}>
       <div className="sound-journey-overlay">
         
         {pageState === 'theme_selection' && (
           <section className="theme-selection-section">
-            <ListMusic size={48} className="page-icon" />
-            <h2>Choisissez votre Voyage Sonore</h2>
+                {/* --- NOUVEAU BOUTON RETOUR --- */}
+            <div className="theme-selection-header"> {/* Wrapper pour le bouton et le titre */}
+              <button 
+                className="btn btn--back-to-detente" // Classe spécifique pour ce bouton
+                onClick={navigateToDetente} 
+                title="Retour à l'Espace Détente"
+              >
+                  <ChevronLeft size={20} /> <span>Retour à Détente</span>
+              </button>
+              <ListMusic size={48} className="page-icon theme-selection-icon" /> {/* Classe ajoutée pour le style */}
+              <h2>Choisissez votre Voyage Sonore</h2>
+            </div>
             <p className="page-subtitle">Plongez dans une ambiance sonore conçue pour votre bien-être.</p>
             <div className="themes-grid">
               {soundJourneyThemes.map(theme => (

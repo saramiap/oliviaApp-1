@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import '../styles/_stressProgram.scss';
+import { useNavigate } from 'react-router-dom'; // Si tu veux un bouton "Retour à Détente"
 import { Zap, RefreshCcw, ChevronLeft, ChevronRight } from 'lucide-react'; 
 import BreathingExercise from '../components/StressProgramActivites/BreathingExercise';
 import QuoteDisplay from '../components/StressProgramActivites/QuoteDisplay';
@@ -131,6 +132,7 @@ const StressProgramPage = () => {
   const [currentStep, setCurrentStep] = useState(0);// Index de l'activité pour le niveau de stress choisi
   const currentProgram = stressLevels[stressLevel];
 
+  const navigate = useNavigate();
   const handleLevelChange = (level) => {
     setStressLevel(level);
     setCurrentStep(0); // Réinitialise à la première activité du niveau
@@ -170,12 +172,25 @@ return (
     />
   );
 };
-
+  const navigateToDetente = () => {  
+    navigate('/detente'); // Navigue vers la page principale de détente
+  };
 
   return (
     <div className="stress-program-page"> {/* Renommé pour être plus spécifique que .stress-program */}
       <div className="stress-program-container"> {/* Wrapper pour centrer et limiter la largeur */}
         <header className="stress-program-header">
+                  {/* --- NOUVEAU BOUTON RETOUR --- */}
+            <div className="theme-selection-header"> {/* Wrapper pour le bouton et le titre */}
+              <button 
+                className="btn btn--back-to-detente" // Classe spécifique pour ce bouton
+                onClick={navigateToDetente} 
+                title="Retour à l'Espace Détente"
+              >
+                  <ChevronLeft size={20} /> <span>Retour à Détente</span>
+              </button>
+             
+            </div>
           <Zap size={36} className="header-icon" /> {/* Icône thématique */}
           <h1>Mon Programme Anti-Stress</h1>
           <p className="program-subtitle">

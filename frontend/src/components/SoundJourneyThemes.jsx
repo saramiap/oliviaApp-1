@@ -18,8 +18,20 @@ export const soundJourneyThemes = [
       description: 'Le rythme régulier des vagues pour une relaxation profonde et un esprit clair.',
       backgroundImage: '/public/soundJourneyImage/la-mer.jpg',
       audioTracks: [
+        { src: '/frontend/public/audio/ocean-beach-waves-332383.mp3', volume: 0.7, loop: true },
+        { src: '/public/audio/relaxation-music-fond.mp3', volume: 0.6, loop: true, delay: 2000 }, // Piste secondaire avec un léger délai
+      ],
+      oliviaIntro: "Installez-vous confortablement. Fermez les yeux et laissez les sons de la forêt vous apaiser...",
+      oliviaOutro: "Revenez doucement à vous, en emportant cette sérénité. Quand vous serez prêt·e, ouvrez les yeux."
+    },
+    {
+      id: 'ocean_calm',
+      title: 'Vagues Apaisantes',
+      description: 'Le rythme régulier des vagues pour une relaxation profonde et un esprit clair.',
+      backgroundImage: '/public/soundJourneyImage/la-mer.jpg',
+      audioTracks: [
         { src: '/public/audio/ocean-beach-waves-332383.mp3', volume: 0.7, loop: true },
-        { src: '/public/audio/relaxation-music-fond.mp3', volume: 1.5, loop: true, delay: 5000 },
+        { src: '/public/audio/relaxation-music-fond.mp3', volume: 0.5, loop: true, delay: 5000 },
       ],
       oliviaIntro: "Imaginez-vous au bord de l'océan. Sentez la brise, écoutez le va-et-vient des vagues...",
       oliviaOutro: "Gardez cette sensation de calme et d'espace en vous. Revenez à votre rythme."

@@ -48,6 +48,7 @@ const YogaProgram = () => {
   const [selectedSession, setSelectedSession] = useState(null);
   // Pour un programme de 7 jours, on peut se baser sur la première semaine
   const currentWeek = yogaProgram.weeks[0]; 
+const navigate = useNavigate();
 
   const handleSessionSelect = (session) => {
     setSelectedSession(session);
@@ -62,10 +63,23 @@ const YogaProgram = () => {
   if (!currentWeek) {
     return <p>Programme de yoga non trouvé.</p>;
   }
-
+ const navigateToDetente = () => {
+    
+    navigate('/detente'); // Navigue vers la page principale de détente
+  };
   return (
     <div className="yoga-program-page">
       <header className="yoga-program-header">
+             {/* --- NOUVEAU BOUTON RETOUR --- */}
+            <div className="theme-selection-header"> {/* Wrapper pour le bouton et le titre */}
+              <button 
+                className="btn btn--back-to-detente" // Classe spécifique pour ce bouton
+                onClick={navigateToDetente} 
+                title="Retour à l'Espace Détente"
+              >
+                  <ChevronLeft size={20} /> <span>Retour à l'espace Détente</span>
+              </button>
+            </div>
         <ListChecks size={40} className="program-icon" />
         <h1>{yogaProgram.title}</h1>
         <p className="program-description">{yogaProgram.description}</p>

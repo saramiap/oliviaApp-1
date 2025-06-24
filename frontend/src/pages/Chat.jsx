@@ -1,34 +1,30 @@
+// src/pages/Chat.jsx
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import axios from "axios"; // Ou fetch si tu préfères pour la cohérence avec le backend
+import axios from "axios";
 import OliviaAvatar from "../components/OliviaAvatar";
 import useSpeech from "../hooks/useSpeech";
 import { ArrowDownward as ArrowDownwardIcon, ArrowUpward as ArrowUpwardIcon } from '@mui/icons-material';
 import { useNavigate } from "react-router-dom";
-import Journal from "./Journal";
-import { Zap, Waves, BookOpen, Info, ExternalLink, MessageSquare, Edit3, Settings, Users, Headphones, CloudRain, Sun, Wind, Music2 } from 'lucide-react'; // Ajout d'icônes
+import Journal from "./Journal"; // Assure-toi que ce chemin est correct et que Journal est exporté par défaut
+import { Zap, Waves, BookOpen, Info, ExternalLink } from 'lucide-react'; // Icônes pour les boutons d'action
 
-import "../styles/_chat.scss"
+import "../styles/_chat.scss"; // Ton fichier SCSS principal
 
 const EMERGENCY_KEYWORDS = [
-  "suicide",
-  "je veux mourir",
-  "tuer",
-  "plus envie de vivre",
-  "violence",
-  "je me fais mal",
-  "je suis en danger",
-  "j’ai besoin d’aide",
-  "je vais mal",
-  "pensées suicidaires",
-  "on m’a agressé",
-  "je me sens en insécurité",
+  "suicide", "je veux mourir", "tuer", "plus envie de vivre", "violence",
+  "je me fais mal", "je suis en danger", "j’ai besoin d’aide", "je vais mal",
+  "pensées suicidaires", "on m’a agressé", "je me sens en insécurité",
 ];
 
-// Fonction utilitaire pour parser les tags d'action
+// Fonction utilitaire pour parser les tags d'action des messages de l'IA
 const parseActionTag = (textWithTag) => {
-  if (!textWithTag) return { displayText: '', rawText: '', actionName: null, params: {} };
+  // Gère le cas où textWithTag est null, undefined ou pas une chaîne
+  if (!textWithTag || typeof textWithTag !== 'string') {
+    const safeText = String(textWithTag || '');
+    return { displayText: safeText, rawText: safeText, actionName: null, params: {} };
+  }
   
-  const tagRegex = /#([A-Z_]+)\{((?:[^}{]+|\{[^}{]*\})*)\}/; // Regex améliorée pour gérer les objets JSON potentiels dans les params (mais on parse plus simplement pour l'instant)
+  const tagRegex = /#([A-Z_]+)\{((?:[^}{]+|\{[^}{]*\})*)\}/;
   const match = textWithTag.match(tagRegex);
 
   if (match) {
@@ -36,22 +32,17 @@ const parseActionTag = (textWithTag) => {
     const paramsString = match[2];
     let params = {};
     try {
-      // Parser des paires clé:valeur simples. Les valeurs string sont entre guillemets.
-      // Regex pour extraire clé: "valeur", clé: nombre, clé: true/false
       const paramRegex = /(\w+)\s*:\s*(?:"([^"\\]*(?:\\.[^"\\]*)*)"|(\d+\.?\d*|true|false))/g;
       let paramMatch;
       while ((paramMatch = paramRegex.exec(paramsString)) !== null) {
         const key = paramMatch[1];
-        let value = paramMatch[2] !== undefined ? paramMatch[2] : paramMatch[3]; // paramMatch[2] pour string, paramMatch[3] pour nombre/booléen
+        let value = paramMatch[2] !== undefined ? paramMatch[2].replace(/\\"/g, '"') : paramMatch[3]; 
 
-        if (typeof value === 'string') {
-          // Pas besoin de slice les guillemets car la regex les capture à l'intérieur de paramMatch[2]
-        } else if (value === 'true') {
-          value = true;
-        } else if (value === 'false') {
-          value = false;
-        } else if (!isNaN(parseFloat(value))) {
-          value = parseFloat(value);
+        if (value === 'true') { value = true; }
+        else if (value === 'false') { value = false; }
+        // Vérifie si c'est un nombre qui était entre guillemets ou pas
+        else if (typeof value === 'string' && !isNaN(parseFloat(value)) && parseFloat(value).toString() === value.replace(/^"|"$/g, '')) {
+             value = parseFloat(value.replace(/^"|"$/g, ''));
         }
         params[key] = value;
       }
@@ -61,338 +52,288 @@ const parseActionTag = (textWithTag) => {
     return { 
         actionName, 
         params, 
-        displayText: textWithTag.replace(tagRegex, "").trim(), // Texte sans le tag
-        rawText: textWithTag // Texte original complet avec le tag
+        displayText: textWithTag.replace(tagRegex, "").trim(),
+        rawText: textWithTag 
     };
   }
   return { displayText: textWithTag, rawText: textWithTag, actionName: null, params: {} };
 };
 
 
-
 const Chat = () => {
-  // Renommé pour plus de clarté, mais tu peux garder Chat
   const navigate = useNavigate();
+
+  // États du composant
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [showScrollButton, setShowScrollButton] = useState(false); // Pour la flèche up/down
-  const [history, setHistory] = useState([]); // Historique des conversations du chat
+  const [loading, setLoading] = useState(false); // Pour l'indicateur "Olivia réfléchit"
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const [isAtBottom, setIsAtBottom] = useState(true);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
-  const [pendingAction, setPendingAction] = useState(null);
-  const [isAtBottom, setIsAtBottom] = useState(true); // Pour gérer l'affichage de la flèche et le scroll
+  const [silentMode, setSilentMode] = useState(false);
+  const [mode, setMode] = useState("chat");
+  const [userProfileAvatar, setUserProfileAvatar] = useState("");
   const [showConfirmClear, setShowConfirmClear] = useState(false);
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
-  const [silentMode, setSilentMode] = useState(false); // Pour le mode "vider son sac"
-  // const [journal, setJournal] = useState([]); // Cet état 'journal' était spécifique au chat, à clarifier si besoin
+  const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false);
+  const [history, setHistory] = useState([]); // L'historique séparé peut être réintroduit si besoin
 
-  const [mode, setMode] = useState("chat"); // "chat" ou "journal"
-  const [userProfileAvatar, setUserProfileAvatar] = useState("");
-
+  // Refs
   const messagesEndRef = useRef(null);
-  const chatContainerRef = useRef(null); // Référence au conteneur des messages pour le scroll
-  const { speak, isSpeaking, cancelSpeech } = useSpeech(false); // Supposons que cancelSpeech existe
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const chatContainerRef = useRef(null);
 
+  // Hook pour la synthèse vocale
+  const { speak, isSpeaking, cancelSpeech } = useSpeech(false);
+
+  // --- EFFETS ---
+
+  // Chargement initial des données (avatar, messages depuis localStorage)
   useEffect(() => {
     const storedAvatar = localStorage.getItem("userAvatar");
-    if (storedAvatar) {
-      setUserProfileAvatar(storedAvatar);
-    }
+    if (storedAvatar) setUserProfileAvatar(storedAvatar);
 
-    // Initialisation du chat (messages)
     const storedChatMessages = localStorage.getItem("chatMessages");
+    let initialMsgs = [];
     if (storedChatMessages) {
-      setMessages(JSON.parse(storedChatMessages));
-    } else {
-      setMessages([
-        {
-          from: "model",
-          text: "Bonjour, je suis Olivia. Dis-moi ce que tu ressens aujourd’hui.",
-        },
-      ]);
+      try {
+        initialMsgs = JSON.parse(storedChatMessages).map(msg => {
+          if (!msg || typeof msg.text !== 'string') return null; 
+          return { ...msg, ...parseActionTag(msg.text) };
+        }).filter(Boolean);
+      } catch (e) { 
+        console.error("CHAT: Erreur parsing messages localStorage:", e);
+        localStorage.removeItem("chatMessages");
+      }
     }
-    // Charger l'historique du chat si stocké
-    const storedChatHistory = localStorage.getItem("chatHistory");
-    if (storedChatHistory) {
-      setHistory(JSON.parse(storedChatHistory));
+    
+    if (initialMsgs.length === 0) {
+      const initialText = "Bonjour, je suis Olivia. Dis-moi ce que tu ressens aujourd’hui.";
+      initialMsgs = [{ 
+        from: "model", text: initialText, ...parseActionTag(initialText) 
+      }];
     }
+    setMessages(initialMsgs);
+    setIsInitialLoadComplete(true); 
   }, []);
 
+  // Sauvegarde des messages dans localStorage
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    if (messages.length > 0 && mode === "chat") {
-      // Sauvegarder uniquement si en mode chat et messages existent
-      localStorage.setItem("chatMessages", JSON.stringify(messages));
+    if (isInitialLoadComplete && messages.length > 0 && mode === "chat") {
+      const messagesToStore = messages.map(({ from, text }) => ({ from, text }));
+      localStorage.setItem("chatMessages", JSON.stringify(messagesToStore));
     }
-  }, [messages, mode]);
+  }, [messages, mode, isInitialLoadComplete]);
 
+  // Logique de scroll automatique et manuel
   useEffect(() => {
-    if (history.length > 0 && mode === "chat") {
-      localStorage.setItem("chatHistory", JSON.stringify(history));
+    if (mode === "chat" && messagesEndRef.current && chatContainerRef.current) {
+      if (isAtBottom) {
+        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      } else if (isInitialLoadComplete && messages.length > 0 && chatContainerRef.current.scrollTop < 50) {
+        if (messages.length < 7) {
+             messagesEndRef.current.scrollIntoView({ behavior: "auto" });
+        }
+      }
     }
-  }, [history, mode]);
+  }, [messages, mode, isAtBottom, isInitialLoadComplete]);
 
-  useEffect(() => {
-    // 3. Scroll initial vers le bas (modifié)
-    // Scrolle seulement si on est considéré "en bas" ou si c'est une nouvelle réponse de l'IA.
-    // Et pas au chargement initial sauf si l'utilisateur était déjà en bas.
-    if (
-      mode === "chat" &&
-      messagesEndRef.current &&
-      !isInitialLoad &&
-      isAtBottom
-    ) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-    if (messages.length > 0 && mode === "chat") {
-      localStorage.setItem("chatMessages", JSON.stringify(messages));
-    }
-  }, [messages, mode, isInitialLoad, isAtBottom]);
+  // Gestion de l'arrêt de la synthèse vocale
+  useEffect(() => { if (!voiceEnabled && isSpeaking && cancelSpeech) cancelSpeech(); }, [voiceEnabled, isSpeaking, cancelSpeech]);
+  useEffect(() => { if (mode !== "chat" && isSpeaking && cancelSpeech) cancelSpeech(); }, [mode, isSpeaking, cancelSpeech]);
 
-  // 2. Problème de son : Arrêter la parole si voiceEnabled est désactivé ou si on quitte le mode chat
-  useEffect(() => {
-    if (!voiceEnabled && isSpeaking && cancelSpeech) {
-      cancelSpeech();
-    }
-  }, [voiceEnabled, isSpeaking, cancelSpeech]);
-
-  useEffect(() => {
-    // Arrêter la parole si on change de mode (chat -> journal)
-    if (mode !== "chat" && isSpeaking && cancelSpeech) {
-      cancelSpeech();
-    }
-  }, [mode, isSpeaking, cancelSpeech]);
-  const handleVoiceToggleChange = (event) => {
-    const isChecked = event.target.checked;
-    setVoiceEnabled(isChecked);
-    if (!isChecked && isSpeaking && cancelSpeech) {
-      cancelSpeech(); // Arrête la parole immédiatement si on décoche
-    }
-  };
-
-  const containsEmergencyKeyword = (text) =>
-    EMERGENCY_KEYWORDS.some((word) => text.toLowerCase().includes(word));
-
- const handleAIResponse = (aiReplyText, contextMessages) => {
-    const parsed = parseActionTag(aiReplyText);
-    const aiMessage = { 
-        from: "model", 
-        text: aiReplyText, // Texte brut avec tag pour sauvegarde et re-parsing
-        displayText: parsed.displayText, 
-        actionName: parsed.actionName, 
-        actionParams: parsed.params 
-    };
-    setMessages(prev => [...prev, aiMessage]);
-    setIsAtBottom(true);
-    if (voiceEnabled && !silentMode && parsed.displayText) speak(parsed.displayText);
-
-    if (parsed.actionName === "REDIRECT" && parsed.params?.path) {
-        setTimeout(() => navigate(parsed.params.path), 700);
-    }
-  };
-
-  const sendMessage = async () => {
-    if (!input.trim()) return;
-    const userMessageText = input;
-    const userMessageForUI = { from: "user", text: userMessageText, displayText: userMessageText };
-    
-    setMessages(prev => [...prev, userMessageForUI]);
-    setIsAtBottom(true);
-    setInput("");
-
-    if (silentMode) { setLoading(false); return; }
-
-    if (containsEmergencyKeyword(userMessageText.toLowerCase())) {
-      const emergencyMsgText = `Je comprends ton inquiétude. Il est important de chercher de l'aide rapidement. Je te redirige vers nos ressources d'urgence. #REDIRECT{path:"/urgence"}`;
-      handleAIResponse(emergencyMsgText, messages.concat(userMessageForUI));
-      setShowEmergencyModal(true);
-      setLoading(false);
-      return;
-    }
-    
-    setLoading(true);
-    const messagesForAPI = messages.concat(userMessageForUI).map(m => ({ from: m.from, text: m.text }));
-
-    try {
-      const res = await axios.post("http://localhost:3000/ask", { messages: messagesForAPI });
-      handleAIResponse(res.data.response || "Pardon, je n'ai pas saisi.", messages.concat(userMessageForUI));
-    } catch (error) {
-      console.error("Erreur API Chat:", error);
-      handleAIResponse(
-        `Navrée, une erreur technique est survenue. (${error.message})`,
-        messages.concat(userMessageForUI)
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      // Envoyer avec Entrée, nouvelle ligne avec Shift+Entrée
-      e.preventDefault();
-      sendMessage();
-    }
-  };
-  // 4. Flèche de scroll
-  const handleScroll = () => {
+  // Détection du scroll manuel pour afficher/cacher le bouton de scroll
+  const handleScroll = useCallback(() => {
     const container = chatContainerRef.current;
     if (container) {
-      const atBottom =
-        container.scrollHeight - container.scrollTop <=
-        container.clientHeight + 50; // +50px de marge
-      const hasScroll = container.scrollHeight > container.clientHeight;
-
+      const scrollThreshold = 50;
+      const atBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + scrollThreshold;
       setIsAtBottom(atBottom);
-      setShowScrollButton(hasScroll); // Afficher le bouton seulement s'il y a du scroll
+      setShowScrollButton(container.scrollHeight > container.clientHeight && !atBottom);
     }
-  };
-  const toggleScrollToPosition = () => {
-    if (!chatContainerRef.current) return;
-    if (isAtBottom) {
-      // Si on est en bas, on veut scroller en haut
-      chatContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
-    } else {
-      // Sinon, on veut scroller en bas
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    }
-  };
+  }, []); // Le tableau de dépendances est vide car chatContainerRef.current ne cause pas de re-création de la fonction
 
   useEffect(() => {
     const container = chatContainerRef.current;
     if (container && mode === "chat") {
       container.addEventListener("scroll", handleScroll);
-      handleScroll(); // Vérifier l'état initial du scroll
+      handleScroll(); 
       return () => container.removeEventListener("scroll", handleScroll);
     }
-  }, [mode, messages]); // Ré-évaluer si le mode ou les messages changent (pour la hauteur)
+  }, [mode, handleScroll, messages]); // `messages` car sa longueur affecte scrollHeight
 
-  const clearChatHistoryAndMessages = () => {
-    setMessages([
-      {
-        from: "model",
-        text: "Bonjour, je suis Olivia. Dis-moi ce que tu ressens aujourd’hui.",
-      },
-    ]);
-    setHistory([]); // Vider l'historique des conversations sauvegardées
-    localStorage.removeItem("chatMessages");
-    localStorage.removeItem("chatHistory");
-    setShowConfirmClear(false);
+  // --- FONCTIONS HANDLER ---
+
+  const handleVoiceToggleChange = (event) => {
+    const newVoiceEnabledState = event.target.checked;
+    setVoiceEnabled(newVoiceEnabledState);
+    if (!newVoiceEnabledState && isSpeaking && cancelSpeech) {
+      cancelSpeech();
+    }
   };
 
-  const formatResponse = (text) => {
-    if (!text) return null;
+  const containsEmergencyKeyword = (text) => EMERGENCY_KEYWORDS.some(word => text.toLowerCase().includes(word));
 
-    return text
-      .split(/\n+/) // Sépare le texte en blocs à chaque fois qu'il y a un ou plusieurs sauts de ligne
-      .filter((paragraphText) => paragraphText.trim() !== "") // Enlève les blocs qui seraient vides
-      .map((paragraphText, i) => {
-        let content = paragraphText.trim(); // Le texte du paragraphe courant
+  const handleAIResponse = (aiReplyText, currentMessagesContextForUI) => {
+    const parsed = parseActionTag(aiReplyText);
+    const aiMessage = { 
+        from: "model", text: aiReplyText, 
+        displayText: parsed.displayText, 
+        actionName: parsed.actionName, actionParams: parsed.params 
+    };
+    setMessages(prevMsgs => [...prevMsgs, aiMessage]);
+    setIsAtBottom(true); 
+    if (voiceEnabled && !silentMode && parsed.displayText) speak(parsed.displayText);
+    if (parsed.actionName === "REDIRECT" && parsed.params?.path) {
+        setTimeout(() => navigate(parsed.params.path), 700);
+    }
+  };
 
-        // 1. Gérer le gras : remplacer **texte** par <strong>texte</strong>
-        // Cette regex capture le texte entre les ** et le remplace par <strong>contenu</strong>
+const sendMessage = async () => {
+  if (!input.trim()) return;
+  const userMessageText = input;
+  const userMessageForUI = { 
+    from: "user", 
+    text: userMessageText, 
+    displayText: userMessageText, 
+    actionName: null, 
+    actionParams: {} 
+  };
+  
+  // 1. Préparer les messages pour l'API AVANT de mettre à jour l'état
+  //    On utilise l'état `messages` actuel et on y ajoute le nouveau message utilisateur.
+  const messagesForAPI = [...messages, userMessageForUI].map(m => ({ 
+    from: m.from, 
+    text: m.text // Utilise le texte brut original (avec tags pour les messages IA)
+  }));
+
+  // 2. Mettre à jour l'UI avec le message de l'utilisateur
+  setMessages(prevMsgs => [...prevMsgs, userMessageForUI]);
+  setIsAtBottom(true);
+  setInput("");
+
+  if (silentMode) { 
+    setLoading(false); // Assure-toi que loading est remis à false
+    return; 
+  }
+
+  // La logique pour les mots-clés d'urgence doit aussi utiliser une version à jour des messages
+  // ou être gérée après la mise à jour de l'état, mais c'est plus complexe.
+  // Pour l'instant, on va supposer qu'on continue avec l'appel API normal.
+  if (containsEmergencyKeyword(userMessageText.toLowerCase())) {
+    const emergencyMsgText = `Je comprends ton inquiétude. Il est important de chercher de l'aide rapidement. Je te redirige vers nos ressources d'urgence. #REDIRECT{path:"/urgence"}`;
+    // On passe messagesForAPI (qui inclut déjà le msg utilisateur) comme contexte
+    handleAIResponse(emergencyMsgText, messagesForAPI.map(m => ({...m, ...parseActionTag(m.text)})) ); // Reparse pour handleAIResponse
+    setShowEmergencyModal(true);
+    setLoading(false); // Pas de chargement IA pour ce cas
+    return;
+  }
+  
+  console.log("CHAT: sendMessage - setLoading(true)");
+  setLoading(true);
+
+  try {
+    const res = await axios.post("http://localhost:3000/ask", { messages: messagesForAPI }); // Utilise messagesForAPI
+    // Pour handleAIResponse, on a besoin du contexte UI (avec displayText, etc.)
+    // On peut le reconstruire à partir de messagesForAPI ou utiliser l'état messages qui sera mis à jour.
+    // Option plus sûre : reconstruire à partir de messagesForAPI pour le contexte exact envoyé
+    const contextForUI = messagesForAPI.map(m => ({...m, ...parseActionTag(m.text)}));
+    handleAIResponse(res.data.response || "Pardon, je n'ai pas saisi.", contextForUI);
+  } catch (error) {
+    console.error("Erreur API Chat:", error);
+    const contextForUI = messagesForAPI.map(m => ({...m, ...parseActionTag(m.text)}));
+    handleAIResponse(
+      `Navrée, une erreur technique est survenue. (${error.message})`,
+      contextForUI
+    );
+  } finally {
+    console.log("CHAT: sendMessage - setLoading(false)");
+    setLoading(false);
+  }
+};
+  
+  const handleKeyDown = (e) => { if (e.key === "Enter" && !e.shiftKey && !loading) { e.preventDefault(); sendMessage(); }};
+  
+  const toggleScrollToPosition = () => {
+    if (!chatContainerRef.current) return;
+    if (isAtBottom && chatContainerRef.current.scrollTop > 0) {
+      chatContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    } else if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+      setIsAtBottom(true); 
+    }
+  };
+  
+  const clearChatHistoryAndMessages = () => {
+    const initialText = "Bonjour, je suis Olivia. Dis-moi ce que tu ressens aujourd’hui.";
+    setMessages([{ from: "model", text: initialText, ...parseActionTag(initialText) }]);
+    localStorage.removeItem("chatMessages");
+    setShowConfirmClear(false);
+    setIsAtBottom(true);
+  };
+
+  const formatResponse = (textToFormat) => {
+    if (!textToFormat) return []; 
+    return textToFormat
+      .split(/\n+/)
+      .filter((pText) => pText.trim() !== "")
+      .map((pText, i) => {
+        let content = pText.trim();
         content = content.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-
-        // 2. Détecter si la ligne est un item de liste pour l'indentation
-        //    On teste sur 'paragraphText' original (avant remplacement du gras) pour la détection du motif de liste.
-        //    Le motif de liste peut être •, *, -, ou un numéro suivi d'un point (ex: 1.)
         const listItemRegex = /^\s*(?:•|\*|-|\d+\.)\s+/;
-        const isListItem = listItemRegex.test(paragraphText.trim());
-
+        const isListItem = listItemRegex.test(pText); // Test sur pText original pour les espaces
         const pClassName = isListItem ? "chat-list-item" : "";
-
-        // Utiliser dangerouslySetInnerHTML car 'content' contient maintenant des balises <strong>
-        return (
-          <p
-            key={i}
-            className={pClassName}
-            dangerouslySetInnerHTML={{ __html: content }}
-          />
-        );
+        return ( <p key={i} className={pClassName} dangerouslySetInnerHTML={{ __html: content }} /> );
       });
   };
-    const handleActionClick = (actionName, params) => {
+
+  const handleActionClick = (actionName, params) => {
     console.log("Action cliquée:", actionName, params);
+    // Assure-toi que les routes et la gestion d'état (state) sont correctes pour chaque action
     switch (actionName) {
       case "EXERCICE_RESPIRATION":
-        navigate(`/detente/programme`, { state: { type: params?.type, duration: params?.duree_sec, cycles: params?.cycles } });
+        navigate(`/detente/programme`, { state: { type: params?.type, duration: params?.duree_sec, cycles: params?.cycles, autoStart: true } });
         break;
       case "VOYAGE_SONORE":
-        navigate(`/detente/voyage-sonore`, { state: { autoSelectThemeId: params?.themeId } });
+        navigate(`/detente/voyage-sonore`, { state: { autoSelectThemeId: params?.themeId, autoPlay: true } });
         break;
       case "SUGGESTION_JOURNAL":
-        setMode('journal'); // Switch vers le mode journal
-        // Tu devras passer le prompt au composant Journal, peut-être via un contexte ou un état dans App.js
-        // Pour l'instant, on loggue juste le prompt :
-        console.log("Prompt pour le journal:", params?.prompt);
+        setMode('journal');
+        if (params?.prompt) localStorage.setItem('journalPromptSuggestion', params.prompt); // Pour que Journal.js puisse le lire
         alert(`Olivia suggère d'écrire sur : ${params?.prompt}`);
         break;
       case "INFO_STRESS":
         navigate(`/detente/comprendre-stress${params?.sujet ? '#' + params.sujet : ''}`);
         break;
-      // REDIRECT est géré dans handleAIResponse
       default:
         console.warn("Action non reconnue:", actionName);
     }
   };
 
+  // ----- JSX de Rendu -----
   return (
     <div className="chat-journal-layout">
       <nav className="page-navigation">
         {mode === "chat" ? (
           <>
-            <OliviaAvatar
-              isSpeaking={isSpeaking && voiceEnabled && !silentMode}
-            />
-            <div className="chat-controls"> {/* Wrapper pour les toggles */}
+            <OliviaAvatar isSpeaking={isSpeaking && voiceEnabled && !silentMode} />
+            <div className="chat-controls">
               <div className="chat__voice-toggle">
                 <label title={voiceEnabled ? "Désactiver la voix" : "Activer la voix"}>
-                  <input
-                    type="checkbox"
-                    checked={voiceEnabled}
-                    onChange={handleVoiceToggleChange}
-                  />
+                  <input type="checkbox" checked={voiceEnabled} onChange={handleVoiceToggleChange}/>
                   Voix {voiceEnabled ? "🔊" : "🔇"}
                 </label>
               </div>
-              {/* Correction ici : un seul chat__silent-toggle */}
               <div className="chat__silent-toggle">
                 <label title={silentMode ? "Reprendre le dialogue" : "Mode écoute seule"}>
-                  <input
-                    type="checkbox"
-                    checked={silentMode}
-                    onChange={() => setSilentMode(!silentMode)}
-                  />
+                  <input type="checkbox" checked={silentMode} onChange={() => setSilentMode(!silentMode)}/>
                   Écoute {silentMode ? "✍️" : "💬"}
                 </label>
-                {/* Le small pour silent-mode-info peut être stylé via CSS pour être caché ou affiché si besoin */}
-                 {silentMode && (
-                  <small className="silent-mode-info">
-                    Olivia n'interviendra pas.
-                  </small>
-                )} 
               </div>
             </div>
             <div className="history-chat-wrapper">
               <div className="history-chat">
-                {/* <h3>Historique Chat</h3>  Commenté car caché sur mobile par défaut */}
-                {/* Affichage de l'historique (simplifié pour l'exemple) */}
-                 {history.length > 0 ? (
-                  history.map((conv, idx) => (
-                    <div key={idx} className="history-item">
-                      Conversation du {new Date(conv.date).toLocaleDateString()}
-                    </div>
-                  ))
-                ) : (
-                  <p className="no-history-text">Aucun historique.</p>
-                )} 
-                {messages.length > 1 && ( // Afficher si plus que le message initial d'Olivia
-                  <button
-                    className="clear-history-btn"
-                    onClick={() => setShowConfirmClear(true)}
-                    title="Effacer la conversation actuelle"
-                  >
+                {messages.length > 1 && ( 
+                  <button className="clear-history-btn" onClick={() => setShowConfirmClear(true)} title="Effacer la conversation">
                     🗑️ Effacer
                   </button>
                 )}
@@ -403,20 +344,14 @@ const Chat = () => {
                 <p>Effacer la conversation actuelle ?</p>
                 <div className="confirmation-actions">
                   <button onClick={clearChatHistoryAndMessages}>Oui</button>
-                  <button onClick={() => setShowConfirmClear(false)}>
-                    Non
-                  </button>
+                  <button onClick={() => setShowConfirmClear(false)}>Non</button>
                 </div>
               </div>
             )}
           </>
         ) : (
           <div className="journal-navigation-content">
-            <img
-              src={userProfileAvatar || "/images/default-avatar.png"} // Ajout d'un fallback
-              alt="Mon profil"
-              className="profile-avatar-display"
-            />
+            <img src={userProfileAvatar || "/images/default-avatar.png"} alt="Mon profil" className="profile-avatar-display"/>
             <h2>📖 Mon Carnet</h2>
           </div>
         )}
@@ -424,16 +359,10 @@ const Chat = () => {
 
       <main className="main-content-area">
         <div className="mode-switcher">
-          <button
-            className={mode === "chat" ? "active" : ""}
-            onClick={() => setMode("chat")}
-          >
+          <button className={`btn-mode ${mode === "chat" ? "active" : ""}`} onClick={() => setMode("chat")}>
             💬 Dialogue avec Olivia
           </button>
-          <button
-            className={mode === "journal" ? "active" : ""}
-            onClick={() => setMode("journal")}
-          >
+          <button className={`btn-mode ${mode === "journal" ? "active" : ""}`} onClick={() => setMode("journal")}>
             📓 Mon Carnet Personnel
           </button>
         </div>
@@ -444,55 +373,52 @@ const Chat = () => {
               {messages.map((msg, idx) => (
                 <div key={idx} className={`message-bubble-wrapper ${msg.from === "user" ? "user-message-wrapper" : "ai-message-wrapper"}`}>
                   <div className={`message-bubble ${msg.from === "user" ? "user-message" : "ai-message"}`}>
-                    {msg.from === "model" ? formatResponse(msg.displayText) : <p>{msg.displayText}</p>}
+                    {msg.from === "model" 
+                        ? formatResponse(msg.displayText) 
+                        : <p>{msg.displayText}</p> // Le texte utilisateur est déjà simple
+                    }
                   </div>
                   {msg.from === "model" && msg.actionName && msg.actionParams && (
                     <button 
                       className="btn btn--action-tag" 
                       onClick={() => handleActionClick(msg.actionName, msg.actionParams)}
-                      title={`Action: ${msg.actionName}`}
+                      title={`Action suggérée: ${msg.actionName.toLowerCase().replace(/_/g, ' ')}`}
                     >
-                      {msg.actionName === "EXERCICE_RESPIRATION" && <><Zap size={16}/> Pratiquer la respiration</>}
-                      {msg.actionName === "VOYAGE_SONORE" && <><Waves size={16}/> Démarrer le voyage sonore</>}
-                      {msg.actionName === "SUGGESTION_JOURNAL" && <><BookOpen size={16}/> Écrire dans mon journal</>}
-                      {msg.actionName === "INFO_STRESS" && <><Info size={16}/> En savoir plus</>}
-                      {msg.actionName === "REDIRECT" && <><ExternalLink size={16}/> Voir les ressources</>}
+                      {msg.actionName === "EXERCICE_RESPIRATION" && <><Zap size={16}/> Pratiquer</>}
+                      {msg.actionName === "VOYAGE_SONORE" && <><Waves size={16}/> Écouter</>}
+                      {msg.actionName === "SUGGESTION_JOURNAL" && <><BookOpen size={16}/> Écrire</>}
+                      {msg.actionName === "INFO_STRESS" && <><Info size={16}/> Infos</>}
+                      {msg.actionName === "REDIRECT" && <><ExternalLink size={16}/> Aller</>}
                       {!["EXERCICE_RESPIRATION", "VOYAGE_SONORE", "SUGGESTION_JOURNAL", "INFO_STRESS", "REDIRECT"].includes(msg.actionName) && 
                         `Suggestion: ${msg.actionName.toLowerCase().replace(/_/g, ' ')}`}
                     </button>
                   )}
                 </div>
               ))}
-             {loading && (
+              {/* Indicateur de chargement pour Olivia */}
+              {loading && (
                 <div className="message-bubble ai-message">
                   <p>Olivia est en train de réfléchir...</p>
                 </div>
               )}
               <div ref={messagesEndRef} />
             </div>
+
             {showScrollButton && (
-              <button className="scroll-toggle-button" onClick={toggleScrollToPosition} title={isAtBottom ? "Remonter en haut" : "Aller en bas"}>
-                {chatContainerRef.current && chatContainerRef.current.scrollTop > 100 && !isAtBottom ? <ArrowDownwardIcon fontSize="small"/> : <ArrowUpwardIcon fontSize="small"/>}
+              <button className="scroll-toggle-button" onClick={toggleScrollToPosition} title={isAtBottom && chatContainerRef.current && chatContainerRef.current.scrollTop > 0 ? "Remonter en haut" : "Aller en bas"}>
+                {(isAtBottom && chatContainerRef.current && chatContainerRef.current.scrollTop > 0) || (!isAtBottom && chatContainerRef.current && chatContainerRef.current.scrollTop > 100)
+                    ? <ArrowUpwardIcon fontSize="small"/> 
+                    : <ArrowDownwardIcon fontSize="small"/>}
               </button>
             )}
+            
             <div className="chat-input-area">
-              <textarea
-                placeholder="Écris ton message ici..."
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                rows="3" // Ajuster le nombre de lignes initiales
-              />
-              <button onClick={sendMessage} disabled={loading || !input.trim()}>
-                📨
-              </button>
+              <textarea placeholder="Écris ton message ici..." value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} rows="3" disabled={loading}/>
+              <button onClick={sendMessage} disabled={loading || !input.trim()}>📨</button>
             </div>
           </div>
-        ) : (
-          <Journal /> // Le composant Journal gère son propre layout interne
-        )}
+        ) : ( <Journal /> )}
       </main>
-
       {showEmergencyModal && (
         <div className="modal-backdrop">
           <div className="emergency-modal-content">

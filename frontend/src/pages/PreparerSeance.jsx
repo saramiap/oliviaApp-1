@@ -338,7 +338,7 @@ const chatInteractionAreaRef = useRef(null);
                 )}
                  </div> {/* Fin de interaction-chat-wrapper */}
             
-            <div className="session-input-area"> {/* Similaire à ton chat */}
+            <div className="session-input-area"> 
               <textarea
                 placeholder={selectedEmotion ? `Discuter de "${selectedEmotion.label}"...` : "Pose une question à Olivia..."}
                 value={userInput}
