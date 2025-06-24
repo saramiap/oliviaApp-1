@@ -28,6 +28,8 @@ function Navbar() {
   const dropdownRef = useRef(); // Pour le dropdown du profil
   // État pour le thème : true pour clair, false pour sombre (par défaut)
   const [isLightTheme, setIsLightTheme] = useState(false);
+
+
   const handleScroll = () => {
     const currentScrollY = window.scrollY;
     setNavBlack(currentScrollY > 50); // Se colore plus vite
@@ -98,7 +100,7 @@ function Navbar() {
         {" "}
         {/* Wrapper pour le contenu de la nav */}
         <div className="nav__left">
-          <Link to="/home" className="nav__logo-link" onClick={closeAllMenus}>
+          <Link to="/" className="nav__logo-link" onClick={closeAllMenus}>
              <img src={Logo} alt="Logo" className="nav__logo-img" /> 
             
             {/* Placeholder */}
