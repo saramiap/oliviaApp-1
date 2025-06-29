@@ -82,6 +82,7 @@ const Chat = () => {
   const [currentConversationId, setCurrentConversationId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState(null);
+  const [preventAutoSave, setPreventAutoSave] = useState(false);
   const [history, setHistory] = useState([]); // L'historique séparé peut être réintroduit si besoin
 
   // Refs
@@ -142,7 +143,6 @@ const Chat = () => {
   const saveCurrentConversation = () => {
     if (!currentConversationId || messages.length <= 1) return;
 
-    const history = loadConversationHistory();
     const title = generateConversationTitle(messages);
     const conversationData = {
       id: currentConversationId,
@@ -151,22 +151,29 @@ const Chat = () => {
       lastUpdated: Date.now()
     };
 
-    const existingIndex = history.findIndex(conv => conv.id === currentConversationId);
+    // Utiliser l'état React comme source de vérité
+    const currentHistory = [...conversationHistory];
+    const existingIndex = currentHistory.findIndex(conv => conv.id === currentConversationId);
+    
     if (existingIndex >= 0) {
-      history[existingIndex] = conversationData;
+      currentHistory[existingIndex] = conversationData;
     } else {
-      history.unshift(conversationData);
+      currentHistory.unshift(conversationData);
     }
 
     // Garder seulement les 50 dernières conversations
-    const limitedHistory = history.slice(0, 50);
+    const limitedHistory = currentHistory.slice(0, 50);
+    
+    // Mettre à jour l'état React IMMEDIATEMENT
     setConversationHistory(limitedHistory);
+    
+    // Puis sauvegarder dans localStorage
     saveConversationHistory(limitedHistory);
   };
 
   const loadConversation = (conversationId) => {
-    const history = loadConversationHistory();
-    const conversation = history.find(conv => conv.id === conversationId);
+    // Utiliser l'état React comme source de vérité
+    const conversation = conversationHistory.find(conv => conv.id === conversationId);
     
     if (conversation) {
       // Sauvegarder la conversation actuelle avant de changer
@@ -197,35 +204,53 @@ const Chat = () => {
       event.stopPropagation();
     }
     
+    console.log("Tentative de suppression de:", conversationId);
+    console.log("Historique actuel:", conversationHistory);
+    
     const conversation = conversationHistory.find(conv => conv.id === conversationId);
     if (conversation) {
+      console.log("Conversation trouvée:", conversation);
       setConversationToDelete(conversation);
       setShowDeleteModal(true);
+    } else {
+      console.log("Conversation non trouvée dans l'historique");
     }
   };
 
   const confirmDeleteConversation = () => {
     if (conversationToDelete) {
-      const history = loadConversationHistory();
-      const updatedHistory = history.filter(conv => conv.id !== conversationToDelete.id);
+      console.log("Confirmation de suppression pour:", conversationToDelete.id);
+      console.log("Historique avant suppression:", conversationHistory);
       
-      // Mettre à jour l'état immédiatement
+      // Empêcher la sauvegarde automatique temporairement
+      setPreventAutoSave(true);
+      
+      // Utiliser l'état React comme source de vérité
+      const updatedHistory = conversationHistory.filter(conv => conv.id !== conversationToDelete.id);
+      
+      console.log("Historique après filtrage:", updatedHistory);
+      
+      // Mettre à jour l'état React IMMEDIATEMENT
       setConversationHistory(updatedHistory);
+      
+      // Puis sauvegarder dans localStorage
       saveConversationHistory(updatedHistory);
 
       // Si c'est la conversation actuelle, créer une nouvelle
       if (currentConversationId === conversationToDelete.id) {
+        console.log("Suppression de la conversation actuelle, création d'une nouvelle");
         createNewConversation();
       }
       
-      // Fermer la modal immédiatement après suppression
-      setShowDeleteModal(false);
-      setConversationToDelete(null);
-    } else {
-      // Si pas de conversation à supprimer, juste fermer
-      setShowDeleteModal(false);
-      setConversationToDelete(null);
+      // Réactiver la sauvegarde automatique après un délai
+      setTimeout(() => {
+        setPreventAutoSave(false);
+      }, 2000); // 2 secondes pour être sûr
     }
+    
+    // Toujours fermer la modal
+    setShowDeleteModal(false);
+    setConversationToDelete(null);
   };
 
   const cancelDeleteConversation = () => {
@@ -284,7 +309,7 @@ const Chat = () => {
 
   // Sauvegarde des messages dans localStorage ET mise à jour de l'historique
   useEffect(() => {
-    if (isInitialLoadComplete && messages.length > 0 && mode === "chat") {
+    if (isInitialLoadComplete && messages.length > 0 && mode === "chat" && !preventAutoSave) {
       const messagesToStore = messages.map(({ from, text }) => ({ from, text }));
       localStorage.setItem("chatMessages", JSON.stringify(messagesToStore));
       
@@ -296,7 +321,7 @@ const Chat = () => {
         return () => clearTimeout(timeoutId);
       }
     }
-  }, [messages, mode, isInitialLoadComplete, currentConversationId]);
+  }, [messages, mode, isInitialLoadComplete, currentConversationId, preventAutoSave]);
 
   // Scroll automatique dans le container de chat
   useEffect(() => {
