@@ -5,7 +5,7 @@ import useSpeech from "../hooks/useSpeech";
 import { ArrowDownward as ArrowDownwardIcon, ArrowUpward as ArrowUpwardIcon, KeyboardArrowUp as ArrowUpIcon } from '@mui/icons-material';
 import { useNavigate } from "react-router-dom";
 import Journal from "./Journal"; // Assure-toi que ce chemin est correct et que Journal est exporté par défaut
-import { Zap, Waves, BookOpen, Info, ExternalLink } from 'lucide-react'; // Icônes pour les boutons d'action
+import { Zap, Waves, BookOpen, Info, ExternalLink, Menu, Plus, MessageCircle, Trash2 } from 'lucide-react'; // Icônes pour les boutons d'action
 
 import "../styles/_chat.scss"; // Ton fichier SCSS principal
 
@@ -77,6 +77,9 @@ const Chat = () => {
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
   const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false);
   const [isInActiveConversation, setIsInActiveConversation] = useState(false);
+  const [showHistorySidebar, setShowHistorySidebar] = useState(false);
+  const [conversationHistory, setConversationHistory] = useState([]);
+  const [currentConversationId, setCurrentConversationId] = useState(null);
   const [history, setHistory] = useState([]); // L'historique séparé peut être réintroduit si besoin
 
   // Refs
@@ -86,44 +89,181 @@ const Chat = () => {
   // Hook pour la synthèse vocale
   const { speak, isSpeaking, cancelSpeech } = useSpeech(false);
 
+  // --- FONCTIONS UTILITAIRES POUR L'HISTORIQUE ---
+
+  const generateConversationTitle = (messages) => {
+    if (messages.length < 2) return "Nouvelle conversation";
+    const userMessages = messages.filter(msg => msg.from === "user");
+    if (userMessages.length === 0) return "Nouvelle conversation";
+    
+    const firstUserMessage = userMessages[0].text;
+    return firstUserMessage.length > 50
+      ? firstUserMessage.substring(0, 50) + "..."
+      : firstUserMessage;
+  };
+
+  const loadConversationHistory = () => {
+    try {
+      const stored = localStorage.getItem("conversationHistory");
+      return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      console.error("Erreur chargement historique:", e);
+      return [];
+    }
+  };
+
+  const saveConversationHistory = (history) => {
+    try {
+      localStorage.setItem("conversationHistory", JSON.stringify(history));
+    } catch (e) {
+      console.error("Erreur sauvegarde historique:", e);
+    }
+  };
+
+  const createNewConversation = () => {
+    // Sauvegarder la conversation actuelle si elle existe
+    if (currentConversationId && messages.length > 1) {
+      saveCurrentConversation();
+    }
+
+    // Créer nouvelle conversation
+    const newConversationId = Date.now().toString();
+    const initialText = "Bonjour, je suis Olivia. Dis-moi ce que tu ressens aujourd'hui.";
+    const newMessages = [{ from: "model", text: initialText, ...parseActionTag(initialText) }];
+    
+    setCurrentConversationId(newConversationId);
+    setMessages(newMessages);
+    setIsInActiveConversation(false);
+    localStorage.setItem("chatMessages", JSON.stringify(newMessages.map(({ from, text }) => ({ from, text }))));
+  };
+
+  const saveCurrentConversation = () => {
+    if (!currentConversationId || messages.length <= 1) return;
+
+    const history = loadConversationHistory();
+    const title = generateConversationTitle(messages);
+    const conversationData = {
+      id: currentConversationId,
+      title,
+      messages: messages.map(({ from, text }) => ({ from, text })),
+      lastUpdated: Date.now()
+    };
+
+    const existingIndex = history.findIndex(conv => conv.id === currentConversationId);
+    if (existingIndex >= 0) {
+      history[existingIndex] = conversationData;
+    } else {
+      history.unshift(conversationData);
+    }
+
+    // Garder seulement les 50 dernières conversations
+    const limitedHistory = history.slice(0, 50);
+    setConversationHistory(limitedHistory);
+    saveConversationHistory(limitedHistory);
+  };
+
+  const loadConversation = (conversationId) => {
+    const history = loadConversationHistory();
+    const conversation = history.find(conv => conv.id === conversationId);
+    
+    if (conversation) {
+      // Sauvegarder la conversation actuelle avant de changer
+      if (currentConversationId && messages.length > 1) {
+        saveCurrentConversation();
+      }
+
+      const loadedMessages = conversation.messages.map(msg => ({
+        ...msg, ...parseActionTag(msg.text)
+      }));
+      
+      setCurrentConversationId(conversationId);
+      setMessages(loadedMessages);
+      setIsInActiveConversation(true);
+      localStorage.setItem("chatMessages", JSON.stringify(conversation.messages));
+      
+      // Fermer le sidebar sur mobile
+      if (window.innerWidth < 768) {
+        setShowHistorySidebar(false);
+      }
+    }
+  };
+
+  const deleteConversation = (conversationId) => {
+    const history = loadConversationHistory();
+    const updatedHistory = history.filter(conv => conv.id !== conversationId);
+    setConversationHistory(updatedHistory);
+    saveConversationHistory(updatedHistory);
+
+    // Si c'est la conversation actuelle, créer une nouvelle
+    if (currentConversationId === conversationId) {
+      createNewConversation();
+    }
+  };
+
   // --- EFFETS ---
 
-  // Chargement initial des données (avatar, messages depuis localStorage)
+  // Chargement initial des données (avatar, messages depuis localStorage, historique)
   useEffect(() => {
     const storedAvatar = localStorage.getItem("userAvatar");
     if (storedAvatar) setUserProfileAvatar(storedAvatar);
 
+    // Charger l'historique des conversations
+    const history = loadConversationHistory();
+    setConversationHistory(history);
+
     const storedChatMessages = localStorage.getItem("chatMessages");
     let initialMsgs = [];
+    let conversationId = null;
+
     if (storedChatMessages) {
       try {
-        initialMsgs = JSON.parse(storedChatMessages).map(msg => {
-          if (!msg || typeof msg.text !== 'string') return null; 
+        const parsedMessages = JSON.parse(storedChatMessages);
+        initialMsgs = parsedMessages.map(msg => {
+          if (!msg || typeof msg.text !== 'string') return null;
           return { ...msg, ...parseActionTag(msg.text) };
         }).filter(Boolean);
-      } catch (e) { 
+
+        // Trouver ou créer un ID pour cette conversation
+        if (initialMsgs.length > 1) {
+          const title = generateConversationTitle(initialMsgs);
+          const existingConversation = history.find(conv => conv.title === title);
+          conversationId = existingConversation ? existingConversation.id : Date.now().toString();
+          setIsInActiveConversation(true);
+        }
+      } catch (e) {
         console.error("CHAT: Erreur parsing messages localStorage:", e);
         localStorage.removeItem("chatMessages");
       }
     }
     
     if (initialMsgs.length === 0) {
-      const initialText = "Bonjour, je suis Olivia. Dis-moi ce que tu ressens aujourd’hui.";
-      initialMsgs = [{ 
-        from: "model", text: initialText, ...parseActionTag(initialText) 
+      const initialText = "Bonjour, je suis Olivia. Dis-moi ce que tu ressens aujourd'hui.";
+      initialMsgs = [{
+        from: "model", text: initialText, ...parseActionTag(initialText)
       }];
+      conversationId = Date.now().toString();
     }
+
+    setCurrentConversationId(conversationId);
     setMessages(initialMsgs);
-    setIsInitialLoadComplete(true); 
+    setIsInitialLoadComplete(true);
   }, []);
 
-  // Sauvegarde des messages dans localStorage
+  // Sauvegarde des messages dans localStorage ET mise à jour de l'historique
   useEffect(() => {
     if (isInitialLoadComplete && messages.length > 0 && mode === "chat") {
       const messagesToStore = messages.map(({ from, text }) => ({ from, text }));
       localStorage.setItem("chatMessages", JSON.stringify(messagesToStore));
+      
+      // Sauvegarder dans l'historique après chaque message (avec debounce)
+      if (messages.length > 1) {
+        const timeoutId = setTimeout(() => {
+          saveCurrentConversation();
+        }, 1000); // Attendre 1 seconde avant de sauvegarder pour éviter trop de saves
+        return () => clearTimeout(timeoutId);
+      }
     }
-  }, [messages, mode, isInitialLoadComplete]);
+  }, [messages, mode, isInitialLoadComplete, currentConversationId]);
 
   // Scroll automatique UNIQUEMENT lors de vraies conversations actives
   useEffect(() => {
@@ -302,12 +442,10 @@ const sendMessage = async () => {
   };
   
   const clearChatHistoryAndMessages = () => {
-    const initialText = "Bonjour, je suis Olivia. Dis-moi ce que tu ressens aujourd'hui.";
-    setMessages([{ from: "model", text: initialText, ...parseActionTag(initialText) }]);
-    localStorage.removeItem("chatMessages");
+    // Créer une nouvelle conversation au lieu d'effacer
+    createNewConversation();
     setShowConfirmClear(false);
     setIsAtBottom(true);
-    setIsInActiveConversation(false); // Réinitialiser l'état de conversation active
   };
 
   const formatResponse = (textToFormat) => {
@@ -351,9 +489,61 @@ const sendMessage = async () => {
   // ----- JSX de Rendu -----
   return (
     <div className="chat-journal-layout">
+      {/* Sidebar d'historique */}
+      {mode === "chat" && (
+        <aside className={`conversation-history-sidebar ${showHistorySidebar ? 'open' : ''}`}>
+          <div className="sidebar-header">
+            <button className="new-conversation-btn" onClick={createNewConversation} title="Nouvelle conversation">
+              <Plus size={20} />
+              Nouvelle conversation
+            </button>
+          </div>
+          
+          <div className="conversation-list">
+            {conversationHistory.length === 0 ? (
+              <div className="no-conversations">
+                <MessageCircle size={32} />
+                <p>Aucune conversation</p>
+              </div>
+            ) : (
+              conversationHistory.map((conversation) => (
+                <div
+                  key={conversation.id}
+                  className={`conversation-item ${currentConversationId === conversation.id ? 'active' : ''}`}
+                  onClick={() => loadConversation(conversation.id)}
+                >
+                  <div className="conversation-content">
+                    <MessageCircle size={16} />
+                    <span className="conversation-title">{conversation.title}</span>
+                  </div>
+                  <button
+                    className="delete-conversation-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteConversation(conversation.id);
+                    }}
+                    title="Supprimer cette conversation"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        </aside>
+      )}
+
       <nav className="page-navigation">
         {mode === "chat" ? (
           <>
+            <button
+              className="history-toggle-btn"
+              onClick={() => setShowHistorySidebar(!showHistorySidebar)}
+              title="Historique des conversations"
+            >
+              <Menu size={20} />
+            </button>
+            
             <OliviaAvatar isSpeaking={isSpeaking && voiceEnabled && !silentMode} />
             <div className="chat-controls">
               <div className="chat__voice-toggle">
@@ -371,16 +561,16 @@ const sendMessage = async () => {
             </div>
             <div className="history-chat-wrapper">
               <div className="history-chat">
-                {messages.length > 1 && ( 
-                  <button className="clear-history-btn" onClick={() => setShowConfirmClear(true)} title="Effacer la conversation">
-                    🗑️ Effacer
+                {messages.length > 1 && (
+                  <button className="clear-history-btn" onClick={() => setShowConfirmClear(true)} title="Nouvelle conversation">
+                    <Plus size={16} /> Nouveau
                   </button>
                 )}
               </div>
             </div>
             {showConfirmClear && (
               <div className="confirmation-modal">
-                <p>Effacer la conversation actuelle ?</p>
+                <p>Créer une nouvelle conversation ?</p>
                 <div className="confirmation-actions">
                   <button onClick={clearChatHistoryAndMessages}>Oui</button>
                   <button onClick={() => setShowConfirmClear(false)}>Non</button>
