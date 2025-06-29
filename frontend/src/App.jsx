@@ -25,9 +25,10 @@ import YogaProgram from './pages/YogaProgram';   // Renommé depuis YogaProgramP
 import UnderstandingStress from './pages/UnderstandingStress'; // Renommé
 import Dashboard from './pages/Dashboard'; // Renommé depuis Dashboard pour être plus explicite
 import AuthPage from './pages/AuthPage';
+import Logout from './pages/Logout';
 
-// Importe ton client Supabase
-import { supabase } from './supabaseClient'; 
+// Importe le service d'authentification Google
+import { supabase } from './supabaseClient'; // Maintenant utilise Google Auth
 
 // Ce composant contiendra la logique qui a besoin de `useNavigate`
 // et sera rendu à l'intérieur du <Router>
@@ -41,9 +42,9 @@ function AppContent() {
       if (session) {
         // setUser(session.user);
         console.log('Session initiale, utilisateur connecté:', session.user);
-        // Si l'utilisateur est sur /auth ou / et qu'il a une session, on le redirige
-        if (window.location.pathname === '/auth' || window.location.pathname === '/') {
-         navigate('/home'); // Ou '/dashboard'
+        // Si l'utilisateur est sur /auth et qu'il a une session, on le redirige vers dashboard
+        if (window.location.pathname === '/auth') {
+         navigate('/?welcome=true'); // Redirection vers dashboard avec paramètre welcome
         }
       } else {
         // setUser(null);
@@ -62,11 +63,11 @@ function AppContent() {
       if (event === 'SIGNED_IN' && session) {
         // setUser(session.user);
         console.log('Utilisateur connecté via onAuthStateChange:', session.user);
-        // Si l'utilisateur vient de se connecter (ex: depuis /auth), redirige-le
-        if (window.location.pathname === '/auth' || window.location.pathname === '/') {
-             navigate('/home'); // Ou '/dashboard'
+        // Si l'utilisateur vient de se connecter (ex: depuis /auth), redirige-le vers dashboard
+        if (window.location.pathname === '/auth') {
+             navigate('/?welcome=true'); // Redirection vers dashboard avec message de bienvenue
         } else if (window.location.pathname.startsWith('/auth#access_token=')) { // Cas de retour OAuth Google
-            navigate('/home'); // Ou '/dashboard'
+            navigate('/?welcome=true'); // Redirection vers dashboard avec message de bienvenue
         }
       } else if (event === 'SIGNED_OUT') {
         // setUser(null);
@@ -103,6 +104,7 @@ function AppContent() {
           <Route path="/preparer-seance" element={<PreparerSeance />} />
           <Route path="/urgence" element={<Urgence />} />
           <Route path="/parametres" element={<Settings />} />
+          <Route path="/logout" element={<Logout />} />
         </Routes>
       </div>
       <Footer />

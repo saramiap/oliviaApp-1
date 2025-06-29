@@ -1,18 +1,16 @@
-// src/supabaseClient.js
-import { createClient } from '@supabase/supabase-js';
-console.log("bonjour je passe");
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// src/supabaseClient.js (maintenant utilisé pour Google Auth)
+// Fichier de compatibilité pour remplacer Supabase par Google Auth
+import { googleAuth, auth } from './services/googleAuth.js';
 
-console.log('Supabase URL:', supabaseUrl); // Pour déboguer
-console.log('Supabase Anon Key:', supabaseAnonKey ? 'Chargée' : 'NON CHARGÉE'); // Pour déboguer, ne loggue pas la clé elle-même
+console.log("Service d'authentification Google initialisé");
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error(
-    "Erreur: URL Supabase ou Clé Anonyme manquante. " +
-    "Assure-toi qu'elles sont bien définies dans tes variables d'environnement .env " +
-    "(avec le préfixe VITE_ pour les projets Vite) et que le serveur de développement a été redémarré."
-  );
-}
+// Initialiser le service
+googleAuth.init();
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Export pour compatibilité avec l'ancien code Supabase
+export const supabase = {
+  auth: auth
+};
+
+// Export direct du service Google Auth
+export { googleAuth };

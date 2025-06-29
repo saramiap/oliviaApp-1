@@ -27,6 +27,125 @@ $db-button-text-on-accent: #FFFFFF; // Texte sur les boutons avec fond $db-accen
   @media (min-width: 768px) {
     padding: 2rem 3rem; // Padding pour tablettes et desktop
   }
+
+  // --- Banner de Bienvenue ---
+  .welcome-banner {
+    background: linear-gradient(135deg, $db-accent-primary 0%, $db-accent-primary-darker 100%);
+    color: white;
+    margin: -1.5rem -1.5rem 2rem -1.5rem; // Dépasser les marges de la page
+    padding: 0;
+    border-radius: 0 0 16px 16px;
+    box-shadow: 0 4px 20px rgba(130, 170, 255, 0.3);
+    animation: slideDown 0.5s ease-out;
+    
+    @media (min-width: 768px) {
+      margin: -2rem -3rem 2.5rem -3rem; // Ajuster pour les marges desktop
+    }
+    
+    .welcome-banner-content {
+      display: flex;
+      align-items: center;
+      padding: 1.5rem 2rem;
+      position: relative;
+      max-width: 1200px;
+      margin: 0 auto;
+      
+      @media (max-width: 768px) {
+        flex-direction: column;
+        text-align: center;
+        padding: 1.25rem 1.5rem;
+      }
+      
+      .welcome-icon {
+        margin-right: 1.25rem;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        
+        @media (max-width: 768px) {
+          margin-right: 0;
+          margin-bottom: 1rem;
+        }
+        
+        svg {
+          animation: sparkle 2s ease-in-out infinite;
+        }
+      }
+      
+      .welcome-text {
+        flex: 1;
+        
+        h2 {
+          margin: 0 0 0.5rem 0;
+          font-size: 1.5rem;
+          font-weight: 600;
+          text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+          
+          @media (min-width: 768px) {
+            font-size: 1.75rem;
+          }
+        }
+        
+        p {
+          margin: 0;
+          opacity: 0.9;
+          font-size: 1rem;
+          line-height: 1.5;
+        }
+      }
+      
+      .welcome-close {
+        background: rgba(255, 255, 255, 0.2);
+        border: none;
+        color: white;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+        
+        @media (max-width: 768px) {
+          position: absolute;
+          top: 1rem;
+          right: 1rem;
+        }
+        
+        &:hover {
+          background: rgba(255, 255, 255, 0.3);
+          transform: rotate(90deg);
+        }
+      }
+    }
+  }
+}
+
+// --- Animation du Banner ---
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sparkle {
+  0%, 100% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.1);
+  }
 }
 
 // --- Header du Dashboard ---

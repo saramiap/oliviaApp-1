@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close"; // Pour fermer le menu mobile
 import SearchIcon from "@mui/icons-material/Search";
@@ -15,6 +15,7 @@ import ExitToAppIcon from "@mui/icons-material/ExitToApp"; // Pour "Déconnexion
 import EmergencyButton from "./EmergencyButton";
 import TaskIcon from "@mui/icons-material/Task";
 import Logo from '../../public/LogoSerenisBig.png'; // Décommente et ajuste si tu as un logo
+import { googleAuth } from '../services/googleAuth'; // Import du service d'authentification
 
 // import '../styles/_navbar.scss'; // Assure-toi d'importer le bon fichier SCSS
 
@@ -23,11 +24,13 @@ function Navbar() {
   const [navVisible, setNavVisible] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
   const lastScrollY = useRef(0);
   const navRef = useRef(); // Pour le menu mobile
   const dropdownRef = useRef(); // Pour le dropdown du profil
   // État pour le thème : true pour clair, false pour sombre (par défaut)
   const [isLightTheme, setIsLightTheme] = useState(false);
+  const navigate = useNavigate();
 
 
   const handleScroll = () => {
@@ -37,6 +40,30 @@ function Navbar() {
     setNavVisible(currentScrollY < lastScrollY.current || currentScrollY < 50);
     lastScrollY.current = currentScrollY;
   };
+
+  // Charger les informations utilisateur
+  useEffect(() => {
+    const loadUserInfo = () => {
+      const currentUser = googleAuth.getCurrentUser();
+      setUserInfo(currentUser);
+    };
+
+    // Charger au démarrage
+    loadUserInfo();
+
+    // Écouter les changements d'authentification
+    const unsubscribe = googleAuth.onAuthStateChange((event, user) => {
+      if (event === 'SIGNED_IN' && user) {
+        setUserInfo(user);
+      } else if (event === 'SIGNED_OUT') {
+        setUserInfo(null);
+      }
+    });
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll, { passive: true });
@@ -85,6 +112,18 @@ function Navbar() {
       localStorage.setItem("navbarTheme", newThemeIsLight ? "light" : "dark");
       return newThemeIsLight;
     });
+  };
+
+  // Fonction de déconnexion
+  const handleLogout = async () => {
+    try {
+      await googleAuth.signOut();
+      closeAllMenus();
+      // La redirection vers /auth sera gérée par App.jsx qui écoute les changements d'auth
+      console.log('🔓 Déconnexion réussie');
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
+    }
   };
   return (
     <div
@@ -150,7 +189,7 @@ function Navbar() {
               ref={dropdownRef}
             >
               <img
-                src={/* user?.avatar || */ "/images/default-avatar.png"}
+                src={userInfo?.picture || "/images/default-avatar.png"}
                 alt="Profil"
                 className="nav__profile-avatar"
               />
@@ -165,9 +204,9 @@ function Navbar() {
                   <Link to="/parametres" onClick={closeAllMenus}>
                     Paramètres
                   </Link>
-                  <Link to="/logout" onClick={closeAllMenus}>
+                  <button onClick={handleLogout} className="nav__dropdown-logout">
                     Déconnexion
-                  </Link>
+                  </button>
                 </div>
               )}
             </div>
@@ -224,12 +263,11 @@ function Navbar() {
             <SettingsOutlinedIcon />
             <span>Paramètres</span>
           </Link>
-          {/* Changé la route pour être distincte */}
-          <Link to="/logout" onClick={handleLinkClick}>
+          {/* Bouton de déconnexion */}
+          <button onClick={handleLogout} className="nav__mobile-logout">
             <ExitToAppIcon />
             <span>Déconnexion</span>
-          </Link>{" "}
-          {/* Changé la route */}
+          </button>
           <div className="nav__mobile-emergency">
             <EmergencyButton />
           </div>

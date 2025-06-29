@@ -164,6 +164,25 @@ $nav-mobile-shadow: rgba(0, 0, 0, 0.4);
       color: $nav-text-hover;
     }
   }
+
+  // Bouton de déconnexion dans le dropdown
+  .nav__dropdown-logout {
+    display: block;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: none;
+    border: none;
+    color: $nav-text-color;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s;
+    font-size: 0.9rem;
+    
+    &:hover {
+      background-color: $nav-dropdown-hover-bg;
+      color: #ff6b6b; // Rouge pour la déconnexion
+    }
+  }
 }
 @keyframes dropdownFadeIn {
   to {
@@ -230,8 +249,8 @@ $nav-mobile-shadow: rgba(0, 0, 0, 0.4);
       border-radius: 8px; // Bordures arrondies pour chaque lien
       font-size: 1rem;
       transition: background-color 0.2s ease, color 0.2s ease;
-      svg { 
-        font-size: 1.3rem; 
+      svg {
+        font-size: 1.3rem;
         color: $nav-icon-color; // Couleur d'icône par défaut
         transition: color 0.2s ease;
       }
@@ -239,6 +258,39 @@ $nav-mobile-shadow: rgba(0, 0, 0, 0.4);
         background-color: $nav-mobile-link-hover-bg;
         color: $nav-text-hover;
         svg { color: $nav-text-hover; }
+      }
+    }
+
+    // Bouton de déconnexion mobile
+    .nav__mobile-logout {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      width: 100%;
+      padding: 0.8rem 1rem;
+      background: none;
+      border: none;
+      color: $nav-text-color;
+      text-align: left;
+      cursor: pointer;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: background-color 0.2s ease, color 0.2s ease;
+      
+      svg {
+        font-size: 1.3rem;
+        color: $nav-icon-color;
+        transition: color 0.2s ease;
+      }
+      
+      span {
+        font-weight: 500;
+      }
+      
+      &:hover {
+        background-color: $nav-mobile-link-hover-bg;
+        color: #ff6b6b; // Rouge pour la déconnexion
+        svg { color: #ff6b6b; }
       }
     }
   }

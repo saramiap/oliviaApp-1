@@ -1,9 +1,10 @@
 
 
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import '../styles/_dashboard.scss'; // Nouveau fichier SCSS
-import { Zap, Headphones, BookText, Smile, Edit3, ArrowRight, Compass, HelpCircle } from 'lucide-react'; // Icônes
+import { Zap, Headphones, BookText, Smile, Edit3, ArrowRight, Compass, HelpCircle, X, Sparkles } from 'lucide-react'; // Icônes
+import { googleAuth } from '../services/googleAuth'; // Pour récupérer l'utilisateur connecté
 import { 
   getUserNameFromStorage, 
   getLastActivitiesFromStorage,
@@ -42,38 +43,53 @@ const Dashboard = () => {
   const [moodSummary, setMoodSummary] = useState(mockMoodSummary);
   const [welcomeMessage, setWelcomeMessage] = useState('');
   const [cardsVisible, setCardsVisible] = useState(false); // Pour l'animation d'apparition
-const [userName, setUserName] = useState(''); 
+  const [userName, setUserName] = useState('');
+  const [showWelcomeBanner, setShowWelcomeBanner] = useState(false); // Pour le message de bienvenue
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
  useEffect(() => {
+    // --- Récupération de l'utilisateur connecté ---
+    const currentUser = googleAuth.getCurrentUser();
+    
     // --- Chargement des Données depuis localStorage ---
     const loadedUserName = getUserNameFromStorage();
-    setUserName(loadedUserName);
+    
+    // Utiliser le nom de l'utilisateur connecté en priorité, sinon celui du localStorage
+    const displayName = currentUser?.name || currentUser?.given_name || loadedUserName || 'cher utilisateur';
+    setUserName(displayName);
+    
     setLastActivities(getLastActivitiesFromStorage());
     setMoodSummary(getMoodSummaryFromStorage());
 
-    // --- Message de Bienvenue et Suggestion d'Olivia ---
+    // --- Vérifier si c'est une connexion récente ---
+    const isWelcomeFlow = searchParams.get('welcome') === 'true';
+    if (isWelcomeFlow) {
+      setShowWelcomeBanner(true);
+      // Nettoyer l'URL
+      setSearchParams({});
+    }
+
+    // --- Message de Bienvenue standard ---
     const timeOfDay = new Date().getHours();
     let greeting = "Bonjour";
     if (timeOfDay < 12) greeting = "Bonjour";
     else if (timeOfDay < 18) greeting = "Bon après-midi";
     else greeting = "Bonsoir";
-    const oliviaTips = [ /* ... */ ];
-    const randomTip = oliviaTips[Math.floor(Math.random() * oliviaTips.length)];
-    setWelcomeMessage(`${greeting} ${userName} ! Olivia vous suggère : "${randomTip}"`);
-    // Pour la suggestion d'Olivia, tu ferais idéalement un appel API ici
-    // Pour l'instant, on garde le mock mais on l'intègre au message de bienvenue.
-    // setWelcomeMessage(`${greeting} ${loadedUserName} ! ${oliviaSuggestion.description}`);
-    // Ou si tu veux séparer le message d'accueil du conseil:
-    setWelcomeMessage(`${greeting} ${loadedUserName} ! Prêt·e pour une journée plus sereine ?`);
-
+    
+    setWelcomeMessage(`${greeting} ${displayName} ! Prêt·e pour une journée plus sereine ?`);
 
     // Animation des cartes
     const timer = setTimeout(() => {
       setCardsVisible(true);
     }, 300);
     return () => clearTimeout(timer);
-  }, []); // Se déclenche une seule fois au montage
+  }, [searchParams, setSearchParams]); // Dépendances pour le paramètre welcome
+
+  // Fonction pour fermer le banner de bienvenue
+  const handleCloseWelcomeBanner = () => {
+    setShowWelcomeBanner(false);
+  };
 
 
 
@@ -113,6 +129,24 @@ const getActivityIcon = (activity) => {
 
   return (
     <div className="dashboard-page">
+      {/* Banner de bienvenue pour les nouveaux connectés */}
+      {showWelcomeBanner && (
+        <div className="welcome-banner">
+          <div className="welcome-banner-content">
+            <div className="welcome-icon">
+              <Sparkles size={32} />
+            </div>
+            <div className="welcome-text">
+              <h2>Bonjour {userName}, Bienvenue sur Sérenis !</h2>
+              <p>Nous sommes ravis de vous accueillir dans votre espace de bien-être personnel. Découvrez tous nos outils pour vous accompagner.</p>
+            </div>
+            <button className="welcome-close" onClick={handleCloseWelcomeBanner}>
+              <X size={20} />
+            </button>
+          </div>
+        </div>
+      )}
+
       <header className="dashboard-header">
         <h1>Mon Espace Bien-être</h1>
         <p className="dashboard-welcome-message">{welcomeMessage}</p>

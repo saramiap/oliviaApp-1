@@ -1,12 +1,11 @@
 // src/pages/Chat.jsx
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import axios from "axios";
 import OliviaAvatar from "../components/OliviaAvatar";
 import useSpeech from "../hooks/useSpeech";
-import { ArrowDownward as ArrowDownwardIcon, ArrowUpward as ArrowUpwardIcon } from '@mui/icons-material';
+import { ArrowDownward as ArrowDownwardIcon, ArrowUpward as ArrowUpwardIcon, KeyboardArrowUp as ArrowUpIcon } from '@mui/icons-material';
 import { useNavigate } from "react-router-dom";
 import Journal from "./Journal"; // Assure-toi que ce chemin est correct et que Journal est exporté par défaut
-import { Zap, Waves, BookOpen, Info, ExternalLink } from 'lucide-react'; // Icônes pour les boutons d'action
+import { Zap, Waves, BookOpen, Info, ExternalLink, Menu, Plus, MessageCircle, Trash2 } from 'lucide-react'; // Icônes pour les boutons d'action
 
 import "../styles/_chat.scss"; // Ton fichier SCSS principal
 
@@ -68,6 +67,7 @@ const Chat = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false); // Pour l'indicateur "Olivia réfléchit"
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [showScrollToTopButton, setShowScrollToTopButton] = useState(false);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [silentMode, setSilentMode] = useState(false);
@@ -76,6 +76,13 @@ const Chat = () => {
   const [showConfirmClear, setShowConfirmClear] = useState(false);
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
   const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false);
+  const [isInActiveConversation, setIsInActiveConversation] = useState(false);
+  const [showHistorySidebar, setShowHistorySidebar] = useState(false);
+  const [conversationHistory, setConversationHistory] = useState([]);
+  const [currentConversationId, setCurrentConversationId] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [conversationToDelete, setConversationToDelete] = useState(null);
+  const [preventAutoSave, setPreventAutoSave] = useState(false);
   const [history, setHistory] = useState([]); // L'historique séparé peut être réintroduit si besoin
 
   // Refs
@@ -85,70 +92,284 @@ const Chat = () => {
   // Hook pour la synthèse vocale
   const { speak, isSpeaking, cancelSpeech } = useSpeech(false);
 
+  // --- FONCTIONS UTILITAIRES POUR L'HISTORIQUE ---
+
+  const generateConversationTitle = (messages) => {
+    if (messages.length < 2) return "Nouvelle conversation";
+    const userMessages = messages.filter(msg => msg.from === "user");
+    if (userMessages.length === 0) return "Nouvelle conversation";
+    
+    const firstUserMessage = userMessages[0].text;
+    return firstUserMessage.length > 50
+      ? firstUserMessage.substring(0, 50) + "..."
+      : firstUserMessage;
+  };
+
+  const loadConversationHistory = () => {
+    try {
+      const stored = localStorage.getItem("conversationHistory");
+      return stored ? JSON.parse(stored) : [];
+    } catch (e) {
+      console.error("Erreur chargement historique:", e);
+      return [];
+    }
+  };
+
+  const saveConversationHistory = (history) => {
+    try {
+      localStorage.setItem("conversationHistory", JSON.stringify(history));
+    } catch (e) {
+      console.error("Erreur sauvegarde historique:", e);
+    }
+  };
+
+  const createNewConversation = () => {
+    // Sauvegarder la conversation actuelle si elle existe
+    if (currentConversationId && messages.length > 0) {
+      saveCurrentConversation();
+    }
+
+    // Créer nouvelle conversation
+    const newConversationId = Date.now().toString();
+    const initialText = "Bonjour, je suis Olivia. Dis-moi ce que tu ressens aujourd'hui.";
+    const newMessages = [{ from: "model", text: initialText, ...parseActionTag(initialText) }];
+    
+    setCurrentConversationId(newConversationId);
+    setMessages(newMessages);
+    setIsInActiveConversation(false);
+    localStorage.setItem("chatMessages", JSON.stringify(newMessages.map(({ from, text }) => ({ from, text }))));
+  };
+
+  const saveCurrentConversation = () => {
+    if (!currentConversationId || messages.length <= 0) return;
+
+    const title = generateConversationTitle(messages);
+    const conversationData = {
+      id: currentConversationId,
+      title,
+      messages: messages.map(({ from, text }) => ({ from, text })),
+      lastUpdated: Date.now()
+    };
+
+    // Utiliser l'état React comme source de vérité
+    const currentHistory = [...conversationHistory];
+    const existingIndex = currentHistory.findIndex(conv => conv.id === currentConversationId);
+    
+    if (existingIndex >= 0) {
+      currentHistory[existingIndex] = conversationData;
+    } else {
+      currentHistory.unshift(conversationData);
+    }
+
+    // Garder seulement les 50 dernières conversations
+    const limitedHistory = currentHistory.slice(0, 50);
+    
+    // Mettre à jour l'état React IMMEDIATEMENT
+    setConversationHistory(limitedHistory);
+    
+    // Puis sauvegarder dans localStorage
+    saveConversationHistory(limitedHistory);
+  };
+
+  const loadConversation = (conversationId) => {
+    // Utiliser l'état React comme source de vérité
+    const conversation = conversationHistory.find(conv => conv.id === conversationId);
+    
+    if (conversation) {
+      // Sauvegarder la conversation actuelle avant de changer
+      if (currentConversationId && messages.length > 0) {
+        saveCurrentConversation();
+      }
+
+      const loadedMessages = conversation.messages.map(msg => ({
+        ...msg, ...parseActionTag(msg.text)
+      }));
+      
+      setCurrentConversationId(conversationId);
+      setMessages(loadedMessages);
+      setIsInActiveConversation(true);
+      localStorage.setItem("chatMessages", JSON.stringify(conversation.messages));
+      
+      // Fermer le sidebar sur mobile
+      if (window.innerWidth < 768) {
+        setShowHistorySidebar(false);
+      }
+    }
+  };
+
+  const deleteConversation = (conversationId, event = null) => {
+    // Empêcher la propagation si l'événement existe
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    
+    console.log("Tentative de suppression de:", conversationId);
+    console.log("Historique actuel:", conversationHistory);
+    
+    const conversation = conversationHistory.find(conv => conv.id === conversationId);
+    if (conversation) {
+      console.log("Conversation trouvée:", conversation);
+      setConversationToDelete(conversation);
+      setShowDeleteModal(true);
+    } else {
+      console.log("Conversation non trouvée dans l'historique");
+    }
+  };
+
+  const confirmDeleteConversation = () => {
+    if (conversationToDelete) {
+      console.log("Confirmation de suppression pour:", conversationToDelete.id);
+      console.log("Historique avant suppression:", conversationHistory);
+      
+      // Empêcher la sauvegarde automatique temporairement
+      setPreventAutoSave(true);
+      
+      // Utiliser l'état React comme source de vérité
+      const updatedHistory = conversationHistory.filter(conv => conv.id !== conversationToDelete.id);
+      
+      console.log("Historique après filtrage:", updatedHistory);
+      
+      // Mettre à jour l'état React IMMEDIATEMENT
+      setConversationHistory(updatedHistory);
+      
+      // Puis sauvegarder dans localStorage
+      saveConversationHistory(updatedHistory);
+
+      // Si c'est la conversation actuelle, créer une nouvelle
+      if (currentConversationId === conversationToDelete.id) {
+        console.log("Suppression de la conversation actuelle, création d'une nouvelle");
+        createNewConversation();
+      }
+      
+      // Réactiver la sauvegarde automatique après un délai
+      setTimeout(() => {
+        setPreventAutoSave(false);
+      }, 1000); // 2 secondes pour être sûr
+    }
+    
+    // Toujours fermer la modal
+    setShowDeleteModal(false);
+    setConversationToDelete(null);
+  };
+
+  const cancelDeleteConversation = () => {
+    setShowDeleteModal(false);
+    setConversationToDelete(null);
+  };
+
   // --- EFFETS ---
 
-  // Chargement initial des données (avatar, messages depuis localStorage)
+  // Chargement initial des données (avatar, messages depuis localStorage, historique)
   useEffect(() => {
     const storedAvatar = localStorage.getItem("userAvatar");
     if (storedAvatar) setUserProfileAvatar(storedAvatar);
 
+    // Charger l'historique des conversations
+    const history = loadConversationHistory();
+    setConversationHistory(history);
+
     const storedChatMessages = localStorage.getItem("chatMessages");
     let initialMsgs = [];
+    let conversationId = null;
+
     if (storedChatMessages) {
       try {
-        initialMsgs = JSON.parse(storedChatMessages).map(msg => {
-          if (!msg || typeof msg.text !== 'string') return null; 
+        const parsedMessages = JSON.parse(storedChatMessages);
+        initialMsgs = parsedMessages.map(msg => {
+          if (!msg || typeof msg.text !== 'string') return null;
           return { ...msg, ...parseActionTag(msg.text) };
         }).filter(Boolean);
-      } catch (e) { 
+
+        // Trouver ou créer un ID pour cette conversation
+        if (initialMsgs.length > 0) {
+          const title = generateConversationTitle(initialMsgs);
+          const existingConversation = history.find(conv => conv.title === title);
+          conversationId = existingConversation ? existingConversation.id : Date.now().toString();
+          setIsInActiveConversation(true);
+        }
+      } catch (e) {
         console.error("CHAT: Erreur parsing messages localStorage:", e);
         localStorage.removeItem("chatMessages");
       }
     }
     
     if (initialMsgs.length === 0) {
-      const initialText = "Bonjour, je suis Olivia. Dis-moi ce que tu ressens aujourd’hui.";
-      initialMsgs = [{ 
-        from: "model", text: initialText, ...parseActionTag(initialText) 
+      const initialText = "Bonjour, je suis Olivia. Dis-moi ce que tu ressens aujourd'hui.";
+      initialMsgs = [{
+        from: "model", text: initialText, ...parseActionTag(initialText)
       }];
+      conversationId = Date.now().toString();
     }
+
+    setCurrentConversationId(conversationId);
     setMessages(initialMsgs);
-    setIsInitialLoadComplete(true); 
+    setIsInitialLoadComplete(true);
   }, []);
 
-  // Sauvegarde des messages dans localStorage
+  // Sauvegarde des messages dans localStorage ET mise à jour de l'historique
   useEffect(() => {
-    if (isInitialLoadComplete && messages.length > 0 && mode === "chat") {
+    if (isInitialLoadComplete && messages.length > 0 && mode === "chat" && !preventAutoSave) {
       const messagesToStore = messages.map(({ from, text }) => ({ from, text }));
       localStorage.setItem("chatMessages", JSON.stringify(messagesToStore));
-    }
-  }, [messages, mode, isInitialLoadComplete]);
-
-  // Logique de scroll automatique et manuel
-  useEffect(() => {
-    if (mode === "chat" && messagesEndRef.current && chatContainerRef.current) {
-      if (isAtBottom) {
-        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-      } else if (isInitialLoadComplete && messages.length > 0 && chatContainerRef.current.scrollTop < 50) {
-        if (messages.length < 7) {
-             messagesEndRef.current.scrollIntoView({ behavior: "auto" });
-        }
+      
+      // Sauvegarder dans l'historique après chaque message (avec debounce)
+      if (messages.length > 1) {
+        const timeoutId = setTimeout(() => {
+          saveCurrentConversation();
+        }, 1000); // Attendre 1 seconde avant de sauvegarder pour éviter trop de saves
+        return () => clearTimeout(timeoutId);
       }
     }
-  }, [messages, mode, isAtBottom, isInitialLoadComplete]);
+  }, [messages, mode, isInitialLoadComplete, currentConversationId, preventAutoSave]);
+
+  // Scroll automatique dans le container de chat
+  useEffect(() => {
+    if (mode === "chat" && chatContainerRef.current && isInitialLoadComplete) {
+      const container = chatContainerRef.current;
+      
+      // Au chargement initial : scroll vers le bas
+      if (messages.length > 1) {
+        container.scrollTop = container.scrollHeight;
+        setIsAtBottom(true);
+      }
+    }
+  }, [isInitialLoadComplete, mode]); // Chargement initial
+
+  // Scroll automatique après nouvelles réponses d'Olivia
+  useEffect(() => {
+    if (mode === "chat" && chatContainerRef.current && isInitialLoadComplete &&
+        isInActiveConversation && messages.length > 1) {
+      
+      const lastMessage = messages[messages.length - 1];
+      const secondLastMessage = messages[messages.length - 2];
+      
+      // Scroll automatiquement si dernier message d'Olivia après message utilisateur
+      if (lastMessage && lastMessage.from === "model" &&
+          secondLastMessage && secondLastMessage.from === "user" && isAtBottom) {
+        const container = chatContainerRef.current;
+        setTimeout(() => {
+          container.scrollTop = container.scrollHeight;
+        }, 100); // Petit délai pour assurer le rendu
+      }
+    }
+  }, [messages.length, isInActiveConversation, isAtBottom]);
 
   // Gestion de l'arrêt de la synthèse vocale
   useEffect(() => { if (!voiceEnabled && isSpeaking && cancelSpeech) cancelSpeech(); }, [voiceEnabled, isSpeaking, cancelSpeech]);
   useEffect(() => { if (mode !== "chat" && isSpeaking && cancelSpeech) cancelSpeech(); }, [mode, isSpeaking, cancelSpeech]);
 
-  // Détection du scroll manuel pour afficher/cacher le bouton de scroll
+  // Détection du scroll manuel pour afficher/cacher les boutons de scroll
   const handleScroll = useCallback(() => {
     const container = chatContainerRef.current;
     if (container) {
       const scrollThreshold = 50;
       const atBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + scrollThreshold;
+      const atTop = container.scrollTop <= scrollThreshold;
+      
       setIsAtBottom(atBottom);
       setShowScrollButton(container.scrollHeight > container.clientHeight && !atBottom);
+      setShowScrollToTopButton(container.scrollHeight > container.clientHeight && !atTop && container.scrollTop > 100);
     }
   }, []); // Le tableau de dépendances est vide car chatContainerRef.current ne cause pas de re-création de la fonction
 
@@ -190,19 +411,25 @@ const Chat = () => {
 
 const sendMessage = async () => {
   if (!input.trim()) return;
+  
+  // Activer la conversation dès le premier message utilisateur
+  if (!isInActiveConversation) {
+    setIsInActiveConversation(true);
+  }
+  
   const userMessageText = input;
-  const userMessageForUI = { 
-    from: "user", 
-    text: userMessageText, 
-    displayText: userMessageText, 
-    actionName: null, 
-    actionParams: {} 
+  const userMessageForUI = {
+    from: "user",
+    text: userMessageText,
+    displayText: userMessageText,
+    actionName: null,
+    actionParams: {}
   };
   
   // 1. Préparer les messages pour l'API AVANT de mettre à jour l'état
   //    On utilise l'état `messages` actuel et on y ajoute le nouveau message utilisateur.
-  const messagesForAPI = [...messages, userMessageForUI].map(m => ({ 
-    from: m.from, 
+  const messagesForAPI = [...messages, userMessageForUI].map(m => ({
+    from: m.from,
     text: m.text // Utilise le texte brut original (avec tags pour les messages IA)
   }));
 
@@ -232,12 +459,24 @@ const sendMessage = async () => {
   setLoading(true);
 
   try {
-    const res = await axios.post("http://localhost:3000/ask", { messages: messagesForAPI }); // Utilise messagesForAPI
+    const response = await fetch("http://localhost:3000/ask", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ messages: messagesForAPI })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
     // Pour handleAIResponse, on a besoin du contexte UI (avec displayText, etc.)
     // On peut le reconstruire à partir de messagesForAPI ou utiliser l'état messages qui sera mis à jour.
     // Option plus sûre : reconstruire à partir de messagesForAPI pour le contexte exact envoyé
     const contextForUI = messagesForAPI.map(m => ({...m, ...parseActionTag(m.text)}));
-    handleAIResponse(res.data.response || "Pardon, je n'ai pas saisi.", contextForUI);
+    handleAIResponse(data.response || "Pardon, je n'ai pas saisi.", contextForUI);
   } catch (error) {
     console.error("Erreur API Chat:", error);
     const contextForUI = messagesForAPI.map(m => ({...m, ...parseActionTag(m.text)}));
@@ -255,18 +494,28 @@ const sendMessage = async () => {
   
   const toggleScrollToPosition = () => {
     if (!chatContainerRef.current) return;
-    if (isAtBottom && chatContainerRef.current.scrollTop > 0) {
+    const container = chatContainerRef.current;
+    
+    if (isAtBottom && container.scrollTop > 0) {
+      // Si on est en bas, remonter en haut du CONTAINER
+      container.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      // Sinon, aller en bas du CONTAINER
+      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+      setIsAtBottom(true);
+    }
+  };
+
+  const scrollToTop = () => {
+    if (chatContainerRef.current) {
+      // Scroll vers le haut du CONTAINER uniquement
       chatContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
-    } else if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-      setIsAtBottom(true); 
     }
   };
   
   const clearChatHistoryAndMessages = () => {
-    const initialText = "Bonjour, je suis Olivia. Dis-moi ce que tu ressens aujourd’hui.";
-    setMessages([{ from: "model", text: initialText, ...parseActionTag(initialText) }]);
-    localStorage.removeItem("chatMessages");
+    // Créer une nouvelle conversation au lieu d'effacer
+    createNewConversation();
     setShowConfirmClear(false);
     setIsAtBottom(true);
   };
@@ -312,9 +561,73 @@ const sendMessage = async () => {
   // ----- JSX de Rendu -----
   return (
     <div className="chat-journal-layout">
+      {/* Sidebar d'historique MOBILE SEULEMENT */}
+      {mode === "chat" && (
+        <>
+          <aside className={`conversation-history-sidebar mobile-only ${showHistorySidebar ? 'open' : ''}`}>
+            <div className="sidebar-header">
+              <div className="sidebar-title">
+                <h3>Historique des conversations</h3>
+                <button
+                  className="close-sidebar-btn"
+                  onClick={() => setShowHistorySidebar(false)}
+                  title="Fermer l'historique"
+                >
+                  ✕
+                </button>
+              </div>
+              <button className="new-conversation-btn" onClick={createNewConversation} title="Nouvelle conversation">
+                <Plus size={20} />
+                Nouvelle conversation
+              </button>
+            </div>
+            
+            <div className="conversation-list">
+              {conversationHistory.length === 0 ? (
+                <div className="no-conversations">
+                  <MessageCircle size={32} />
+                  <p>Aucune conversation</p>
+                </div>
+              ) : (
+                conversationHistory.map((conversation) => (
+                  <div
+                    key={conversation.id}
+                    className={`conversation-item ${currentConversationId === conversation.id ? 'active' : ''}`}
+                    onClick={() => loadConversation(conversation.id)}
+                  >
+                    <div className="conversation-content">
+                      <MessageCircle size={16} />
+                      <span className="conversation-title">{conversation.title}</span>
+                    </div>
+                    <button
+                      className="delete-conversation-btn"
+                      onClick={(e) => deleteConversation(conversation.id, e)}
+                      title="Supprimer cette conversation"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </aside>
+          
+          {/* Overlay pour mobile */}
+          {showHistorySidebar && <div className="mobile-overlay" onClick={() => setShowHistorySidebar(false)} />}
+        </>
+      )}
+
       <nav className="page-navigation">
         {mode === "chat" ? (
           <>
+            <button
+              className="history-toggle-btn mobile-only"
+              onClick={() => setShowHistorySidebar(!showHistorySidebar)}
+              title="Historique des conversations"
+            >
+              <Menu size={20} />
+            </button>
+            
             <OliviaAvatar isSpeaking={isSpeaking && voiceEnabled && !silentMode} />
             <div className="chat-controls">
               <div className="chat__voice-toggle">
@@ -332,16 +645,42 @@ const sendMessage = async () => {
             </div>
             <div className="history-chat-wrapper">
               <div className="history-chat">
-                {messages.length > 1 && ( 
-                  <button className="clear-history-btn" onClick={() => setShowConfirmClear(true)} title="Effacer la conversation">
-                    🗑️ Effacer
+                {/* DESKTOP : Affichage de l'historique directement ici */}
+                <div className="desktop-history">
+                  <h3>Conversations</h3>
+                  <button className="new-conversation-btn-desktop" onClick={createNewConversation} title="Nouvelle conversation">
+                    <Plus size={16} /> Nouveau
                   </button>
-                )}
+                  <div className="desktop-conversation-list">
+                    {conversationHistory.length === 0 ? (
+                      <p className="no-history-text">Aucune conversation</p>
+                    ) : (
+                      conversationHistory.slice(0, 5).map((conversation) => (
+                        <div
+                          key={conversation.id}
+                          className={`history-item ${currentConversationId === conversation.id ? 'active' : ''}`}
+                          onClick={() => loadConversation(conversation.id)}
+                          title={conversation.title}
+                        >
+                          <MessageCircle size={12} />
+                          <span className="conversation-title">{conversation.title}</span>
+                          <button
+                            className="delete-conversation-btn"
+                            onClick={(e) => deleteConversation(conversation.id, e)}
+                            title="Supprimer"
+                          >
+                            <Trash2 size={10} />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
             {showConfirmClear && (
               <div className="confirmation-modal">
-                <p>Effacer la conversation actuelle ?</p>
+                <p>Créer une nouvelle conversation ?</p>
                 <div className="confirmation-actions">
                   <button onClick={clearChatHistoryAndMessages}>Oui</button>
                   <button onClick={() => setShowConfirmClear(false)}>Non</button>
@@ -407,8 +746,14 @@ const sendMessage = async () => {
             {showScrollButton && (
               <button className="scroll-toggle-button" onClick={toggleScrollToPosition} title={isAtBottom && chatContainerRef.current && chatContainerRef.current.scrollTop > 0 ? "Remonter en haut" : "Aller en bas"}>
                 {(isAtBottom && chatContainerRef.current && chatContainerRef.current.scrollTop > 0) || (!isAtBottom && chatContainerRef.current && chatContainerRef.current.scrollTop > 100)
-                    ? <ArrowUpwardIcon fontSize="small"/> 
+                    ? <ArrowUpwardIcon fontSize="small"/>
                     : <ArrowDownwardIcon fontSize="small"/>}
+              </button>
+            )}
+
+            {showScrollToTopButton && (
+              <button className="scroll-to-top-button" onClick={scrollToTop} title="Remonter au début de la conversation">
+                <ArrowUpIcon fontSize="small"/>
               </button>
             )}
             
@@ -422,9 +767,9 @@ const sendMessage = async () => {
       {showEmergencyModal && (
         <div className="modal-backdrop">
           <div className="emergency-modal-content">
-            <h2>Besoin d’aide immédiatement ?</h2>
+            <h2>Besoin d'aide immédiatement ?</h2>
             <p>
-              Tu n’es pas seul·e. Appelle le <strong>3114</strong> (numéro
+              Tu n'es pas seul·e. Appelle le <strong>3114</strong> (numéro
               national de prévention du suicide, gratuit, 24/7).
             </p>
             <button
@@ -434,6 +779,34 @@ const sendMessage = async () => {
               Voir les ressources
             </button>
             <button onClick={() => setShowEmergencyModal(false)}>Fermer</button>
+          </div>
+        </div>
+      )}
+
+      {showDeleteModal && conversationToDelete && (
+        <div className="modal-backdrop">
+          <div className="delete-modal-content">
+            <div className="delete-modal-header">
+              <Trash2 size={24} className="delete-icon" />
+              <h3>Supprimer la conversation</h3>
+            </div>
+            <div className="delete-modal-body">
+              <p>Êtes-vous sûr de vouloir supprimer cette conversation ?</p>
+              <div className="conversation-preview">
+                <MessageCircle size={16} />
+                <span>"{conversationToDelete.title}"</span>
+              </div>
+              <p className="warning-text">Cette action est irréversible.</p>
+            </div>
+            <div className="delete-modal-actions">
+              <button className="btn-cancel" onClick={cancelDeleteConversation}>
+                Annuler
+              </button>
+              <button className="btn-delete" onClick={confirmDeleteConversation}>
+                <Trash2 size={16} />
+                Supprimer
+              </button>
+            </div>
           </div>
         </div>
       )}
