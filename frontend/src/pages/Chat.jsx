@@ -76,6 +76,7 @@ const Chat = () => {
   const [showConfirmClear, setShowConfirmClear] = useState(false);
   const [showEmergencyModal, setShowEmergencyModal] = useState(false);
   const [isInitialLoadComplete, setIsInitialLoadComplete] = useState(false);
+  const [isInActiveConversation, setIsInActiveConversation] = useState(false);
   const [history, setHistory] = useState([]); // L'historique séparé peut être réintroduit si besoin
 
   // Refs
@@ -124,19 +125,18 @@ const Chat = () => {
     }
   }, [messages, mode, isInitialLoadComplete]);
 
-  // Logique de scroll automatique et manuel - CORRIGÉ pour éviter le scroll automatique au chargement
+  // Scroll automatique UNIQUEMENT lors de vraies conversations (pas au chargement)
   useEffect(() => {
-    if (mode === "chat" && messagesEndRef.current && chatContainerRef.current && isInitialLoadComplete) {
-      // Scroll uniquement si l'utilisateur est en bas ET qu'il y a un nouveau message (pas le chargement initial)
-      if (isAtBottom && messages.length > 0) {
-        const lastMessage = messages[messages.length - 1];
-        // Scroll seulement après une nouvelle réponse d'Olivia, pas au chargement
-        if (lastMessage && lastMessage.from === "model" && messages.length > 1) {
-          messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-        }
+    if (mode === "chat" && messagesEndRef.current && chatContainerRef.current &&
+        isInitialLoadComplete && isInActiveConversation && isAtBottom) {
+      
+      const lastMessage = messages[messages.length - 1];
+      // Scroll seulement pour les nouvelles réponses d'Olivia
+      if (lastMessage && lastMessage.from === "model" && messages.length > 1) {
+        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
       }
     }
-  }, [messages.length, mode, isInitialLoadComplete]); // Dépendance sur length uniquement pour éviter les scrolls inutiles
+  }, [messages.length, isInActiveConversation]); // Dépendances simplifiées
 
   // Gestion de l'arrêt de la synthèse vocale
   useEffect(() => { if (!voiceEnabled && isSpeaking && cancelSpeech) cancelSpeech(); }, [voiceEnabled, isSpeaking, cancelSpeech]);
@@ -194,19 +194,25 @@ const Chat = () => {
 
 const sendMessage = async () => {
   if (!input.trim()) return;
+  
+  // Activer la conversation dès le premier message utilisateur
+  if (!isInActiveConversation) {
+    setIsInActiveConversation(true);
+  }
+  
   const userMessageText = input;
-  const userMessageForUI = { 
-    from: "user", 
-    text: userMessageText, 
-    displayText: userMessageText, 
-    actionName: null, 
-    actionParams: {} 
+  const userMessageForUI = {
+    from: "user",
+    text: userMessageText,
+    displayText: userMessageText,
+    actionName: null,
+    actionParams: {}
   };
   
   // 1. Préparer les messages pour l'API AVANT de mettre à jour l'état
   //    On utilise l'état `messages` actuel et on y ajoute le nouveau message utilisateur.
-  const messagesForAPI = [...messages, userMessageForUI].map(m => ({ 
-    from: m.from, 
+  const messagesForAPI = [...messages, userMessageForUI].map(m => ({
+    from: m.from,
     text: m.text // Utilise le texte brut original (avec tags pour les messages IA)
   }));
 
@@ -286,11 +292,12 @@ const sendMessage = async () => {
   };
   
   const clearChatHistoryAndMessages = () => {
-    const initialText = "Bonjour, je suis Olivia. Dis-moi ce que tu ressens aujourd’hui.";
+    const initialText = "Bonjour, je suis Olivia. Dis-moi ce que tu ressens aujourd'hui.";
     setMessages([{ from: "model", text: initialText, ...parseActionTag(initialText) }]);
     localStorage.removeItem("chatMessages");
     setShowConfirmClear(false);
     setIsAtBottom(true);
+    setIsInActiveConversation(false); // Réinitialiser l'état de conversation active
   };
 
   const formatResponse = (textToFormat) => {
