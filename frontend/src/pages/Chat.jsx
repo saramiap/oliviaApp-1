@@ -125,7 +125,7 @@ const Chat = () => {
     }
   }, [messages, mode, isInitialLoadComplete]);
 
-  // Scroll automatique UNIQUEMENT lors de vraies conversations (pas au chargement)
+  // Scroll automatique UNIQUEMENT lors de vraies conversations actives
   useEffect(() => {
     if (mode === "chat" && messagesEndRef.current && chatContainerRef.current &&
         isInitialLoadComplete && isInActiveConversation && isAtBottom) {
@@ -138,17 +138,15 @@ const Chat = () => {
     }
   }, [messages.length, isInActiveConversation]); // Dépendances simplifiées
 
-  // Scroll vers le dernier message SEULEMENT au chargement initial de la page
+  // Positionnement initial au dernier message SANS scroll visible
   useEffect(() => {
-    if (mode === "chat" && messagesEndRef.current && chatContainerRef.current &&
-        isInitialLoadComplete && messages.length > 1) {
-      // Scroll vers le bas UNE SEULE FOIS au chargement si il y a des messages existants
-      setTimeout(() => {
-        messagesEndRef.current.scrollIntoView({ behavior: "auto" }); // "auto" pour un scroll immédiat
-        setIsAtBottom(true);
-      }, 100); // Petit délai pour s'assurer que le DOM est bien rendu
+    if (mode === "chat" && chatContainerRef.current && isInitialLoadComplete && messages.length > 1) {
+      // Position directe au bas SANS animation pour éviter le scroll visible
+      const container = chatContainerRef.current;
+      container.scrollTop = container.scrollHeight;
+      setIsAtBottom(true);
     }
-  }, [isInitialLoadComplete, mode]); // Se déclenche seulement quand le chargement initial est terminé
+  }, [isInitialLoadComplete, mode]); // Une seule fois au chargement
 
   // Gestion de l'arrêt de la synthèse vocale
   useEffect(() => { if (!voiceEnabled && isSpeaking && cancelSpeech) cancelSpeech(); }, [voiceEnabled, isSpeaking, cancelSpeech]);
