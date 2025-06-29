@@ -41,9 +41,9 @@ function AppContent() {
       if (session) {
         // setUser(session.user);
         console.log('Session initiale, utilisateur connecté:', session.user);
-        // Si l'utilisateur est sur /auth ou / et qu'il a une session, on le redirige
-        if (window.location.pathname === '/auth' || window.location.pathname === '/') {
-         navigate('/home'); // Ou '/dashboard'
+        // Si l'utilisateur est sur /auth et qu'il a une session, on le redirige vers dashboard
+        if (window.location.pathname === '/auth') {
+         navigate('/?welcome=true'); // Redirection vers dashboard avec paramètre welcome
         }
       } else {
         // setUser(null);
@@ -62,11 +62,11 @@ function AppContent() {
       if (event === 'SIGNED_IN' && session) {
         // setUser(session.user);
         console.log('Utilisateur connecté via onAuthStateChange:', session.user);
-        // Si l'utilisateur vient de se connecter (ex: depuis /auth), redirige-le
-        if (window.location.pathname === '/auth' || window.location.pathname === '/') {
-             navigate('/home'); // Ou '/dashboard'
+        // Si l'utilisateur vient de se connecter (ex: depuis /auth), redirige-le vers dashboard
+        if (window.location.pathname === '/auth') {
+             navigate('/?welcome=true'); // Redirection vers dashboard avec message de bienvenue
         } else if (window.location.pathname.startsWith('/auth#access_token=')) { // Cas de retour OAuth Google
-            navigate('/home'); // Ou '/dashboard'
+            navigate('/?welcome=true'); // Redirection vers dashboard avec message de bienvenue
         }
       } else if (event === 'SIGNED_OUT') {
         // setUser(null);
