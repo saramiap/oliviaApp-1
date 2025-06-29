@@ -190,16 +190,26 @@ const Chat = () => {
     }
   };
 
-  const deleteConversation = (conversationId) => {
+  const deleteConversation = (conversationId, event = null) => {
+    // Empêcher la propagation si l'événement existe
+    if (event) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    
     const conversation = conversationHistory.find(conv => conv.id === conversationId);
-    setConversationToDelete(conversation);
-    setShowDeleteModal(true);
+    if (conversation) {
+      setConversationToDelete(conversation);
+      setShowDeleteModal(true);
+    }
   };
 
   const confirmDeleteConversation = () => {
     if (conversationToDelete) {
       const history = loadConversationHistory();
       const updatedHistory = history.filter(conv => conv.id !== conversationToDelete.id);
+      
+      // Mettre à jour l'état immédiatement
       setConversationHistory(updatedHistory);
       saveConversationHistory(updatedHistory);
 
@@ -207,9 +217,15 @@ const Chat = () => {
       if (currentConversationId === conversationToDelete.id) {
         createNewConversation();
       }
+      
+      // Fermer la modal immédiatement après suppression
+      setShowDeleteModal(false);
+      setConversationToDelete(null);
+    } else {
+      // Si pas de conversation à supprimer, juste fermer
+      setShowDeleteModal(false);
+      setConversationToDelete(null);
     }
-    setShowDeleteModal(false);
-    setConversationToDelete(null);
   };
 
   const cancelDeleteConversation = () => {
@@ -282,15 +298,37 @@ const Chat = () => {
     }
   }, [messages, mode, isInitialLoadComplete, currentConversationId]);
 
-  // Positionnement initial au dernier message SEULEMENT dans le container de chat
+  // Scroll automatique dans le container de chat
   useEffect(() => {
-    if (mode === "chat" && chatContainerRef.current && isInitialLoadComplete && messages.length > 1) {
-      // Position directe au bas du CONTAINER SEULEMENT, pas de la page
+    if (mode === "chat" && chatContainerRef.current && isInitialLoadComplete) {
       const container = chatContainerRef.current;
-      container.scrollTop = container.scrollHeight;
-      setIsAtBottom(true);
+      
+      // Au chargement initial : scroll vers le bas
+      if (messages.length > 1) {
+        container.scrollTop = container.scrollHeight;
+        setIsAtBottom(true);
+      }
     }
-  }, [isInitialLoadComplete, mode]); // Une seule fois au chargement
+  }, [isInitialLoadComplete, mode]); // Chargement initial
+
+  // Scroll automatique après nouvelles réponses d'Olivia
+  useEffect(() => {
+    if (mode === "chat" && chatContainerRef.current && isInitialLoadComplete &&
+        isInActiveConversation && messages.length > 1) {
+      
+      const lastMessage = messages[messages.length - 1];
+      const secondLastMessage = messages[messages.length - 2];
+      
+      // Scroll automatiquement si dernier message d'Olivia après message utilisateur
+      if (lastMessage && lastMessage.from === "model" &&
+          secondLastMessage && secondLastMessage.from === "user" && isAtBottom) {
+        const container = chatContainerRef.current;
+        setTimeout(() => {
+          container.scrollTop = container.scrollHeight;
+        }, 100); // Petit délai pour assurer le rendu
+      }
+    }
+  }, [messages.length, isInActiveConversation, isAtBottom]);
 
   // Gestion de l'arrêt de la synthèse vocale
   useEffect(() => { if (!voiceEnabled && isSpeaking && cancelSpeech) cancelSpeech(); }, [voiceEnabled, isSpeaking, cancelSpeech]);
@@ -431,16 +469,21 @@ const sendMessage = async () => {
   
   const toggleScrollToPosition = () => {
     if (!chatContainerRef.current) return;
-    if (isAtBottom && chatContainerRef.current.scrollTop > 0) {
-      chatContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
-    } else if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    const container = chatContainerRef.current;
+    
+    if (isAtBottom && container.scrollTop > 0) {
+      // Si on est en bas, remonter en haut du CONTAINER
+      container.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      // Sinon, aller en bas du CONTAINER
+      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
       setIsAtBottom(true);
     }
   };
 
   const scrollToTop = () => {
     if (chatContainerRef.current) {
+      // Scroll vers le haut du CONTAINER uniquement
       chatContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
@@ -533,10 +576,7 @@ const sendMessage = async () => {
                     </div>
                     <button
                       className="delete-conversation-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        deleteConversation(conversation.id);
-                      }}
+                      onClick={(e) => deleteConversation(conversation.id, e)}
                       title="Supprimer cette conversation"
                     >
                       <Trash2 size={14} />
@@ -601,10 +641,7 @@ const sendMessage = async () => {
                           <span className="conversation-title">{conversation.title}</span>
                           <button
                             className="delete-conversation-btn"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteConversation(conversation.id);
-                            }}
+                            onClick={(e) => deleteConversation(conversation.id, e)}
                             title="Supprimer"
                           >
                             <Trash2 size={10} />
