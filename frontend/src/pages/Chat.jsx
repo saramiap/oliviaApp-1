@@ -125,7 +125,7 @@ const Chat = () => {
 
   const createNewConversation = () => {
     // Sauvegarder la conversation actuelle si elle existe
-    if (currentConversationId && messages.length > 1) {
+    if (currentConversationId && messages.length > 0) {
       saveCurrentConversation();
     }
 
@@ -141,7 +141,7 @@ const Chat = () => {
   };
 
   const saveCurrentConversation = () => {
-    if (!currentConversationId || messages.length <= 1) return;
+    if (!currentConversationId || messages.length <= 0) return;
 
     const title = generateConversationTitle(messages);
     const conversationData = {
@@ -177,7 +177,7 @@ const Chat = () => {
     
     if (conversation) {
       // Sauvegarder la conversation actuelle avant de changer
-      if (currentConversationId && messages.length > 1) {
+      if (currentConversationId && messages.length > 0) {
         saveCurrentConversation();
       }
 
@@ -245,7 +245,7 @@ const Chat = () => {
       // Réactiver la sauvegarde automatique après un délai
       setTimeout(() => {
         setPreventAutoSave(false);
-      }, 2000); // 2 secondes pour être sûr
+      }, 1000); // 2 secondes pour être sûr
     }
     
     // Toujours fermer la modal
@@ -282,7 +282,7 @@ const Chat = () => {
         }).filter(Boolean);
 
         // Trouver ou créer un ID pour cette conversation
-        if (initialMsgs.length > 1) {
+        if (initialMsgs.length > 0) {
           const title = generateConversationTitle(initialMsgs);
           const existingConversation = history.find(conv => conv.title === title);
           conversationId = existingConversation ? existingConversation.id : Date.now().toString();
