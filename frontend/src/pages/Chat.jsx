@@ -1,6 +1,5 @@
 // src/pages/Chat.jsx
 import React, { useState, useRef, useEffect, useCallback } from "react";
-import axios from "axios";
 import OliviaAvatar from "../components/OliviaAvatar";
 import useSpeech from "../hooks/useSpeech";
 import { ArrowDownward as ArrowDownwardIcon, ArrowUpward as ArrowUpwardIcon } from '@mui/icons-material';
@@ -232,12 +231,24 @@ const sendMessage = async () => {
   setLoading(true);
 
   try {
-    const res = await axios.post("http://localhost:3000/ask", { messages: messagesForAPI }); // Utilise messagesForAPI
+    const response = await fetch("http://localhost:3000/ask", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ messages: messagesForAPI })
+    });
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
     // Pour handleAIResponse, on a besoin du contexte UI (avec displayText, etc.)
     // On peut le reconstruire à partir de messagesForAPI ou utiliser l'état messages qui sera mis à jour.
     // Option plus sûre : reconstruire à partir de messagesForAPI pour le contexte exact envoyé
     const contextForUI = messagesForAPI.map(m => ({...m, ...parseActionTag(m.text)}));
-    handleAIResponse(res.data.response || "Pardon, je n'ai pas saisi.", contextForUI);
+    handleAIResponse(data.response || "Pardon, je n'ai pas saisi.", contextForUI);
   } catch (error) {
     console.error("Erreur API Chat:", error);
     const contextForUI = messagesForAPI.map(m => ({...m, ...parseActionTag(m.text)}));

@@ -26,8 +26,8 @@ import UnderstandingStress from './pages/UnderstandingStress'; // Renommé
 import Dashboard from './pages/Dashboard'; // Renommé depuis Dashboard pour être plus explicite
 import AuthPage from './pages/AuthPage';
 
-// Importe ton client Supabase
-import { supabase } from './supabaseClient'; 
+// Importe le service d'authentification Google
+import { supabase } from './supabaseClient'; // Maintenant utilise Google Auth
 
 // Ce composant contiendra la logique qui a besoin de `useNavigate`
 // et sera rendu à l'intérieur du <Router>

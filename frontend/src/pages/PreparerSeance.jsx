@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import axios from 'axios'; // Ou fetch si tu l'as configuré dans sendMessage
 import { Feather as FeatherIcon, Brain, Info } from 'lucide-react';
 import { ArrowDownward as ArrowDownwardIcon, ArrowUpward as ArrowUpwardIcon } from '@mui/icons-material'; 
 import '../styles/_preparerSeance.scss';
