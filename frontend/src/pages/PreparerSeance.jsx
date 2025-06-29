@@ -101,12 +101,17 @@ const chatInteractionAreaRef = useRef(null);
   }, [selectedEmotion]);
 
    useEffect(() => {
-    // Ce useEffect est pour le scroll automatique quand de nouveaux messages arrivent
-    // et que l'utilisateur est déjà en bas.
-    if (isAtBottomPrep && interactionEndRef.current) {
-      interactionEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    // Ce useEffect est pour le scroll automatique SEULEMENT quand de nouveaux messages arrivent
+    // et que l'utilisateur est déjà en bas. On évite le scroll au chargement initial.
+    if (isAtBottomPrep && interactionEndRef.current && interactionHistory.length > 1) {
+      // Scroll uniquement si ce ne sont pas les messages initiaux
+      const lastMessage = interactionHistory[interactionHistory.length - 1];
+      if (lastMessage && lastMessage.from === 'ai') {
+        // Scroll uniquement après une réponse d'Olivia
+        interactionEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
     }
-  }, [interactionHistory, isAtBottomPrep]); // Se déclenche quand l'historique change ET qu'on veut rester en bas
+  }, [interactionHistory.length]); // Se déclenche uniquement quand le nombre de messages change
 
 
  const handleEmotionClick = (emotion) => {

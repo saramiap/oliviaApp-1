@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react";
 import OliviaAvatar from "../components/OliviaAvatar";
 import useSpeech from "../hooks/useSpeech";
-import { ArrowDownward as ArrowDownwardIcon, ArrowUpward as ArrowUpwardIcon } from '@mui/icons-material';
+import { ArrowDownward as ArrowDownwardIcon, ArrowUpward as ArrowUpwardIcon, KeyboardArrowUp as ArrowUpIcon } from '@mui/icons-material';
 import { useNavigate } from "react-router-dom";
 import Journal from "./Journal"; // Assure-toi que ce chemin est correct et que Journal est exporté par défaut
 import { Zap, Waves, BookOpen, Info, ExternalLink } from 'lucide-react'; // Icônes pour les boutons d'action
@@ -67,6 +67,7 @@ const Chat = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false); // Pour l'indicateur "Olivia réfléchit"
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [showScrollToTopButton, setShowScrollToTopButton] = useState(false);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const [silentMode, setSilentMode] = useState(false);
@@ -123,31 +124,35 @@ const Chat = () => {
     }
   }, [messages, mode, isInitialLoadComplete]);
 
-  // Logique de scroll automatique et manuel
+  // Logique de scroll automatique et manuel - CORRIGÉ pour éviter le scroll automatique au chargement
   useEffect(() => {
-    if (mode === "chat" && messagesEndRef.current && chatContainerRef.current) {
-      if (isAtBottom) {
-        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-      } else if (isInitialLoadComplete && messages.length > 0 && chatContainerRef.current.scrollTop < 50) {
-        if (messages.length < 7) {
-             messagesEndRef.current.scrollIntoView({ behavior: "auto" });
+    if (mode === "chat" && messagesEndRef.current && chatContainerRef.current && isInitialLoadComplete) {
+      // Scroll uniquement si l'utilisateur est en bas ET qu'il y a un nouveau message (pas le chargement initial)
+      if (isAtBottom && messages.length > 0) {
+        const lastMessage = messages[messages.length - 1];
+        // Scroll seulement après une nouvelle réponse d'Olivia, pas au chargement
+        if (lastMessage && lastMessage.from === "model" && messages.length > 1) {
+          messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
         }
       }
     }
-  }, [messages, mode, isAtBottom, isInitialLoadComplete]);
+  }, [messages.length, mode, isInitialLoadComplete]); // Dépendance sur length uniquement pour éviter les scrolls inutiles
 
   // Gestion de l'arrêt de la synthèse vocale
   useEffect(() => { if (!voiceEnabled && isSpeaking && cancelSpeech) cancelSpeech(); }, [voiceEnabled, isSpeaking, cancelSpeech]);
   useEffect(() => { if (mode !== "chat" && isSpeaking && cancelSpeech) cancelSpeech(); }, [mode, isSpeaking, cancelSpeech]);
 
-  // Détection du scroll manuel pour afficher/cacher le bouton de scroll
+  // Détection du scroll manuel pour afficher/cacher les boutons de scroll
   const handleScroll = useCallback(() => {
     const container = chatContainerRef.current;
     if (container) {
       const scrollThreshold = 50;
       const atBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + scrollThreshold;
+      const atTop = container.scrollTop <= scrollThreshold;
+      
       setIsAtBottom(atBottom);
       setShowScrollButton(container.scrollHeight > container.clientHeight && !atBottom);
+      setShowScrollToTopButton(container.scrollHeight > container.clientHeight && !atTop && container.scrollTop > 100);
     }
   }, []); // Le tableau de dépendances est vide car chatContainerRef.current ne cause pas de re-création de la fonction
 
@@ -270,7 +275,13 @@ const sendMessage = async () => {
       chatContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
     } else if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-      setIsAtBottom(true); 
+      setIsAtBottom(true);
+    }
+  };
+
+  const scrollToTop = () => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
   
@@ -418,8 +429,14 @@ const sendMessage = async () => {
             {showScrollButton && (
               <button className="scroll-toggle-button" onClick={toggleScrollToPosition} title={isAtBottom && chatContainerRef.current && chatContainerRef.current.scrollTop > 0 ? "Remonter en haut" : "Aller en bas"}>
                 {(isAtBottom && chatContainerRef.current && chatContainerRef.current.scrollTop > 0) || (!isAtBottom && chatContainerRef.current && chatContainerRef.current.scrollTop > 100)
-                    ? <ArrowUpwardIcon fontSize="small"/> 
+                    ? <ArrowUpwardIcon fontSize="small"/>
                     : <ArrowDownwardIcon fontSize="small"/>}
+              </button>
+            )}
+
+            {showScrollToTopButton && (
+              <button className="scroll-to-top-button" onClick={scrollToTop} title="Remonter au début de la conversation">
+                <ArrowUpIcon fontSize="small"/>
               </button>
             )}
             
