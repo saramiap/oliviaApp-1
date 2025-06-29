@@ -25,6 +25,7 @@ import YogaProgram from './pages/YogaProgram';   // Renommé depuis YogaProgramP
 import UnderstandingStress from './pages/UnderstandingStress'; // Renommé
 import Dashboard from './pages/Dashboard'; // Renommé depuis Dashboard pour être plus explicite
 import AuthPage from './pages/AuthPage';
+import Logout from './pages/Logout';
 
 // Importe le service d'authentification Google
 import { supabase } from './supabaseClient'; // Maintenant utilise Google Auth
@@ -103,6 +104,7 @@ function AppContent() {
           <Route path="/preparer-seance" element={<PreparerSeance />} />
           <Route path="/urgence" element={<Urgence />} />
           <Route path="/parametres" element={<Settings />} />
+          <Route path="/logout" element={<Logout />} />
         </Routes>
       </div>
       <Footer />
