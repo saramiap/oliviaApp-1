@@ -189,14 +189,16 @@ const Chat = () => {
   };
 
   const deleteConversation = (conversationId) => {
-    const history = loadConversationHistory();
-    const updatedHistory = history.filter(conv => conv.id !== conversationId);
-    setConversationHistory(updatedHistory);
-    saveConversationHistory(updatedHistory);
+    if (window.confirm("Supprimer cette conversation ?")) {
+      const history = loadConversationHistory();
+      const updatedHistory = history.filter(conv => conv.id !== conversationId);
+      setConversationHistory(updatedHistory);
+      saveConversationHistory(updatedHistory);
 
-    // Si c'est la conversation actuelle, créer une nouvelle
-    if (currentConversationId === conversationId) {
-      createNewConversation();
+      // Si c'est la conversation actuelle, créer une nouvelle
+      if (currentConversationId === conversationId) {
+        createNewConversation();
+      }
     }
   };
 
@@ -265,18 +267,21 @@ const Chat = () => {
     }
   }, [messages, mode, isInitialLoadComplete, currentConversationId]);
 
-  // Scroll automatique UNIQUEMENT lors de vraies conversations actives
+  // Scroll automatique UNIQUEMENT pour les nouvelles réponses IA pendant une conversation active
   useEffect(() => {
     if (mode === "chat" && messagesEndRef.current && chatContainerRef.current &&
-        isInitialLoadComplete && isInActiveConversation && isAtBottom) {
+        isInitialLoadComplete && isInActiveConversation && isAtBottom && messages.length > 1) {
       
       const lastMessage = messages[messages.length - 1];
-      // Scroll seulement pour les nouvelles réponses d'Olivia
-      if (lastMessage && lastMessage.from === "model" && messages.length > 1) {
+      const secondLastMessage = messages[messages.length - 2];
+      
+      // Scroll SEULEMENT si le dernier message est d'Olivia ET précédé d'un message utilisateur
+      if (lastMessage && lastMessage.from === "model" &&
+          secondLastMessage && secondLastMessage.from === "user") {
         messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
       }
     }
-  }, [messages.length, isInActiveConversation]); // Dépendances simplifiées
+  }, [messages.length]); // Dépendance uniquement sur la longueur pour éviter les scrolls multiples
 
   // Positionnement initial au dernier message SANS scroll visible
   useEffect(() => {
@@ -489,55 +494,70 @@ const sendMessage = async () => {
   // ----- JSX de Rendu -----
   return (
     <div className="chat-journal-layout">
-      {/* Sidebar d'historique */}
+      {/* Sidebar d'historique MOBILE SEULEMENT */}
       {mode === "chat" && (
-        <aside className={`conversation-history-sidebar ${showHistorySidebar ? 'open' : ''}`}>
-          <div className="sidebar-header">
-            <button className="new-conversation-btn" onClick={createNewConversation} title="Nouvelle conversation">
-              <Plus size={20} />
-              Nouvelle conversation
-            </button>
-          </div>
-          
-          <div className="conversation-list">
-            {conversationHistory.length === 0 ? (
-              <div className="no-conversations">
-                <MessageCircle size={32} />
-                <p>Aucune conversation</p>
-              </div>
-            ) : (
-              conversationHistory.map((conversation) => (
-                <div
-                  key={conversation.id}
-                  className={`conversation-item ${currentConversationId === conversation.id ? 'active' : ''}`}
-                  onClick={() => loadConversation(conversation.id)}
+        <>
+          <aside className={`conversation-history-sidebar mobile-only ${showHistorySidebar ? 'open' : ''}`}>
+            <div className="sidebar-header">
+              <div className="sidebar-title">
+                <h3>Historique des conversations</h3>
+                <button
+                  className="close-sidebar-btn"
+                  onClick={() => setShowHistorySidebar(false)}
+                  title="Fermer l'historique"
                 >
-                  <div className="conversation-content">
-                    <MessageCircle size={16} />
-                    <span className="conversation-title">{conversation.title}</span>
-                  </div>
-                  <button
-                    className="delete-conversation-btn"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      deleteConversation(conversation.id);
-                    }}
-                    title="Supprimer cette conversation"
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                  ✕
+                </button>
+              </div>
+              <button className="new-conversation-btn" onClick={createNewConversation} title="Nouvelle conversation">
+                <Plus size={20} />
+                Nouvelle conversation
+              </button>
+            </div>
+            
+            <div className="conversation-list">
+              {conversationHistory.length === 0 ? (
+                <div className="no-conversations">
+                  <MessageCircle size={32} />
+                  <p>Aucune conversation</p>
                 </div>
-              ))
-            )}
-          </div>
-        </aside>
+              ) : (
+                conversationHistory.map((conversation) => (
+                  <div
+                    key={conversation.id}
+                    className={`conversation-item ${currentConversationId === conversation.id ? 'active' : ''}`}
+                    onClick={() => loadConversation(conversation.id)}
+                  >
+                    <div className="conversation-content">
+                      <MessageCircle size={16} />
+                      <span className="conversation-title">{conversation.title}</span>
+                    </div>
+                    <button
+                      className="delete-conversation-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        deleteConversation(conversation.id);
+                      }}
+                      title="Supprimer cette conversation"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </aside>
+          
+          {/* Overlay pour mobile */}
+          {showHistorySidebar && <div className="mobile-overlay" onClick={() => setShowHistorySidebar(false)} />}
+        </>
       )}
 
       <nav className="page-navigation">
         {mode === "chat" ? (
           <>
             <button
-              className="history-toggle-btn"
+              className="history-toggle-btn mobile-only"
               onClick={() => setShowHistorySidebar(!showHistorySidebar)}
               title="Historique des conversations"
             >
@@ -561,11 +581,40 @@ const sendMessage = async () => {
             </div>
             <div className="history-chat-wrapper">
               <div className="history-chat">
-                {messages.length > 1 && (
-                  <button className="clear-history-btn" onClick={() => setShowConfirmClear(true)} title="Nouvelle conversation">
+                {/* DESKTOP : Affichage de l'historique directement ici */}
+                <div className="desktop-history">
+                  <h3>Conversations</h3>
+                  <button className="new-conversation-btn-desktop" onClick={createNewConversation} title="Nouvelle conversation">
                     <Plus size={16} /> Nouveau
                   </button>
-                )}
+                  <div className="desktop-conversation-list">
+                    {conversationHistory.length === 0 ? (
+                      <p className="no-history-text">Aucune conversation</p>
+                    ) : (
+                      conversationHistory.slice(0, 5).map((conversation) => (
+                        <div
+                          key={conversation.id}
+                          className={`history-item ${currentConversationId === conversation.id ? 'active' : ''}`}
+                          onClick={() => loadConversation(conversation.id)}
+                          title={conversation.title}
+                        >
+                          <MessageCircle size={12} />
+                          <span className="conversation-title">{conversation.title}</span>
+                          <button
+                            className="delete-conversation-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deleteConversation(conversation.id);
+                            }}
+                            title="Supprimer"
+                          >
+                            <Trash2 size={10} />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
             {showConfirmClear && (

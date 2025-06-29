@@ -43,13 +43,26 @@ $chat-danger-hover: #B71C1C;     // Rouge plus foncé pour hover
   }
 }
 
-// Sidebar d'historique des conversations
-.conversation-history-sidebar {
+// Classes utilitaires pour responsive
+.mobile-only {
+  @media (min-width: 768px) {
+    display: none !important;
+  }
+}
+
+.desktop-only {
+  @media (max-width: 767px) {
+    display: none !important;
+  }
+}
+
+// Sidebar d'historique des conversations (MOBILE SEULEMENT)
+.conversation-history-sidebar.mobile-only {
   position: fixed;
-  top: 0;
-  left: -280px; // Caché par défaut sur mobile
+  top: 70px; // En dessous du header
+  left: -280px; // Caché par défaut
   width: 280px;
-  height: 100vh;
+  height: calc(100vh - 70px); // Hauteur moins le header
   background-color: $chat-bg-nav;
   border-right: 1px solid $chat-bg-nav-border;
   z-index: 50;
@@ -62,24 +75,45 @@ $chat-danger-hover: #B71C1C;     // Rouge plus foncé pour hover
     left: 0; // Slide vers la droite quand ouvert
   }
 
+  // Sur desktop, ce sidebar mobile n'existe pas
   @media (min-width: 768px) {
-    position: relative;
-    left: 0;
-    flex-shrink: 0;
-    // Sur desktop, toujours visible
-    &:not(.open) {
-      width: 0;
-      overflow: hidden;
-    }
-    &.open {
-      width: 280px;
-    }
+    display: none !important;
   }
 
   .sidebar-header {
     padding: 1rem;
     border-bottom: 1px solid $chat-bg-nav-border;
     flex-shrink: 0;
+
+    .sidebar-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+
+      h3 {
+        margin: 0;
+        color: $chat-text-light;
+        font-size: 1rem;
+        font-weight: 600;
+      }
+
+      .close-sidebar-btn {
+        background: none;
+        border: none;
+        color: $chat-text-muted;
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 4px;
+        font-size: 1.2rem;
+        transition: background-color 0.2s, color 0.2s;
+
+        &:hover {
+          background-color: rgba($chat-text-light, 0.1);
+          color: $chat-text-light;
+        }
+      }
+    }
 
     .new-conversation-btn {
       width: 100%;
@@ -188,16 +222,17 @@ $chat-danger-hover: #B71C1C;     // Rouge plus foncé pour hover
 }
 
 // Overlay pour mobile quand le sidebar est ouvert
-@media (max-width: 767px) {
-  .conversation-history-sidebar.open::before {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 280px;
-    right: 0;
-    bottom: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: -1;
+.mobile-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 49; // Juste en dessous du sidebar
+  
+  @media (min-width: 768px) {
+    display: none;
   }
 }
 
@@ -374,24 +409,108 @@ $chat-danger-hover: #B71C1C;     // Rouge plus foncé pour hover
       
       justify-content: flex-start;
     }
-    .history-chat { 
-      text-align: left; 
+    .history-chat {
+      text-align: left;
       width: 100%;
       background: rgba($chat-bg-dark, 0.5); // Fond subtil pour le bloc
       padding: 0.75rem;
       border-radius: 8px;
       max-height: 50%; // Limiter la hauteur
-     
 
-      h3 { display: block; color: $chat-text-muted; font-size: 0.9rem; margin-bottom: 0.5rem; }
-      .history-item { 
-        display: block; /* à styler si tu affiches l'historique */ 
-        font-size: 0.85rem; padding: 0.3rem; 
-        border-bottom: 1px solid $chat-bg-nav-border; 
-        &:last-child { border-bottom: none; }
+      .desktop-history {
+        h3 {
+          display: block;
+          color: $chat-text-light;
+          font-size: 0.9rem;
+          margin-bottom: 0.75rem;
+          font-weight: 600;
+        }
+
+        .new-conversation-btn-desktop {
+          background-color: $chat-accent-primary;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          padding: 0.5rem 0.75rem;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          cursor: pointer;
+          font-weight: 500;
+          font-size: 0.8rem;
+          margin-bottom: 1rem;
+          transition: background-color 0.2s;
+
+          &:hover {
+            background-color: $chat-accent-primary-darker;
+          }
+        }
+
+        .desktop-conversation-list {
+          display: flex;
+          flex-direction: column;
+          gap: 0.25rem;
+
+          .history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            position: relative;
+
+            &:hover {
+              background-color: rgba($chat-text-light, 0.1);
+
+              .delete-conversation-btn {
+                opacity: 1;
+              }
+            }
+
+            &.active {
+              background-color: rgba($chat-accent-primary, 0.2);
+              border-left: 3px solid $chat-accent-primary;
+            }
+
+            .conversation-title {
+              flex-grow: 1;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              margin-left: 0.5rem;
+              color: $chat-text-light;
+            }
+
+            .delete-conversation-btn {
+              opacity: 0;
+              background: none;
+              border: none;
+              color: $chat-text-muted;
+              cursor: pointer;
+              padding: 0.25rem;
+              border-radius: 3px;
+              transition: opacity 0.2s, background-color 0.2s, color 0.2s;
+
+              &:hover {
+                background-color: rgba($chat-danger-bg, 0.1);
+                color: $chat-danger-bg;
+              }
+            }
+          }
+        }
+
+        .no-history-text {
+          display: block;
+          font-style: italic;
+          font-size: 0.8rem;
+          color: $chat-text-muted;
+          text-align: center;
+          padding: 1rem;
+        }
       }
-      .no-history-text { display: block; font-style: italic; font-size: 0.85rem; }
-      .clear-history-btn { margin-top: 0.75rem; width: 70%; }
     }
   }
 }
