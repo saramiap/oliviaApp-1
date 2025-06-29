@@ -80,6 +80,8 @@ const Chat = () => {
   const [showHistorySidebar, setShowHistorySidebar] = useState(false);
   const [conversationHistory, setConversationHistory] = useState([]);
   const [currentConversationId, setCurrentConversationId] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [conversationToDelete, setConversationToDelete] = useState(null);
   const [history, setHistory] = useState([]); // L'historique séparé peut être réintroduit si besoin
 
   // Refs
@@ -189,17 +191,30 @@ const Chat = () => {
   };
 
   const deleteConversation = (conversationId) => {
-    if (window.confirm("Supprimer cette conversation ?")) {
+    const conversation = conversationHistory.find(conv => conv.id === conversationId);
+    setConversationToDelete(conversation);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDeleteConversation = () => {
+    if (conversationToDelete) {
       const history = loadConversationHistory();
-      const updatedHistory = history.filter(conv => conv.id !== conversationId);
+      const updatedHistory = history.filter(conv => conv.id !== conversationToDelete.id);
       setConversationHistory(updatedHistory);
       saveConversationHistory(updatedHistory);
 
       // Si c'est la conversation actuelle, créer une nouvelle
-      if (currentConversationId === conversationId) {
+      if (currentConversationId === conversationToDelete.id) {
         createNewConversation();
       }
     }
+    setShowDeleteModal(false);
+    setConversationToDelete(null);
+  };
+
+  const cancelDeleteConversation = () => {
+    setShowDeleteModal(false);
+    setConversationToDelete(null);
   };
 
   // --- EFFETS ---
@@ -267,26 +282,10 @@ const Chat = () => {
     }
   }, [messages, mode, isInitialLoadComplete, currentConversationId]);
 
-  // Scroll automatique UNIQUEMENT pour les nouvelles réponses IA pendant une conversation active
-  useEffect(() => {
-    if (mode === "chat" && messagesEndRef.current && chatContainerRef.current &&
-        isInitialLoadComplete && isInActiveConversation && isAtBottom && messages.length > 1) {
-      
-      const lastMessage = messages[messages.length - 1];
-      const secondLastMessage = messages[messages.length - 2];
-      
-      // Scroll SEULEMENT si le dernier message est d'Olivia ET précédé d'un message utilisateur
-      if (lastMessage && lastMessage.from === "model" &&
-          secondLastMessage && secondLastMessage.from === "user") {
-        messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-      }
-    }
-  }, [messages.length]); // Dépendance uniquement sur la longueur pour éviter les scrolls multiples
-
-  // Positionnement initial au dernier message SANS scroll visible
+  // Positionnement initial au dernier message SEULEMENT dans le container de chat
   useEffect(() => {
     if (mode === "chat" && chatContainerRef.current && isInitialLoadComplete && messages.length > 1) {
-      // Position directe au bas SANS animation pour éviter le scroll visible
+      // Position directe au bas du CONTAINER SEULEMENT, pas de la page
       const container = chatContainerRef.current;
       container.scrollTop = container.scrollHeight;
       setIsAtBottom(true);
@@ -706,9 +705,9 @@ const sendMessage = async () => {
       {showEmergencyModal && (
         <div className="modal-backdrop">
           <div className="emergency-modal-content">
-            <h2>Besoin d’aide immédiatement ?</h2>
+            <h2>Besoin d'aide immédiatement ?</h2>
             <p>
-              Tu n’es pas seul·e. Appelle le <strong>3114</strong> (numéro
+              Tu n'es pas seul·e. Appelle le <strong>3114</strong> (numéro
               national de prévention du suicide, gratuit, 24/7).
             </p>
             <button
@@ -718,6 +717,34 @@ const sendMessage = async () => {
               Voir les ressources
             </button>
             <button onClick={() => setShowEmergencyModal(false)}>Fermer</button>
+          </div>
+        </div>
+      )}
+
+      {showDeleteModal && conversationToDelete && (
+        <div className="modal-backdrop">
+          <div className="delete-modal-content">
+            <div className="delete-modal-header">
+              <Trash2 size={24} className="delete-icon" />
+              <h3>Supprimer la conversation</h3>
+            </div>
+            <div className="delete-modal-body">
+              <p>Êtes-vous sûr de vouloir supprimer cette conversation ?</p>
+              <div className="conversation-preview">
+                <MessageCircle size={16} />
+                <span>"{conversationToDelete.title}"</span>
+              </div>
+              <p className="warning-text">Cette action est irréversible.</p>
+            </div>
+            <div className="delete-modal-actions">
+              <button className="btn-cancel" onClick={cancelDeleteConversation}>
+                Annuler
+              </button>
+              <button className="btn-delete" onClick={confirmDeleteConversation}>
+                <Trash2 size={16} />
+                Supprimer
+              </button>
+            </div>
           </div>
         </div>
       )}
