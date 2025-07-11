@@ -1,133 +1,294 @@
-// _detente.scss (ou ton fichier de style pour la page Detente)
+// _detente.scss - Design Premium Serein pour Olivia Sérenis
 
-// Utilise ta palette de couleurs
-$detente-bg: #F0F4F8;                     // Fond de page (similaire à $sp-bg-main)
-$detente-text-primary: #3A4F66;          // Texte principal
-$detente-text-secondary: #5C7A99;         // Texte d'intro, descriptions de cartes
-$detente-title-color: #2C3E50;           // Titre principal
-$detente-card-bg: #FFFFFF;                // Fond des cartes
-$detente-card-border: #E0EAF3;           // Bordure des cartes
-$detente-card-shadow: rgba(115, 140, 168, 0.08); // Ombre douce
-$detente-card-action-text: #82AAFF;      // Couleur du texte "Explorer"
+// Palette de couleurs sereines Premium
+$detente-bg-primary: #FEFCFB;            // Blanc cassé chaleureux
+$detente-bg-secondary: #F8F6F4;          // Beige très clair
+$detente-text-primary: #2D2A26;          // Brun foncé élégant
+$detente-text-secondary: #6B6458;        // Brun moyen apaisant
+$detente-text-tertiary: #9C9485;         // Brun clair pour accents
+$detente-title-color: #2D2A26;           // Titre principal
+
+// Couleurs sereines pour les cartes
+$detente-card-bg: rgba(255, 255, 255, 0.9);
+$detente-card-border: rgba(232, 227, 223, 0.6);
+$detente-card-shadow: rgba(123, 104, 166, 0.08);
+$detente-card-hover-shadow: rgba(123, 104, 166, 0.15);
+
+// Couleurs d'accent sereines
+$olivia-primary: #7B68A6;               // Violet serein principal
+$olivia-secondary: #B8D4C7;             // Vert serein
+$olivia-warm: #E6C89C;                  // Beige chaleureux
+$user-primary: #6B9BD2;                 // Bleu confiance
 
 .detente {
-  background-color: $detente-bg;
-  min-height: calc(100vh - 60px); // Hauteur moins la navbar
-  padding: 2rem 1.5rem; // Padding mobile
+  background: linear-gradient(135deg, $detente-bg-primary 0%, $detente-bg-secondary 100%);
+  min-height: calc(100vh - 60px);
+  padding: 2rem 1.5rem;
   color: $detente-text-primary;
+  position: relative;
+  overflow-x: hidden;
+
+  // Effet de fond subtil avec particules flottantes
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      radial-gradient(circle at 20% 80%, rgba(123, 104, 166, 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(184, 212, 199, 0.04) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(230, 200, 156, 0.02) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+    animation: breathe 10s ease-in-out infinite;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
 
   @media (min-width: 768px) {
-    padding: 3rem;
+    padding: 3rem 4rem;
+  }
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cardAppear {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 
 .detente__header {
   text-align: center;
-  margin-bottom: 2.5rem;
+  margin-bottom: 3rem;
+  animation: slideUp 0.8s ease-out;
 
   h1 {
-    color: $detente-title-color;
-    font-size: 2rem;
+    background: linear-gradient(135deg, $detente-title-color 0%, $olivia-primary 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 2.2rem;
     font-weight: 700;
-    margin-bottom: 0.75rem;
-    span[role="img"] { margin-left: 0.3em; } // Pour l'emoji 🌿
+    margin-bottom: 1rem;
+    letter-spacing: -0.02em;
+    
+    span[role="img"] {
+      margin-left: 0.3em;
+      -webkit-text-fill-color: currentColor;
+    }
+    
     @media (min-width: 768px) {
-      font-size: 2.5rem;
+      font-size: 3rem;
     }
   }
 
   .detente__intro {
-    font-size: 1rem;
+    font-size: 1.1rem;
     color: $detente-text-secondary;
-    line-height: 1.6;
-    max-width: 650px;
+    line-height: 1.7;
+    max-width: 700px;
     margin: 0 auto;
+    font-weight: 400;
+    
     @media (min-width: 768px) {
-      font-size: 1.125rem;
+      font-size: 1.25rem;
     }
   }
 }
 
 .detente__cards-grid {
   display: grid;
-  gap: 1.5rem; // Espace entre les cartes
-  grid-template-columns: 1fr; // 1 colonne sur mobile
+  gap: 2rem;
+  grid-template-columns: 1fr;
+  animation: slideUp 0.8s ease-out 0.3s both;
 
   @media (min-width: 600px) {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2.5rem;
   }
+  
   @media (min-width: 992px) {
-    // Sur les écrans plus larges, tu peux forcer 2, 3 ou 4 colonnes si auto-fit ne donne pas le résultat souhaité
-    // Par exemple, pour un maximum de 3 colonnes bien espacées :
-    // grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
-    // Ou si tu veux toujours 3 colonnes :
-    // grid-template-columns: repeat(3, 1fr);
-    // Pour 2 colonnes max :
-    // grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
-
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    max-width: 1200px;
+    margin: 0 auto;
   }
 }
 
 .detente__card {
-  background-color: $detente-card-bg;
+  background: linear-gradient(135deg, $detente-card-bg 0%, rgba(255, 255, 255, 0.8) 100%);
   border: 1px solid $detente-card-border;
-  border-radius: 12px;
-  overflow: hidden; // Pour que l'image respecte le border-radius
-  box-shadow: 0 4px 12px $detente-card-shadow;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow:
+    0 4px 20px $detente-card-shadow,
+    0 1px 3px rgba(0, 0, 0, 0.05);
   display: flex;
-  flex-direction: column; // Pour que le contenu s'étende et que l'action soit en bas
+  flex-direction: column;
   cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  backdrop-filter: blur(10px);
+  animation: cardAppear 0.6s ease-out both;
+  position: relative;
 
-  &:hover, &:focus-visible { // Ajout de focus-visible pour l'accessibilité
-    transform: translateY(-6px);
-    box-shadow: 0 8px 20px rgba(115, 140, 168, 0.15);
-    outline: 2px solid $detente-card-action-text; // Indication de focus
+  // Effet de bordure lumineux au survol
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 20px;
+    padding: 1px;
+    background: linear-gradient(135deg, $olivia-primary, $olivia-secondary, $olivia-warm);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: xor;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  // Animation de délai pour chaque carte
+  &:nth-child(1) { animation-delay: 0.1s; }
+  &:nth-child(2) { animation-delay: 0.2s; }
+  &:nth-child(3) { animation-delay: 0.3s; }
+  &:nth-child(4) { animation-delay: 0.4s; }
+
+  &:hover, &:focus-visible {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow:
+      0 20px 40px $detente-card-hover-shadow,
+      0 8px 16px rgba(123, 104, 166, 0.1);
+    border-color: rgba(123, 104, 166, 0.2);
+
+    &::before {
+      opacity: 1;
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid $olivia-primary;
     outline-offset: 2px;
   }
 
   .detente__card-image-wrapper {
     width: 100%;
-    height: 200px; // Hauteur fixe pour les images
-    overflow: hidden; // Pour s'assurer que l'image ne déborde pas
+    height: 220px;
+    overflow: hidden;
+    position: relative;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(45deg, rgba(123, 104, 166, 0.1) 0%, transparent 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
   }
+  
   .detente__card-image {
     width: 100%;
     height: 100%;
-    object-fit: cover; // Remplit l'espace sans déformer
-    display: block; // Enlève l'espace en dessous de l'image
-    transition: transform 0.4s ease;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    filter: brightness(1.05) saturate(1.1);
   }
-  &:hover .detente__card-image {
-    transform: scale(1.05); // Léger zoom sur l'image au survol
+  
+  &:hover {
+    .detente__card-image {
+      transform: scale(1.08);
+    }
+    
+    .detente__card-image-wrapper::after {
+      opacity: 1;
+    }
   }
 
   .detente__card-content {
-    padding: 1.25rem;
-    flex-grow: 1; // Permet à cette section de grandir pour pousser l'action en bas
+    padding: 1.5rem;
+    flex-grow: 1;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+    
     h3.detente__card-title {
-      font-size: 1.2rem;
+      font-size: 1.25rem;
       font-weight: 600;
       color: $detente-text-primary;
-      margin: 0 0 0.5rem 0;
+      margin: 0 0 0.75rem 0;
+      line-height: 1.3;
+      transition: color 0.3s ease;
     }
+    
     p.detente__card-description {
-      font-size: 0.9rem;
+      font-size: 0.95rem;
       color: $detente-text-secondary;
-      line-height: 1.5;
+      line-height: 1.6;
       margin: 0;
+      transition: color 0.3s ease;
     }
   }
 
   .detente__card-action {
-    padding: 0 1.25rem 1.25rem 1.25rem;
-    text-align: right; // Aligner le texte "Explorer" à droite
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    
     span {
-      font-size: 0.85rem;
+      font-size: 0.9rem;
       font-weight: 600;
-      color: $detente-card-action-text;
-      text-transform: uppercase; // Optionnel
-      letter-spacing: 0.5px;  // Optionnel
+      color: $olivia-primary;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 0.5rem 1rem;
+      border-radius: 12px;
+      background: linear-gradient(135deg, rgba(123, 104, 166, 0.1) 0%, rgba(123, 104, 166, 0.05) 100%);
+      transition: all 0.3s ease;
+      position: relative;
+      
+      &::after {
+        content: '→';
+        margin-left: 0.5rem;
+        transition: transform 0.3s ease;
+      }
+    }
+  }
+
+  &:hover .detente__card-action span {
+    background: linear-gradient(135deg, $olivia-primary 0%, rgba(123, 104, 166, 0.8) 100%);
+    color: white;
+    transform: translateX(2px);
+    
+    &::after {
+      transform: translateX(4px);
     }
   }
 }

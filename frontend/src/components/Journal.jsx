@@ -43,8 +43,20 @@ const Journal = () => {
             ) : (
               entries.map((entry, idx) => (
                 <div className="entry" key={idx}>
-                  <p>{entry.text}</p>
-                  <small>{new Date(entry.date).toLocaleString()}</small>
+                  <div className="entry-content">
+                    <p>{entry.text}</p>
+                    <small>{new Date(entry.date).toLocaleString()}</small>
+                  </div>
+                  <button
+                    className="delete-entry-btn"
+                    onClick={() => {
+                      const updatedEntries = entries.filter((_, index) => index !== idx);
+                      setEntries(updatedEntries);
+                    }}
+                    title="Supprimer cette entrée"
+                  >
+                    🗑️
+                  </button>
                 </div>
               ))
             )}

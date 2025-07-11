@@ -1,62 +1,138 @@
-// _profile.scss
+// _profile.scss - Design Premium Serein pour Olivia Sérenis
+
+// Couleurs sereines Premium
+$profile-bg-primary: #FEFCFB;           // Blanc cassé chaleureux
+$profile-bg-secondary: #F8F6F4;         // Beige très clair
+$profile-text-primary: #2D2A26;         // Brun foncé élégant
+$profile-text-secondary: #6B6458;       // Brun moyen apaisant
+$profile-text-tertiary: #9C9485;        // Brun clair pour accents
+
+// Couleurs d'accent sereines
+$olivia-primary: #7B68A6;               // Violet serein principal
+$olivia-primary-light: #A69BC7;         // Violet clair
+$olivia-secondary: #B8D4C7;             // Vert serein
+$olivia-warm: #E6C89C;                  // Beige chaleureux
+
 .profile {
   display: flex;
-  flex-direction: column; // Mobile first: sidebar au-dessus, contenu en dessous
-  // min-height: 100vh; // Si la page profil doit prendre toute la hauteur de la vue.
-                     // À ajuster en fonction de ton layout global (header/footer).
+  flex-direction: column;
+  min-height: 100vh;
+  background: linear-gradient(135deg, $profile-bg-primary 0%, $profile-bg-secondary 100%);
+  position: relative;
+  overflow-x: hidden;
 
-  @media (min-width: 768px) { // Point de rupture pour tablette et plus grand (à ajuster si besoin)
-    flex-direction: row; // Sidebar à gauche, contenu à droite
+  // Effet de fond subtil avec particules flottantes
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+      radial-gradient(circle at 25% 75%, rgba(123, 104, 166, 0.04) 0%, transparent 50%),
+      radial-gradient(circle at 75% 25%, rgba(184, 212, 199, 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 50% 50%, rgba(230, 200, 156, 0.02) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+    animation: breathe 12s ease-in-out infinite;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  @media (min-width: 768px) {
+    flex-direction: row;
   }
 
   &__content-area {
-    // Sur mobile, il prendra la largeur disponible car son parent est flex-direction: column.
-    padding: 1rem; // Padding réduit pour mobile
+    padding: 1.5rem;
+    animation: slideUp 0.8s ease-out;
 
     @media (min-width: 768px) {
-      flex-grow: 1; // Permet à cette zone de prendre tout l'espace restant à côté de la sidebar
-      padding: 2rem; // Le padding original pour les écrans plus larges
-      // overflow-y: auto; // Optionnel: si le contenu de cette zone doit pouvoir scroller indépendamment
+      flex-grow: 1;
+      padding: 3rem 4rem;
     }
   }
 
-  // Les styles existants pour &__header, &__tabs, &__grid, &__card, &__modal
-  // restent les mêmes. Ils s'appliqueront correctement aux éléments
-  // à l'intérieur de .profile__content-area.
-
   &__header {
     text-align: center;
-    margin-bottom: 2rem;
+    margin-bottom: 3rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+    border-radius: 24px;
+    box-shadow: 
+      0 8px 32px rgba(123, 104, 166, 0.1),
+      0 2px 8px rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(232, 227, 223, 0.6);
+    animation: scaleIn 0.6s ease-out 0.2s both;
 
     .profile__avatar {
-      width: 100px;
-      height: 100px;
+      width: 120px;
+      height: 120px;
       border-radius: 50%;
       object-fit: cover;
-      // Ajout possible pour un meilleur centrage si besoin
+      margin: 0 auto 1.5rem auto;
+      border: 4px solid $olivia-primary;
+      box-shadow: 
+        0 8px 24px rgba(123, 104, 166, 0.2),
+        0 0 0 8px rgba(123, 104, 166, 0.1);
+      transition: all 0.4s ease;
       display: block;
+
+      &:hover {
+        transform: scale(1.05);
+        border-color: $olivia-primary-light;
+        box-shadow: 
+          0 12px 32px rgba(123, 104, 166, 0.3),
+          0 0 0 12px rgba(123, 104, 166, 0.15);
+      }
+    }
+
+    .profile__username {
+      font-size: 1.8rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      background: linear-gradient(135deg, $profile-text-primary 0%, $olivia-primary 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .profile__bio {
+      color: $profile-text-secondary;
+      margin-bottom: 1.5rem;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      max-width: 400px;
       margin-left: auto;
       margin-right: auto;
     }
 
     .profile__edit {
-      margin-top: 1rem;
-      padding: 0.5rem 1rem;
-      background-color: #814caf;
+      background: linear-gradient(135deg, $olivia-primary 0%, $olivia-primary-light 100%);
       color: white;
       border: none;
-      border-radius: 8px;
+      padding: 0.75rem 2rem;
+      border-radius: 16px;
       cursor: pointer;
-      transition: background-color 0.2s ease; // Petite transition pour le hover
-
+      font-weight: 600;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 16px rgba(123, 104, 166, 0.2);
+      
       &:hover {
-        background-color: #814caf, 10%;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(123, 104, 166, 0.3);
+        background: linear-gradient(135deg, $olivia-primary-light 0%, $olivia-primary 100%);
       }
-    }
 
-    .profile__bio {
-      margin-top: 0.5rem;
-      color: #666;
+      &:active {
+        transform: translateY(0);
+      }
     }
   }
 
@@ -64,51 +140,90 @@
     display: flex;
     justify-content: center;
     gap: 1rem;
-    margin-bottom: 1rem;
+    margin-bottom: 2rem;
+    animation: slideUp 0.6s ease-out 0.4s both;
 
     button {
-      padding: 0.5rem 1rem;
+      padding: 0.75rem 1.5rem;
       border: none;
-      background: #eee;
+      background: rgba(255, 255, 255, 0.7);
       cursor: pointer;
-      border-radius: 5px;
-      transition: background-color 0.2s ease, color 0.2s ease;
+      border-radius: 16px;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      color: $profile-text-secondary;
+      backdrop-filter: blur(5px);
+      border: 1px solid rgba(232, 227, 223, 0.6);
 
       &.active {
-        background-color: #cba6f7; // Couleur d'onglet actif existante
-        color: #333; // Peut-être un texte plus foncé pour contraster
-        font-weight: bold;
+        background: linear-gradient(135deg, $olivia-primary 0%, $olivia-primary-light 100%);
+        color: white;
+        box-shadow: 0 4px 16px rgba(123, 104, 166, 0.2);
+        transform: translateY(-1px);
       }
 
       &:hover:not(.active) {
-        background-color: #ddd;
+        background: rgba(255, 255, 255, 0.9);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       }
     }
   }
 
   &__grid {
     display: grid;
-    gap: 1rem;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    animation: slideUp 0.6s ease-out 0.6s both;
+
+    @media (min-width: 992px) {
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    }
   }
 
   &__card {
-    background: #f9f7ff;
-    padding: 1rem;
-    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+    padding: 1.5rem;
+    border-radius: 20px;
     text-align: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05); // Légère ombre pour la profondeur
+    box-shadow: 
+      0 4px 20px rgba(123, 104, 166, 0.08),
+      0 1px 3px rgba(0, 0, 0, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(232, 227, 223, 0.6);
+    transition: all 0.3s ease;
+    animation: cardAppear 0.5s ease-out both;
+
+    &:nth-child(odd) {
+      animation-delay: 0.1s;
+    }
+
+    &:nth-child(even) {
+      animation-delay: 0.2s;
+    }
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 
+        0 8px 32px rgba(123, 104, 166, 0.15),
+        0 4px 12px rgba(0, 0, 0, 0.1);
+      border-color: rgba(123, 104, 166, 0.2);
+    }
 
     iframe {
       width: 100%;
-      height: 150px; // Tu pourrais aussi utiliser aspect-ratio ici si tu cibles des navigateurs modernes
-      border-radius: 8px;
-      margin-bottom: 0.5rem; // Espace entre l'iframe et le titre
+      height: 180px;
+      border-radius: 12px;
+      margin-bottom: 1rem;
+      border: none;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     }
 
     p {
-      font-size: 0.9rem;
-      color: #333;
+      font-size: 1rem;
+      color: $profile-text-primary;
+      font-weight: 500;
+      margin: 0;
     }
   }
 
@@ -118,79 +233,149 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.6);
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 1000; // Pour s'assurer qu'elle est au-dessus des autres éléments
+    z-index: 1000;
+    backdrop-filter: blur(5px);
 
     .modal__content {
-      background: white;
-      padding: 1.5rem; // Léger ajustement du padding
-      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.9) 100%);
+      padding: 2rem;
+      border-radius: 20px;
       width: 90%;
-      max-width: 400px; // Bien pour mobile
+      max-width: 450px;
+      backdrop-filter: blur(15px);
+      border: 1px solid rgba(232, 227, 223, 0.6);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      animation: scaleIn 0.3s ease-out;
 
       h3 {
         margin-top: 0;
-        margin-bottom: 1.5rem; // Espace sous le titre de la modale
+        margin-bottom: 1.5rem;
+        color: $profile-text-primary;
+        font-size: 1.5rem;
+        font-weight: 600;
+        text-align: center;
       }
 
       label {
         display: block;
         margin-top: 1rem;
-        font-weight: bold;
-        font-size: 0.9rem; // Taille de police pour les labels
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: $profile-text-secondary;
+        margin-bottom: 0.5rem;
       }
 
       input,
       textarea {
-        width: 100%; // S'assure que l'input prend toute la largeur
-        box-sizing: border-box; // Inclut padding et border dans la largeur/hauteur totale
-        margin-top: 0.5rem;
-        padding: 0.75rem; // Padding un peu plus confortable
-        border-radius: 5px;
-        border: 1px solid #ccc;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        border: 1px solid rgba(232, 227, 223, 0.8);
+        background: rgba(255, 255, 255, 0.9);
+        color: $profile-text-primary;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+
+        &:focus {
+          outline: none;
+          border-color: $olivia-primary;
+          box-shadow: 0 0 0 3px rgba(123, 104, 166, 0.1);
+        }
       }
 
       textarea {
-        min-height: 80px; // Hauteur minimale pour la bio
-        resize: vertical; // Permet le redimensionnement vertical
+        min-height: 100px;
+        resize: vertical;
+        font-family: inherit;
       }
 
       input[type="file"] {
-        padding: 0.25rem; // Moins de padding pour l'input file
+        padding: 0.5rem;
+        background: rgba(255, 255, 255, 0.7);
       }
       
       .modal__buttons {
-        margin-top: 1.5rem;
+        margin-top: 2rem;
         display: flex;
         justify-content: flex-end;
         gap: 1rem;
 
         button {
-          padding: 0.6rem 1.2rem; // Padding ajusté
+          padding: 0.75rem 1.5rem;
           border: none;
           cursor: pointer;
-          border-radius: 5px;
-          font-weight: bold;
-          transition: opacity 0.2s ease;
+          border-radius: 12px;
+          font-weight: 600;
+          font-size: 1rem;
+          transition: all 0.3s ease;
 
-          &:hover {
-            opacity: 0.85;
+          &:first-child {
+            background: linear-gradient(135deg, $olivia-secondary 0%, rgba(184, 212, 199, 0.8) 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(184, 212, 199, 0.3);
+            
+            &:hover {
+              transform: translateY(-1px);
+              box-shadow: 0 6px 16px rgba(184, 212, 199, 0.4);
+            }
           }
 
-          &:first-child { // Bouton Enregistrer
-            background-color: #4caf50; // Vert (existant)
-            color: white;
-          }
-
-          &:last-child { // Bouton Annuler
-            background-color: #f44336; // Rouge (existant)
-            color: white;
+          &:last-child {
+            background: rgba(156, 148, 133, 0.1);
+            color: $profile-text-secondary;
+            border: 1px solid rgba(156, 148, 133, 0.3);
+            
+            &:hover {
+              background: rgba(156, 148, 133, 0.2);
+              transform: translateY(-1px);
+            }
           }
         }
       }
     }
+  }
+}
+
+// Animations keyframes
+@keyframes breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes cardAppear {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }

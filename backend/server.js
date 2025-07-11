@@ -4,11 +4,25 @@ require("dotenv").config();
 
 const path = require("path");
 
+// Import des routes
+const authRoutes = require('./routes/auth');
+const subscriptionRoutes = require('./routes/subscription');
+const webhooksRoutes = require('./routes/webhooks');
+const analyticsRoutes = require('./routes/analytics');
+
+// Import des middlewares
+const { authenticateUser, checkUsageLimits, incrementUsage, executeUsageIncrement, softWall } = require('./middleware/premiumMiddleware');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Middleware pour les webhooks (doit être avant express.json())
+app.use('/webhooks', webhooksRoutes);
+
+// Middlewares globaux
 app.use(express.json());
 app.use(cors());
+app.use(executeUsageIncrement); // Pour l'incrément d'usage automatique
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
@@ -17,81 +31,209 @@ if (!GEMINI_API_KEY) {
   process.exit(1);
 }
 
-const geminiApiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-04-17:generateContent?key=${GEMINI_API_KEY}`;
+const geminiApiEndpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;
 const SYSTEM_PROMPT = `
-Tu es Olivia Sérénis, une assistante virtuelle spécialisée en psychologie.  
-Tu n’as pas de corps physique, tu ne décris jamais ton apparence, ton environnement ou tes émotions personnelles.
+Tu es Olivia Sérénis, une assistante virtuelle spécialisée en psychologie.
+Tu n'as pas de corps physique, tu ne décris jamais ton apparence, ton environnement ou tes émotions personnelles.
 
-Tu te comportes comme une psychologue empathique et professionnelle :
-- Tu adoptes une voix calme, rassurante, bienveillante et neutre.
-- Tu valides toujours les émotions de la personne (ex. : « C’est normal de ressentir cela. »).
-- Tu ne juges jamais, tu accueilles chaque parole avec douceur et ouverture.
-- Tu encourages l’exploration émotionnelle à travers des questions ouvertes (ex. : « Qu’est-ce qui a déclenché ce sentiment ? », « Peux-tu m'en dire un peu plus sur ce que tu ressens quand cela arrive ? »).
-- Tu reformules pour montrer que tu comprends ce que la personne vit.
-- Tu peux expliquer simplement des concepts psychologiques comme le stress, l’anxiété, les schémas de pensée, la charge mentale ou les mécanismes de défense, **si l'utilisateur semble en avoir besoin ou le demande.**
-**Contexte Spécifique : Préparation de Séance (si l'interaction vient de cette page)**
-**Quand tu assistes l'utilisateur sur la page "Préparer ma Séance", ton objectif principal est de l'aider à organiser ses pensées, à identifier les émotions clés, les événements marquants et les points qu'il aimerait aborder avec son thérapeute.**
-**Pour cela, tu peux :**
-**1. Encourager l'écriture libre : "Vas-y, écris tout ce qui te vient concernant [l'émotion sélectionnée / le sujet abordé]. Ne te censure pas."**
-**2. Poser des questions ciblées pour approfondir :**
-    **- "Y a-t-il un événement particulier lié à ce sentiment de [émotion] que tu aimerais explorer ?"**
-    **- "Quelles situations ont déclenché [émotion/pensée] récemment ?"**
-    **- "Qu'est-ce que tu attends ou espères de ta prochaine séance concernant ce sujet ?"**
-    **- "Si tu devais résumer en quelques points clés ce que tu veux absolument dire à ton thérapeute, quels seraient-ils ?"**
-**3. Aider à identifier des thèmes récurrents : "Je remarque que tu as mentionné [thème X] plusieurs fois. Est-ce quelque chose d'important pour toi en ce moment ?"**
-**4. Proposer de structurer les idées : Une fois que l'utilisateur a écrit un certain volume de texte, tu peux proposer : "Merci d'avoir partagé tout ça. Si tu le souhaites, je peux essayer de t'aider à synthétiser les points principaux que tu pourrais aborder lors de ta séance. Veux-tu que nous fassions cela ensemble ?"**
-    **- Si l'utilisateur accepte, tu peux analyser son dernier long message (ou plusieurs) et proposer une liste de 2-4 points clés. Exemple :**
-        **"D'après ce que tu as écrit, voici quelques points qui semblent importants :**
-        **- Ton ressenti de [émotion A] face à [situation X].**
-        **- La difficulté à [action Y].**
-        **- Ton souhait de discuter de [objectif Z] avec ton thérapeute."**
-        **"Est-ce que cela te semble correspondre ? Y a-t-il autre chose que tu aimerais ajouter ou modifier ?"**
-**5. Utiliser des tags d'action si une ressource de l'application est pertinente : Si l'utilisateur bloque sur une émotion ou un concept, tu peux suggérer un exercice de respiration ou un voyage sonore via les tags comme dans le chat général 
-- Tu peux proposer, si besoin, de petits conseils ou exercices de bien-être **directement dans la conversation**. Par exemple :
-Exemples de tags que tu peux utiliser :
-- Pour un exercice de respiration : #EXERCICE_RESPIRATION{type:"4-7-8",cycles:3,duree_sec:180}
-- Pour un voyage sonore : #VOYAGE_SONORE{themeId:"forest_serenity_local"} 
-  (IDs possibles: "forest_serenity_local", "ocean_calm_local", "cosmic_drift_local", "relaxation_extreme_local", "pluie_relaxante_local")
-- Pour une suggestion d'écriture dans le journal : #SUGGESTION_JOURNAL{prompt:"Quelle petite victoire as-tu célébrée récemment ?"}
-- Pour rediriger vers une page d'information : #INFO_STRESS{sujet:"mecanismes_blocage"}
-- Pour une redirection générale : #REDIRECT{path:"/urgence"}
-1-SI L'UTILISATEUR EXPRIME DU STRESS, DE L'ANXIÉTÉ, OU UN BESOIN DE RELAXATION :
-    - Valide son émotion : "Je comprends que tu te sentes stressé·e / anxieux·se."
-    - Suggère une action pertinente avec un tag.
-    - EXEMPLES DE PHRASES UTILISATEUR :
-        - "Je suis stressé." -> Ta réponse pourrait être : "C'est noté. Le stress peut être éprouvant. Un exercice de respiration simple pourrait t'aider à te sentir plus calme. Veux-tu essayer ? #EXERCICE_RESPIRATION{type:"4-7-8",cycles:3}"
-        - "J'ai besoin de me détendre." -> Ta réponse pourrait être : "Prendre un moment pour soi est important. Un voyage sonore pourrait t'aider à te relaxer. #VOYAGE_SONORE{themeId:"ocean_calm_local"}" (tu peux varier le themeId suggéré).
-        - "Je n'arrive pas à me calmer." -> Ta réponse pourrait être : "Quand on se sent agité, revenir à sa respiration peut être une première étape. Essayons ensemble. #EXERCICE_RESPIRATION{type:"coherence_cardiaque",duree_sec:180}"
+**APPROCHE PSYCHOLOGIQUE :**
+- Adopte une voix calme, rassurante, bienveillante et neutre
+- Valide toujours les émotions (ex: "C'est normal de ressentir cela")
+- Reformule pour montrer ta compréhension
+- N'établis jamais de diagnostic, ne remplace pas un professionnel
 
-2.  SI L'UTILISATEUR DEMANDE EXPLICITEMENT UN EXERCICE OU UN TYPE D'ACTIVITÉ :
-    - "Je veux faire un exercice de respiration." -> "Excellente idée ! Lequel préférerais-tu essayer, ou veux-tu que je t'en suggère un comme la respiration carrée ? #EXERCICE_RESPIRATION{type:"box_breathing",cycles:4}"
-    - "Parle-moi des voyages sonores." -> "Les voyages sonores sont conçus pour vous immerger dans des ambiances apaisantes. Nous avons plusieurs thèmes comme la forêt ou l'océan. Souhaites-tu en explorer un ? #VOYAGE_SONORE{themeId:"forest_serenity_local"}"
+**LIMITE DES QUESTIONS :**
+- MAXIMUM 1 question par réponse, uniquement si essentielle
+- PRIORITÉ : Propose des ACTIONS concrètes avant de poser des questions
+- Si l'utilisateur exprime stress/anxiété : SUGGÈRE immédiatement une solution avec tag d'action
+- Évite les questions ouvertes génériques comme "Comment te sens-tu ?"
+- Préfère : validation + suggestion d'action + 1 question ciblée si nécessaire
 
-3.  SI L'UTILISATEUR VEUT COMPRENDRE QUELQUE CHOSE (EX: LE STRESS) :
-    - "Explique-moi pourquoi le stress me bloque." -> "Bien sûr. Le stress peut parfois nous submerger et affecter notre façon de penser. J'ai une section qui explique cela plus en détail si tu veux. #INFO_STRESS{sujet:"mecanismes_blocage"}"
+**DÉTECTION PROACTIVE ET SUGGESTIONS AUTOMATIQUES :**
+Mots-clés détectés → Réaction immédiate :
+- "stressé/anxieux" → Validation + #EXERCICE_RESPIRATION{type:"4-7-8",cycles:3}
+- "me détendre/relaxer" → Validation + #VOYAGE_SONORE{themeId:"ocean_calm"}
+- "sommeil/dormir" → Conseil + #SUGGESTION_JOURNAL{prompt:"Quelles pensées t'empêchent de dormir ?"}
+- "confus/submergé" → Validation + technique d'ancrage + #EXERCICE_RESPIRATION{type:"coherence_cardiaque"}
 
-4.  SI L'UTILISATEUR EXPRIME LE BESOIN D'ÉCRIRE OU DE CLARIFIER SES PENSÉES :
-    - "J'ai plein d'idées confuses dans ma tête." -> "Écrire peut souvent aider à y voir plus clair. Tu pourrais essayer de noter ce qui te vient sans jugement. #SUGGESTION_JOURNAL{prompt:"Quelles sont les pensées qui tournent en boucle en ce moment ?"}"
+**TAGS D'ACTION (UN SEUL par réponse) :**
+- #EXERCICE_RESPIRATION{type:"4-7-8",cycles:3,duree_sec:180}
+- #VOYAGE_SONORE{themeId:"forest_serenity"} (IDs: "forest_serenity", "ocean_calm", "sea_drift", "relaxation", "pluie-relaxante")
+- #SUGGESTION_JOURNAL{prompt:"..."}
+- #INFO_STRESS{sujet:"mecanismes_blocage"}
+- #REDIRECT{path:"/urgence"}
 
-Adapte tes suggestions en fonction du contexte de la conversation. Sois créative dans la manière de proposer les tags, mais respecte toujours le format.
-N'oublie pas, tu ne proposes qu'UNE SEULE action taggée à la fois pour ne pas submerger l'utilisateur.
-    - **Pour la respiration : tu peux guider un ou deux cycles textuellement. Exemple : "Essayons une respiration ensemble. Inspire lentement par le nez... (compte 1-2-3)... et expire doucement par la bouche... (compte 1-2-3-4-5). Comment cela te fait-il sentir ?"**
-    - **Pour l'ancrage : "Si tu te sens submergé·e, concentrons-nous un instant sur tes sens. Peux-tu nommer une chose que tu vois clairement autour de toi maintenant ?" (attendre la réponse avant de potentiellement continuer avec un autre sens).**
-    - **Pour la gratitude ou la pensée positive : "Parfois, se souvenir d'une petite chose positive peut aider. Y a-t-il quelque chose, même minime, qui t'a apporté un instant de satisfaction ou de joie récemment ?"**
-- **Si l'utilisateur exprime une difficulté particulière (ex: sommeil, démotivation), tu peux occasionnellement offrir UN SEUL conseil pratique et reconnu, formulé comme une suggestion douce. Exemple : "Pour les pensées qui tournent le soir, certaines personnes trouvent utile de les noter avant de dormir, comme pour les 'vider' de leur esprit. Ce n'est qu'une idée, bien sûr."**
-- **Tu peux aussi suggérer des "micro-défis bien-être" simples et adaptés à la situation de l'utilisateur pour l'encourager à une petite action positive.**
+**PRÉPARATION DE SÉANCE (contexte spécifique) :**
+- Encourage l'écriture libre sans questions multiples
+- Identifie les thèmes récurrents automatiquement
+- Propose des synthèses structurées sans demander d'autorisation
+- Format: "D'après ce que tu partages, je retiens: [2-3 points clés]"
 
-Tu n’établis jamais de diagnostic. Tu ne prétends pas remplacer un professionnel de santé. Si une situation te semble trop grave ou urgente, **ou si l'utilisateur exprime une détresse intense ou des idées suicidaires (même si tu as déjà déclenché une alerte),** tu encourages **fermement et clairement** la personne à consulter un psychologue, un médecin, ou à appeler un numéro d'urgence approprié **que tu peux rappeler (ex: le 3114 en France pour la prévention suicide)**.
+**CONSEILS PRATIQUES DIRECTS :**
+- Propose immédiatement des micro-exercices (respiration guidée, ancrage 5-4-3-2-1)
+- Donne des conseils concrets ("Pour le sommeil: noter ses pensées avant de dormir")
+- Suggère des micro-défis bien-être adaptés
 
-Tu restes centrée sur l’utilisateur : tu ne parles pas de toi, tu ne racontes pas de souvenirs, d’émotions personnelles ni d’éléments visuels imaginaires.
+**URGENCES :**
+Si détresse intense/idées suicidaires : redirection ferme vers professionnel + rappel du 3114 (France).
+
+Tu restes centrée sur l'utilisateur sans parler de toi.
 `;
+
+// ---- ROUTES API ----
+app.use('/api/auth', authRoutes);
+app.use('/api/subscription', subscriptionRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // ---- SERVIR LE FRONTEND STATIQUE ----
 // Le chemin vers le dossier 'dist' de ton build Vite
 const frontendDistPath = path.join(__dirname, '../frontend/dist');
 app.use(express.static(frontendDistPath));
 
-app.post("/ask", async (req, res) => {
+// Fonction helper pour retry avec backoff côté serveur optimisé
+async function callGeminiWithRetry(formattedMessages, maxRetries = 3) {
+  const retryDelays = [300, 600, 1000]; // 300ms, 600ms, 1s - délais optimisés
+  const retryableErrors = [500, 502, 503];
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`🔄 Tentative ${attempt}/${maxRetries} - Appel API Gemini`);
+      
+      const response = await fetch(geminiApiEndpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contents: formattedMessages }),
+      });
+
+      const data = await response.json();
+
+      // Si pas d'erreur, retourner la réponse
+      if (!data.error) {
+        if (attempt > 1) {
+          console.log(`✅ Succès après ${attempt} tentatives`);
+        }
+        return { success: true, data };
+      }
+
+      // Si erreur non-retryable, retourner immédiatement
+      if (!retryableErrors.includes(data.error.code)) {
+        console.warn(`❌ Erreur non-retryable (${data.error.code}) - Abandon retry`);
+        return { success: false, error: data.error, finalAttempt: true };
+      }
+
+      // Si c'est la dernière tentative
+      if (attempt === maxRetries) {
+        console.warn(`❌ Échec après ${maxRetries} tentatives - Code ${data.error.code}`);
+        return { success: false, error: data.error, finalAttempt: true };
+      }
+
+      // Logger l'erreur et préparer le retry
+      const delay = retryDelays[attempt - 1];
+      console.warn(`⚠️ Tentative ${attempt} échouée (${data.error.code}) - Retry dans ${delay}ms`);
+      
+      // Attendre avant le prochain retry
+      await new Promise(resolve => setTimeout(resolve, delay));
+
+    } catch (networkError) {
+      if (attempt === maxRetries) {
+        console.error(`❌ Erreur réseau après ${maxRetries} tentatives:`, networkError.message);
+        return { success: false, networkError, finalAttempt: true };
+      }
+      
+      const delay = retryDelays[attempt - 1];
+      console.warn(`⚠️ Erreur réseau tentative ${attempt} - Retry dans ${delay}ms:`, networkError.message);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+}
+
+// Route chat temporaire pour tests mobile (sans authentification) avec retry
+app.post("/ask-mobile", async (req, res) => {
+  if (!GEMINI_API_KEY) {
+    return res.status(500).json({ error: "Configuration serveur incomplete: clé API manquante." });
+  }
+
+  const { messages } = req.body;
+
+  if (!messages || !Array.isArray(messages) || messages.length === 0) {
+    return res.status(400).json({ error: "Le champ 'messages' est requis." });
+  }
+
+  const formattedMessages = [
+    {
+      role: "model",
+      parts: [{ text: SYSTEM_PROMPT }],
+    },
+    ...messages
+      .filter((msg) => {
+        const hasText = msg.text && typeof msg.text === 'string' && msg.text.trim() !== "";
+        const isNotPlaceholder = msg.text !== "Réponse vide." && msg.text !== "undefined" && msg.text !== "null";
+        
+        if (!hasText || !isNotPlaceholder) {
+          console.log(`🚫 [ask-mobile] Message filtré: "${msg.text}" (from: ${msg.from})`);
+          return false;
+        }
+        return true;
+      })
+      .map((msg) => ({
+        role: msg.from === "user" ? "user" : "model",
+        parts: [{ text: msg.text }],
+      })),
+  ];
+
+  console.log(`📱 [ask-mobile] Nouvelle requête - Messages: ${messages.length}`);
+
+  const result = await callGeminiWithRetry(formattedMessages);
+
+  if (result.success) {
+    const data = result.data;
+    
+    if (data.candidates && data.candidates.length > 0) {
+      const reply = data.candidates[0].content?.parts?.[0]?.text || "Désolée, je n'ai pas pu formuler une réponse. Peux-tu reformuler ta demande ?";
+      console.log(`✅ [ask-mobile] Réponse Gemini réussie`);
+      res.json({ response: reply });
+    } else {
+      console.warn("⚠️ [ask-mobile] Aucune réponse de Gemini :", JSON.stringify(data, null, 2));
+      res.json({ response: "Je n'ai pas pu traiter ta demande. Peux-tu essayer de la reformuler différemment ?" });
+    }
+  } else {
+    // Système de fallback diversifié après échec des retries
+    console.warn(`🔄 [ask-mobile] Activation du fallback après échec des retries`);
+    
+    let fallbackResponse = "Je rencontre un petit problème technique. Peux-tu réessayer dans quelques instants ?";
+    
+    // Messages de fallback variés et contextuels
+    if (result.error && result.error.code === 503) {
+      const fallbackMessages = [
+        "Je suis temporairement surchargée. En attendant, puis-je te suggérer un exercice de respiration ? Inspire lentement pendant 4 secondes, retiens pendant 7, puis expire pendant 8. Répète 3 fois. #EXERCICE_RESPIRATION{type:\"4-7-8\",cycles:3}",
+        "Je fais face à un pic d'activité en ce moment. En attendant que cela se stabilise, voici une technique simple : concentre-toi sur ta respiration. Inspire profondément, compte jusqu'à 5, puis expire lentement. #EXERCICE_RESPIRATION{type:\"coherence_cardiaque\",cycles:5}",
+        "Mon système est temporairement surchargé. Pour patienter sereinement, que dirais-tu d'un voyage sonore apaisant ? Les sons de l'océan peuvent t'aider à retrouver ton calme. #VOYAGE_SONORE{themeId:\"ocean_calm\"}",
+        "Je traverse un moment de forte demande. En attendant, permets-moi de te suggérer d'écrire quelques lignes sur ce qui te préoccupe en ce moment. L'écriture peut être très libératrice. #SUGGESTION_JOURNAL{prompt:\"Qu'est-ce qui m'occupe l'esprit maintenant ?\"}",
+        "Je suis temporairement débordée. Profitons-en pour faire une pause ensemble : trouve un endroit confortable, ferme les yeux et écoute les sons autour de toi pendant quelques instants. Cette mindfulness peut t'aider à te recentrer."
+      ];
+      
+      // Sélection pseudo-aléatoire basée sur l'heure pour varier les messages
+      const messageIndex = Math.floor(Date.now() / 60000) % fallbackMessages.length;
+      fallbackResponse = fallbackMessages[messageIndex];
+    }
+    
+    if (result.networkError) {
+      console.error(`❌ [ask-mobile] Erreur réseau finale:`, result.networkError.message);
+      res.status(500).json({ error: "Erreur interne du serveur." });
+    } else {
+      console.log(`💬 [ask-mobile] Fallback activé: ${result.error?.code || 'erreur inconnue'}`);
+      res.json({ response: fallbackResponse });
+    }
+  }
+});
+
+// Route chat avec protection freemium
+app.post("/ask",
+  authenticateUser,
+  softWall('conversation'),
+  checkUsageLimits('conversation'),
+  incrementUsage('conversation'),
+  async (req, res) => {
   if (!GEMINI_API_KEY) { // Re-vérifier ici au cas où le serveur a démarré sans
     return res.status(500).json({ error: "Configuration serveur incomplete: clé API manquante." });
   }
@@ -126,16 +268,75 @@ app.post("/ask", async (req, res) => {
 
     const data = await response.json();
 
+    // Gestion des erreurs spécifiques de l'API Gemini avec fallbacks diversifiés
+    if (data.error) {
+      console.warn("⚠️ Erreur API Gemini :", JSON.stringify(data, null, 2));
+      
+      let fallbackResponse = "Je rencontre un petit problème technique. Peux-tu réessayer dans quelques instants ?";
+      
+      if (data.error.code === 503) {
+        // Messages de fallback variés pour les erreurs 503 (route authentifiée)
+        const fallbackMessages = [
+          "Je suis temporairement surchargée. En attendant, puis-je te suggérer un exercice de respiration ? Inspire lentement pendant 4 secondes, retiens pendant 7, puis expire pendant 8. Répète 3 fois. #EXERCICE_RESPIRATION{type:\"4-7-8\",cycles:3}",
+          "Je fais face à un pic d'activité. Pour t'aider à patienter sereinement, voici une technique de cohérence cardiaque : respire de façon régulière pendant quelques minutes. #EXERCICE_RESPIRATION{type:\"coherence_cardiaque\",duree_sec:300}",
+          "Mon système est temporairement saturé. En attendant, que dirais-tu d'explorer tes pensées par l'écriture ? Cela peut être très apaisant. #SUGGESTION_JOURNAL{prompt:\"Comment je me sens maintenant ?\"}",
+          "Je traverse un moment de forte sollicitation. Profitons-en pour faire une pause : concentre-toi sur le moment présent et respire calmement."
+        ];
+        
+        // Rotation des messages basée sur l'heure
+        const messageIndex = Math.floor(Date.now() / 90000) % fallbackMessages.length;
+        fallbackResponse = fallbackMessages[messageIndex];
+      }
+      
+      return res.json({
+        response: fallbackResponse,
+        upgrade_info: req.upgradeInfo || null
+      });
+    }
+
     if (data.candidates && data.candidates.length > 0) {
-      const reply = data.candidates[0].content?.parts?.[0]?.text || "Réponse vide.";
-      res.json({ response: reply });
+      const reply = data.candidates[0].content?.parts?.[0]?.text || "Désolée, je n'ai pas pu formuler une réponse. Peux-tu reformuler ta demande ?";
+      
+      // Ajouter les informations d'upgrade si nécessaire
+      const response = {
+        response: reply,
+        upgrade_info: req.upgradeInfo || null
+      };
+      
+      res.json(response);
     } else {
       console.warn("⚠️ Aucune réponse de Gemini :", JSON.stringify(data, null, 2));
-      res.json({ response: "Réponse vide." });
+      res.json({
+        response: "Je n'ai pas pu traiter ta demande. Peux-tu essayer de la reformuler différemment ?",
+        upgrade_info: req.upgradeInfo || null
+      });
     }
   } catch (error) {
     console.error(" Erreur Gemini :", error);
-    res.status(500).json({ error: "Erreur interne du serveur." });
+    res.status(500).json({ error: "Erreur interne du serveur.", upgrade_info: req.upgradeInfo || null });
+  }
+});
+
+// Route pour obtenir le statut utilisateur (limites et abonnement)
+app.get("/user-status", authenticateUser, async (req, res) => {
+  try {
+    const userService = require('./services/userService');
+    const subscriptionInfo = await userService.getSubscriptionInfo(req.user.google_id);
+    const limitsCheck = await userService.checkUserLimits(req.user.google_id, 'conversation');
+    
+    res.json({
+      user: {
+        id: req.user.id,
+        email: req.user.email,
+        subscription_type: req.user.subscription_type,
+        subscription_status: req.user.subscription_status
+      },
+      subscription: subscriptionInfo,
+      limits: limitsCheck
+    });
+  } catch (error) {
+    console.error("Erreur récupération statut utilisateur:", error);
+    res.status(500).json({ error: "Erreur serveur" });
   }
 });
 

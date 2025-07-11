@@ -5,7 +5,11 @@ import useSpeech from "../hooks/useSpeech";
 import { ArrowDownward as ArrowDownwardIcon, ArrowUpward as ArrowUpwardIcon, KeyboardArrowUp as ArrowUpIcon } from '@mui/icons-material';
 import { useNavigate } from "react-router-dom";
 import Journal from "./Journal"; // Assure-toi que ce chemin est correct et que Journal est exporté par défaut
-import { Zap, Waves, BookOpen, Info, ExternalLink, Menu, Plus, MessageCircle, Trash2 } from 'lucide-react'; // Icônes pour les boutons d'action
+import { Zap, Waves, BookOpen, Info, ExternalLink, Menu, Plus, MessageCircle, Trash2, Crown } from 'lucide-react'; // Icônes pour les boutons d'action
+import { monetizationService } from '../services/monetizationService';
+import { googleAuth } from '../services/googleAuth';
+import UpgradeModal from '../components/UpgradeModal';
+import SubscriptionStatus from '../components/SubscriptionStatus';
 
 import "../styles/_chat.scss"; // Ton fichier SCSS principal
 
@@ -84,6 +88,12 @@ const Chat = () => {
   const [conversationToDelete, setConversationToDelete] = useState(null);
   const [preventAutoSave, setPreventAutoSave] = useState(false);
   const [history, setHistory] = useState([]); // L'historique séparé peut être réintroduit si besoin
+  
+  // États pour la monétisation
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeTrigger, setUpgradeTrigger] = useState('limit_reached');
+  const [userStatus, setUserStatus] = useState(null);
+  const [canSendMessage, setCanSendMessage] = useState(true);
 
   // Refs
   const messagesEndRef = useRef(null);
@@ -260,6 +270,37 @@ const Chat = () => {
 
   // --- EFFETS ---
 
+  // Initialisation de la monétisation
+  useEffect(() => {
+    const initMonetization = async () => {
+      const user = googleAuth.getCurrentUser();
+      if (user) {
+        // Configurer l'authentification pour le service de monétisation
+        monetizationService.setAuth(user.id, user);
+        
+        try {
+          // Charger le statut utilisateur
+          const status = await monetizationService.getUserStatus();
+          setUserStatus(status);
+          
+          // Vérifier si l'utilisateur peut envoyer des messages
+          const messageCheck = monetizationService.canSendMessage();
+          setCanSendMessage(messageCheck.allowed);
+          
+          // Tracker la visite de la page
+          await monetizationService.trackEvent('page_visit', {
+            page: 'chat',
+            subscription_type: status.user?.subscription_type
+          });
+        } catch (error) {
+          console.error('Erreur initialisation monétisation:', error);
+        }
+      }
+    };
+    
+    initMonetization();
+  }, []);
+
   // Chargement initial des données (avatar, messages depuis localStorage, historique)
   useEffect(() => {
     const storedAvatar = localStorage.getItem("userAvatar");
@@ -412,6 +453,21 @@ const Chat = () => {
 const sendMessage = async () => {
   if (!input.trim()) return;
   
+  // Vérifier les limites avant d'envoyer le message
+  const messageCheck = monetizationService.canSendMessage();
+  if (!messageCheck.allowed) {
+    setUpgradeTrigger('limit_reached');
+    setShowUpgradeModal(true);
+    
+    // Tracker l'événement de limite atteinte
+    await monetizationService.trackEvent('limit_reached', {
+      action: 'conversation',
+      subscription_type: userStatus?.user?.subscription_type
+    });
+    
+    return;
+  }
+  
   // Activer la conversation dès le premier message utilisateur
   if (!isInActiveConversation) {
     setIsInActiveConversation(true);
@@ -459,10 +515,12 @@ const sendMessage = async () => {
   setLoading(true);
 
   try {
+    const user = googleAuth.getCurrentUser();
     const response = await fetch("http://localhost:3000/ask", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${user?.id || ''}`
       },
       body: JSON.stringify({ messages: messagesForAPI })
     });
@@ -472,13 +530,43 @@ const sendMessage = async () => {
     }
     
     const data = await response.json();
+    
+    // Vérifier si une mise à niveau est recommandée
+    if (data.upgrade_info && data.upgrade_info.should_show_upgrade) {
+      // Afficher une notification subtile pour l'upgrade
+      setTimeout(() => {
+        if (userStatus?.user?.subscription_type === 'free') {
+          setUpgradeTrigger('soft_wall');
+          setShowUpgradeModal(true);
+        }
+      }, 2000); // Délai de 2 secondes après la réponse
+    }
+    
     // Pour handleAIResponse, on a besoin du contexte UI (avec displayText, etc.)
     // On peut le reconstruire à partir de messagesForAPI ou utiliser l'état messages qui sera mis à jour.
     // Option plus sûre : reconstruire à partir de messagesForAPI pour le contexte exact envoyé
     const contextForUI = messagesForAPI.map(m => ({...m, ...parseActionTag(m.text)}));
     handleAIResponse(data.response || "Pardon, je n'ai pas saisi.", contextForUI);
+    
+    // Mettre à jour le statut utilisateur après envoi réussi
+    try {
+      const updatedStatus = await monetizationService.getUserStatus();
+      setUserStatus(updatedStatus);
+      const newMessageCheck = monetizationService.canSendMessage();
+      setCanSendMessage(newMessageCheck.allowed);
+    } catch (error) {
+      console.warn('Erreur mise à jour statut:', error);
+    }
   } catch (error) {
     console.error("Erreur API Chat:", error);
+    
+    // Si erreur 403 (limite atteinte), afficher l'upgrade modal
+    if (error.response?.status === 403) {
+      setUpgradeTrigger('limit_reached');
+      setShowUpgradeModal(true);
+      return;
+    }
+    
     const contextForUI = messagesForAPI.map(m => ({...m, ...parseActionTag(m.text)}));
     handleAIResponse(
       `Navrée, une erreur technique est survenue. (${error.message})`,
@@ -540,7 +628,7 @@ const sendMessage = async () => {
     // Assure-toi que les routes et la gestion d'état (state) sont correctes pour chaque action
     switch (actionName) {
       case "EXERCICE_RESPIRATION":
-        navigate(`/detente/programme`, { state: { type: params?.type, duration: params?.duree_sec, cycles: params?.cycles, autoStart: true } });
+        navigate(`/respiration`, { state: { type: params?.type, duration: params?.duree_sec, cycles: params?.cycles, autoStart: true } });
         break;
       case "VOYAGE_SONORE":
         navigate(`/detente/voyage-sonore`, { state: { autoSelectThemeId: params?.themeId, autoPlay: true } });
@@ -629,6 +717,10 @@ const sendMessage = async () => {
             </button>
             
             <OliviaAvatar isSpeaking={isSpeaking && voiceEnabled && !silentMode} />
+            
+            {/* Statut d'abonnement compact */}
+            <SubscriptionStatus compact />
+            
             <div className="chat-controls">
               <div className="chat__voice-toggle">
                 <label title={voiceEnabled ? "Désactiver la voix" : "Activer la voix"}>
@@ -758,8 +850,29 @@ const sendMessage = async () => {
             )}
             
             <div className="chat-input-area">
-              <textarea placeholder="Écris ton message ici..." value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} rows="3" disabled={loading}/>
-              <button onClick={sendMessage} disabled={loading || !input.trim()}>📨</button>
+              <textarea
+                placeholder={
+                  canSendMessage
+                    ? "Écris ton message ici..."
+                    : "Limite mensuelle atteinte - Passez à Premium pour continuer"
+                }
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                rows="3"
+                disabled={loading || !canSendMessage}
+              />
+              <button
+                onClick={canSendMessage ? sendMessage : () => {
+                  setUpgradeTrigger('limit_reached');
+                  setShowUpgradeModal(true);
+                }}
+                disabled={loading || (!input.trim() && canSendMessage)}
+                className={!canSendMessage ? 'upgrade-required' : ''}
+                title={!canSendMessage ? 'Limite atteinte - Cliquez pour passer à Premium' : 'Envoyer le message'}
+              >
+                {!canSendMessage ? <Crown size={16} /> : '📨'}
+              </button>
             </div>
           </div>
         ) : ( <Journal /> )}
@@ -810,6 +923,13 @@ const sendMessage = async () => {
           </div>
         </div>
       )}
+
+      {/* Modal d'upgrade */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        trigger={upgradeTrigger}
+      />
     </div>
   );
 };
