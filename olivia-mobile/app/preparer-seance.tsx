@@ -306,12 +306,11 @@ export default function PreparerSeanceScreen() {
 
           <View style={styles.inputContainer}>
             <TextInput
-              style={styles.chatInput}
+              style={[styles.chatInput, { maxHeight: 100 }]}
               placeholder={selectedEmotion ? `Discuter de "${selectedEmotion.label}"...` : "Pose une question à Olivia..."}
               value={userInput}
               onChangeText={setUserInput}
               multiline
-              maxHeight={100}
             />
             <TouchableOpacity
               style={[styles.sendButton, (!userInput.trim() || isLoadingAI) && styles.sendButtonDisabled]}

@@ -129,7 +129,7 @@ export default function CoherenceCardiac({
 
   const getPhaseText = () => {
     if (currentPhase === 'finished') return "Terminé !";
-    if (!isRunning && currentPhase !== 'finished') return "En pause";
+    if (!isRunning) return "En pause";
     return currentPhase === 'inspire' ? "Inspirez" : "Expirez";
   };
 

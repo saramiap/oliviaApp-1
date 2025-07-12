@@ -30,13 +30,26 @@ export default function SoundJourneyScreen() {
   const audioObjectsRef = useRef<Audio.Sound[]>([]);
 
   useEffect(() => {
-    // Configuration audio
-    Audio.setAudioModeAsync({
-      allowsRecordingIOS: false,
-      playsInSilentModeIOS: true,
-      staysActiveInBackground: true,
-      shouldDuckAndroid: true,
-    });
+    // Configuration audio avec logging de debug
+    const setupAudio = async () => {
+      try {
+        console.log('🎵 [DEBUG] Tentative de configuration audio...');
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: false,
+          playsInSilentModeIOS: true,
+          staysActiveInBackground: true,
+          shouldDuckAndroid: false,
+          playThroughEarpieceAndroid: false,
+        });
+        console.log('✅ [DEBUG] Configuration audio réussie');
+      } catch (error) {
+        console.error('❌ [DEBUG] Erreur configuration audio:', error);
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        Alert.alert('Erreur Audio', `Problème de configuration: ${errorMessage}`);
+      }
+    };
+
+    setupAudio();
 
     return () => {
       // Cleanup audio à la fermeture
@@ -85,32 +98,60 @@ export default function SoundJourneyScreen() {
     await cleanupAudio();
     
     try {
+      console.log('🎵 [DEBUG] Setup tracks - Nombre de tracks:', tracks.length);
       const newSounds: Audio.Sound[] = [];
       
-      for (const track of tracks) {
-        const { sound } = await Audio.Sound.createAsync(
-          track.src,
-          {
-            shouldPlay: false,
-            isLooping: track.loop || false,
-            volume: isMuted ? 0 : (track.volume || 1),
-          }
-        );
-        newSounds.push(sound);
+      for (let i = 0; i < tracks.length; i++) {
+        const track = tracks[i];
+        console.log(`🎵 [DEBUG] Track ${i}:`, {
+          id: track.id,
+          title: track.title,
+          src: track.src,
+          loop: track.loop,
+          volume: track.volume
+        });
+        
+        try {
+          console.log(`🎵 [DEBUG] Création audio pour track ${track.id}...`);
+          const { sound } = await Audio.Sound.createAsync(
+            track.src,
+            {
+              shouldPlay: false,
+              isLooping: track.loop || false,
+              volume: isMuted ? 0 : (track.volume || 1),
+            }
+          );
+          console.log(`✅ [DEBUG] Audio créé avec succès pour track ${track.id}`);
+          newSounds.push(sound);
+        } catch (trackError) {
+          console.error(`❌ [DEBUG] Erreur création track ${track.id}:`, trackError);
+          const errorMessage = trackError instanceof Error ? trackError.message : String(trackError);
+          Alert.alert('Erreur Track', `Impossible de charger ${track.title}: ${errorMessage}`);
+        }
       }
       
+      console.log('🎵 [DEBUG] Total sounds créés:', newSounds.length);
       audioObjectsRef.current = newSounds;
       setSoundObjects(newSounds);
     } catch (error) {
-      console.error('Erreur setup tracks:', error);
-      Alert.alert('Erreur', 'Impossible de charger les pistes audio');
+      console.error('❌ [DEBUG] Erreur globale setup tracks:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      Alert.alert('Erreur', `Impossible de charger les pistes audio: ${errorMessage}`);
     }
   };
 
   const playAudio = async () => {
-    if (audioObjectsRef.current.length === 0) return;
+    console.log('🎵 [DEBUG] playAudio appelé');
+    console.log('🎵 [DEBUG] Nombre de sounds disponibles:', audioObjectsRef.current.length);
+    
+    if (audioObjectsRef.current.length === 0) {
+      console.log('❌ [DEBUG] Aucun sound disponible pour la lecture');
+      Alert.alert('Erreur', 'Aucun fichier audio chargé');
+      return;
+    }
     
     try {
+      console.log('🎵 [DEBUG] Début lecture audio...');
       setIsPlaying(true);
       
       for (let i = 0; i < audioObjectsRef.current.length; i++) {
@@ -118,20 +159,35 @@ export default function SoundJourneyScreen() {
         const track = selectedTheme?.audioTracks[i];
         const delay = track?.delay || 0;
         
+        console.log(`🎵 [DEBUG] Lecture track ${i} (${track?.title}) avec delay ${delay}ms`);
+        
         if (delay > 0) {
           setTimeout(async () => {
             try {
+              console.log(`🎵 [DEBUG] Lecture différée track ${i}`);
               await sound.playAsync();
+              console.log(`✅ [DEBUG] Track ${i} en cours de lecture`);
             } catch (error) {
-              console.error('Erreur lecture différée:', error);
+              console.error(`❌ [DEBUG] Erreur lecture différée track ${i}:`, error);
             }
           }, delay);
         } else {
-          await sound.playAsync();
+          try {
+            console.log(`🎵 [DEBUG] Lecture immédiate track ${i}`);
+            await sound.playAsync();
+            console.log(`✅ [DEBUG] Track ${i} en cours de lecture`);
+          } catch (trackPlayError) {
+            console.error(`❌ [DEBUG] Erreur lecture track ${i}:`, trackPlayError);
+            const errorMessage = trackPlayError instanceof Error ? trackPlayError.message : String(trackPlayError);
+            Alert.alert('Erreur Lecture', `Impossible de lire ${track?.title}: ${errorMessage}`);
+          }
         }
       }
+      console.log('✅ [DEBUG] Toutes les tracks lancées');
     } catch (error) {
-      console.error('Erreur lecture audio:', error);
+      console.error('❌ [DEBUG] Erreur globale lecture audio:', error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      Alert.alert('Erreur Audio', `Erreur de lecture: ${errorMessage}`);
       setIsPlaying(false);
     }
   };
