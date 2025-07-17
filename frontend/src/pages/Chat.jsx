@@ -1,28 +1,63 @@
 // src/pages/Chat.jsx
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  useMemo,
+} from "react";
 import OliviaAvatar from "../components/OliviaAvatar";
 import useSpeech from "../hooks/useSpeech";
-import { ArrowDownward as ArrowDownwardIcon, ArrowUpward as ArrowUpwardIcon, KeyboardArrowUp as ArrowUpIcon } from '@mui/icons-material';
+import {
+  ArrowDownward as ArrowDownwardIcon,
+  ArrowUpward as ArrowUpwardIcon,
+  KeyboardArrowUp as ArrowUpIcon,
+} from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import Journal from "./Journal"; // Assure-toi que ce chemin est correct et que Journal est exporté par défaut
-import { Zap, Waves, BookOpen, Info, ExternalLink, Menu, Plus, MessageCircle, Trash2 } from 'lucide-react'; // Icônes pour les boutons d'action
-
+import {
+  Zap,
+  Waves,
+  BookOpen,
+  Info,
+  ExternalLink,
+  Menu,
+  Plus,
+  MessageCircle,
+  Trash2,
+} from "lucide-react";
+import JournalNav from "../components/JournalNav"; // <- AJOUTER
+import JournalContent from "../components/JournalContent"; // <- AJOUTER
 import "../styles/_chat.scss"; // Ton fichier SCSS principal
+import "../styles/_journalLayout.scss"; // Garder cet import !
 
 const EMERGENCY_KEYWORDS = [
-  "suicide", "je veux mourir", "tuer", "plus envie de vivre", "violence",
-  "je me fais mal", "je suis en danger", "j’ai besoin d’aide", "je vais mal",
-  "pensées suicidaires", "on m’a agressé", "je me sens en insécurité",
+  "suicide",
+  "je veux mourir",
+  "tuer",
+  "plus envie de vivre",
+  "violence",
+  "je me fais mal",
+  "je suis en danger",
+  "j’ai besoin d’aide",
+  "je vais mal",
+  "pensées suicidaires",
+  "on m’a agressé",
+  "je me sens en insécurité",
 ];
 
 // Fonction utilitaire pour parser les tags d'action des messages de l'IA
 const parseActionTag = (textWithTag) => {
   // Gère le cas où textWithTag est null, undefined ou pas une chaîne
-  if (!textWithTag || typeof textWithTag !== 'string') {
-    const safeText = String(textWithTag || '');
-    return { displayText: safeText, rawText: safeText, actionName: null, params: {} };
+  if (!textWithTag || typeof textWithTag !== "string") {
+    const safeText = String(textWithTag || "");
+    return {
+      displayText: safeText,
+      rawText: safeText,
+      actionName: null,
+      params: {},
+    };
   }
-  
+
   const tagRegex = /#([A-Z_]+)\{((?:[^}{]+|\{[^}{]*\})*)\}/;
   const match = textWithTag.match(tagRegex);
 
@@ -31,33 +66,48 @@ const parseActionTag = (textWithTag) => {
     const paramsString = match[2];
     let params = {};
     try {
-      const paramRegex = /(\w+)\s*:\s*(?:"([^"\\]*(?:\\.[^"\\]*)*)"|(\d+\.?\d*|true|false))/g;
+      const paramRegex =
+        /(\w+)\s*:\s*(?:"([^"\\]*(?:\\.[^"\\]*)*)"|(\d+\.?\d*|true|false))/g;
       let paramMatch;
       while ((paramMatch = paramRegex.exec(paramsString)) !== null) {
         const key = paramMatch[1];
-        let value = paramMatch[2] !== undefined ? paramMatch[2].replace(/\\"/g, '"') : paramMatch[3]; 
+        let value =
+          paramMatch[2] !== undefined
+            ? paramMatch[2].replace(/\\"/g, '"')
+            : paramMatch[3];
 
-        if (value === 'true') { value = true; }
-        else if (value === 'false') { value = false; }
+        if (value === "true") {
+          value = true;
+        } else if (value === "false") {
+          value = false;
+        }
         // Vérifie si c'est un nombre qui était entre guillemets ou pas
-        else if (typeof value === 'string' && !isNaN(parseFloat(value)) && parseFloat(value).toString() === value.replace(/^"|"$/g, '')) {
-             value = parseFloat(value.replace(/^"|"$/g, ''));
+        else if (
+          typeof value === "string" &&
+          !isNaN(parseFloat(value)) &&
+          parseFloat(value).toString() === value.replace(/^"|"$/g, "")
+        ) {
+          value = parseFloat(value.replace(/^"|"$/g, ""));
         }
         params[key] = value;
       }
     } catch (e) {
       console.error("Erreur parsing des paramètres du tag:", paramsString, e);
     }
-    return { 
-        actionName, 
-        params, 
-        displayText: textWithTag.replace(tagRegex, "").trim(),
-        rawText: textWithTag 
+    return {
+      actionName,
+      params,
+      displayText: textWithTag.replace(tagRegex, "").trim(),
+      rawText: textWithTag,
     };
   }
-  return { displayText: textWithTag, rawText: textWithTag, actionName: null, params: {} };
+  return {
+    displayText: textWithTag,
+    rawText: textWithTag,
+    actionName: null,
+    params: {},
+  };
 };
-
 
 const Chat = () => {
   const navigate = useNavigate();
@@ -84,21 +134,171 @@ const Chat = () => {
   const [conversationToDelete, setConversationToDelete] = useState(null);
   const [preventAutoSave, setPreventAutoSave] = useState(false);
   const [history, setHistory] = useState([]); // L'historique séparé peut être réintroduit si besoin
-
+  const [animationDirection, setAnimationDirection] = useState("next");
+  const [activePageIndex, setActivePageIndex] = useState(0);
   // Refs
   const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
-
+  const [journalSessions, setJournalSessions] = useState({});
+  const [activeJournalSession, setActiveJournalSession] = useState("");
+  const [journalInput, setJournalInput] = useState("");
   // Hook pour la synthèse vocale
   const { speak, isSpeaking, cancelSpeech } = useSpeech(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("journalSessions");
+      const sessionsData = saved ? JSON.parse(saved) : {};
+      setJournalSessions(sessionsData);
+
+      const allKeys = Object.keys(sessionsData).sort(
+        (a, b) => new Date(b) - new Date(a)
+      );
+      const today = new Date().toISOString().split("T")[0];
+
+      // On ouvre la page la plus récente. Si aucune n'existe, on ouvre celle du jour.
+      if (allKeys.length > 0) {
+        setActiveJournalSession(allKeys[0]);
+      } else {
+        setActiveJournalSession(today);
+      }
+    } catch (e) {
+      console.error("Erreur chargement journal:", e);
+      setActiveJournalSession(new Date().toISOString().split("T")[0]); // Fallback
+    }
+  }, []); // Dépendance vide pour ne s'exécuter qu'au montage
+
+  useEffect(() => {
+    // Sauvegarde seulement si l'état a été initialisé
+    if (
+      Object.keys(journalSessions).length > 0 ||
+      localStorage.getItem("journalSessions") !== null
+    ) {
+      localStorage.setItem("journalSessions", JSON.stringify(journalSessions));
+    }
+  }, [journalSessions]);
+
+  const handleAddEntry = () => {
+    if (!journalInput.trim()) return;
+    const today = new Date().toISOString().split("T")[0];
+    const newEntry = { text: journalInput, date: new Date().toISOString() };
+
+    setJournalSessions((prevSessions) => {
+      const updatedSessions = { ...prevSessions };
+      updatedSessions[today] = [...(updatedSessions[today] || []), newEntry];
+      return updatedSessions;
+    });
+
+    setActiveJournalSession(today);
+    setJournalInput("");
+  };
+
+  const handleDeleteEntry = (sessionKey, index) => {
+    setJournalSessions((prevSessions) => {
+      const updatedSessions = { ...prevSessions };
+      updatedSessions[sessionKey].splice(index, 1);
+      if (updatedSessions[sessionKey].length === 0) {
+        delete updatedSessions[sessionKey];
+        if (activeJournalSession === sessionKey) {
+          const remainingSessions = Object.keys(updatedSessions).sort(
+            (a, b) => new Date(b) - new Date(a)
+          );
+          setActiveJournalSession(
+            remainingSessions.length > 0 ? remainingSessions[0] : ""
+          );
+        }
+      }
+      return updatedSessions;
+    });
+  };
+
+  // On utilise useMemo pour ne pas recalculer cette liste à chaque rendu.
+  // C'est une liste triée des jours où il y a des entrées.
+  const sortedSessionKeys = useMemo(() => {
+    return Object.keys(journalSessions).sort(
+      (a, b) => new Date(a) - new Date(b)
+    );
+  }, [journalSessions]);
+
+  // NOUVELLE FONCTION : Aller au jour suivant
+  const goToNextDay = () => {
+    setAnimationDirection("next");
+    const currentIndex = sortedSessionKeys.indexOf(activeJournalSession);
+
+    // S'il y a un jour suivant dans la liste
+    if (currentIndex > -1 && currentIndex < sortedSessionKeys.length - 1) {
+      setActiveJournalSession(sortedSessionKeys[currentIndex + 1]);
+    } else {
+      // Sinon, si on n'est pas déjà sur la page du jour, on y va
+      const today = new Date().toISOString().split("T")[0];
+      if (activeJournalSession < today) {
+        setActiveJournalSession(today);
+      }
+    }
+  };
+
+  // NOUVELLE FONCTION : Aller au jour précédent
+  const goToPreviousDay = () => {
+    setAnimationDirection("prev"); // On indique le sens de l'animation
+    const currentIndex = sortedSessionKeys.indexOf(activeJournalSession);
+
+    // S'il y a un jour précédent
+    if (currentIndex > 0) {
+      setActiveJournalSession(sortedSessionKeys[currentIndex - 1]);
+    }
+  };
+
+  // On modifie la navigation pour qu'elle réinitialise l'index de page
+  // quand on change de jour.
+  const changeActiveDay = (day) => {
+    const oldIndex = sortedSessionKeys.indexOf(activeJournalSession);
+    const newIndex = sortedSessionKeys.indexOf(day);
+
+    setAnimationDirection(newIndex > oldIndex ? "next" : "prev");
+    setActiveJournalSession(day);
+    setActivePageIndex(0); // TRÈS IMPORTANT: on revient à la première page du nouveau jour
+  };
+
+  // On passe cette nouvelle fonction à JournalNav
+  // ... dans le JSX de JournalNav:
+  // setActiveSession={changeActiveDay}
+
+  // NOUVELLE FONCTION pour créer une nouvelle "page"
+  // Pour la simplicité, une "nouvelle page" sera un nouvel "item" dans notre session,
+  // avec un marqueur spécial pour indiquer une nouvelle page.
+  const addNewPage = () => {
+    const newPageMarker = {
+      type: "page-break", // Un type spécial pour l'identifier
+      text: `--- ${new Date().toLocaleTimeString("fr-FR")} ---`,
+      date: new Date().toISOString(),
+    };
+
+    setJournalSessions((prevSessions) => {
+      const updatedSessions = { ...prevSessions };
+      const currentEntries = updatedSessions[activeJournalSession] || [];
+      updatedSessions[activeJournalSession] = [
+        ...currentEntries,
+        newPageMarker,
+      ];
+      return updatedSessions;
+    });
+
+    // Calculer l'index de la nouvelle page et y naviguer
+    const entriesPerPage = 5; // Décidons qu'une page contient 5 entrées
+    const newTotalEntries =
+      (journalSessions[activeJournalSession]?.length || 0) + 1;
+    const newPageIndex = Math.floor((newTotalEntries - 1) / entriesPerPage);
+
+    setActivePageIndex(newPageIndex);
+  };
 
   // --- FONCTIONS UTILITAIRES POUR L'HISTORIQUE ---
 
   const generateConversationTitle = (messages) => {
     if (messages.length < 2) return "Nouvelle conversation";
-    const userMessages = messages.filter(msg => msg.from === "user");
+    const userMessages = messages.filter((msg) => msg.from === "user");
     if (userMessages.length === 0) return "Nouvelle conversation";
-    
+
     const firstUserMessage = userMessages[0].text;
     return firstUserMessage.length > 50
       ? firstUserMessage.substring(0, 50) + "..."
@@ -131,13 +331,19 @@ const Chat = () => {
 
     // Créer nouvelle conversation
     const newConversationId = Date.now().toString();
-    const initialText = "Bonjour, je suis Olivia. Dis-moi ce que tu ressens aujourd'hui.";
-    const newMessages = [{ from: "model", text: initialText, ...parseActionTag(initialText) }];
-    
+    const initialText =
+      "Bonjour, je suis Olivia. Dis-moi ce que tu ressens aujourd'hui.";
+    const newMessages = [
+      { from: "model", text: initialText, ...parseActionTag(initialText) },
+    ];
+
     setCurrentConversationId(newConversationId);
     setMessages(newMessages);
     setIsInActiveConversation(false);
-    localStorage.setItem("chatMessages", JSON.stringify(newMessages.map(({ from, text }) => ({ from, text }))));
+    localStorage.setItem(
+      "chatMessages",
+      JSON.stringify(newMessages.map(({ from, text }) => ({ from, text })))
+    );
   };
 
   const saveCurrentConversation = () => {
@@ -148,13 +354,15 @@ const Chat = () => {
       id: currentConversationId,
       title,
       messages: messages.map(({ from, text }) => ({ from, text })),
-      lastUpdated: Date.now()
+      lastUpdated: Date.now(),
     };
 
     // Utiliser l'état React comme source de vérité
     const currentHistory = [...conversationHistory];
-    const existingIndex = currentHistory.findIndex(conv => conv.id === currentConversationId);
-    
+    const existingIndex = currentHistory.findIndex(
+      (conv) => conv.id === currentConversationId
+    );
+
     if (existingIndex >= 0) {
       currentHistory[existingIndex] = conversationData;
     } else {
@@ -163,33 +371,39 @@ const Chat = () => {
 
     // Garder seulement les 50 dernières conversations
     const limitedHistory = currentHistory.slice(0, 50);
-    
+
     // Mettre à jour l'état React IMMEDIATEMENT
     setConversationHistory(limitedHistory);
-    
+
     // Puis sauvegarder dans localStorage
     saveConversationHistory(limitedHistory);
   };
 
   const loadConversation = (conversationId) => {
     // Utiliser l'état React comme source de vérité
-    const conversation = conversationHistory.find(conv => conv.id === conversationId);
-    
+    const conversation = conversationHistory.find(
+      (conv) => conv.id === conversationId
+    );
+
     if (conversation) {
       // Sauvegarder la conversation actuelle avant de changer
       if (currentConversationId && messages.length > 0) {
         saveCurrentConversation();
       }
 
-      const loadedMessages = conversation.messages.map(msg => ({
-        ...msg, ...parseActionTag(msg.text)
+      const loadedMessages = conversation.messages.map((msg) => ({
+        ...msg,
+        ...parseActionTag(msg.text),
       }));
-      
+
       setCurrentConversationId(conversationId);
       setMessages(loadedMessages);
       setIsInActiveConversation(true);
-      localStorage.setItem("chatMessages", JSON.stringify(conversation.messages));
-      
+      localStorage.setItem(
+        "chatMessages",
+        JSON.stringify(conversation.messages)
+      );
+
       // Fermer le sidebar sur mobile
       if (window.innerWidth < 768) {
         setShowHistorySidebar(false);
@@ -203,11 +417,13 @@ const Chat = () => {
       event.preventDefault();
       event.stopPropagation();
     }
-    
+
     console.log("Tentative de suppression de:", conversationId);
     console.log("Historique actuel:", conversationHistory);
-    
-    const conversation = conversationHistory.find(conv => conv.id === conversationId);
+
+    const conversation = conversationHistory.find(
+      (conv) => conv.id === conversationId
+    );
     if (conversation) {
       console.log("Conversation trouvée:", conversation);
       setConversationToDelete(conversation);
@@ -221,33 +437,37 @@ const Chat = () => {
     if (conversationToDelete) {
       console.log("Confirmation de suppression pour:", conversationToDelete.id);
       console.log("Historique avant suppression:", conversationHistory);
-      
+
       // Empêcher la sauvegarde automatique temporairement
       setPreventAutoSave(true);
-      
+
       // Utiliser l'état React comme source de vérité
-      const updatedHistory = conversationHistory.filter(conv => conv.id !== conversationToDelete.id);
-      
+      const updatedHistory = conversationHistory.filter(
+        (conv) => conv.id !== conversationToDelete.id
+      );
+
       console.log("Historique après filtrage:", updatedHistory);
-      
+
       // Mettre à jour l'état React IMMEDIATEMENT
       setConversationHistory(updatedHistory);
-      
+
       // Puis sauvegarder dans localStorage
       saveConversationHistory(updatedHistory);
 
       // Si c'est la conversation actuelle, créer une nouvelle
       if (currentConversationId === conversationToDelete.id) {
-        console.log("Suppression de la conversation actuelle, création d'une nouvelle");
+        console.log(
+          "Suppression de la conversation actuelle, création d'une nouvelle"
+        );
         createNewConversation();
       }
-      
+
       // Réactiver la sauvegarde automatique après un délai
       setTimeout(() => {
         setPreventAutoSave(false);
       }, 1000); // 2 secondes pour être sûr
     }
-    
+
     // Toujours fermer la modal
     setShowDeleteModal(false);
     setConversationToDelete(null);
@@ -276,16 +496,22 @@ const Chat = () => {
     if (storedChatMessages) {
       try {
         const parsedMessages = JSON.parse(storedChatMessages);
-        initialMsgs = parsedMessages.map(msg => {
-          if (!msg || typeof msg.text !== 'string') return null;
-          return { ...msg, ...parseActionTag(msg.text) };
-        }).filter(Boolean);
+        initialMsgs = parsedMessages
+          .map((msg) => {
+            if (!msg || typeof msg.text !== "string") return null;
+            return { ...msg, ...parseActionTag(msg.text) };
+          })
+          .filter(Boolean);
 
         // Trouver ou créer un ID pour cette conversation
         if (initialMsgs.length > 0) {
           const title = generateConversationTitle(initialMsgs);
-          const existingConversation = history.find(conv => conv.title === title);
-          conversationId = existingConversation ? existingConversation.id : Date.now().toString();
+          const existingConversation = history.find(
+            (conv) => conv.title === title
+          );
+          conversationId = existingConversation
+            ? existingConversation.id
+            : Date.now().toString();
           setIsInActiveConversation(true);
         }
       } catch (e) {
@@ -293,12 +519,17 @@ const Chat = () => {
         localStorage.removeItem("chatMessages");
       }
     }
-    
+
     if (initialMsgs.length === 0) {
-      const initialText = "Bonjour, je suis Olivia. Dis-moi ce que tu ressens aujourd'hui.";
-      initialMsgs = [{
-        from: "model", text: initialText, ...parseActionTag(initialText)
-      }];
+      const initialText =
+        "Bonjour, je suis Olivia. Dis-moi ce que tu ressens aujourd'hui.";
+      initialMsgs = [
+        {
+          from: "model",
+          text: initialText,
+          ...parseActionTag(initialText),
+        },
+      ];
       conversationId = Date.now().toString();
     }
 
@@ -309,10 +540,18 @@ const Chat = () => {
 
   // Sauvegarde des messages dans localStorage ET mise à jour de l'historique
   useEffect(() => {
-    if (isInitialLoadComplete && messages.length > 0 && mode === "chat" && !preventAutoSave) {
-      const messagesToStore = messages.map(({ from, text }) => ({ from, text }));
+    if (
+      isInitialLoadComplete &&
+      messages.length > 0 &&
+      mode === "chat" &&
+      !preventAutoSave
+    ) {
+      const messagesToStore = messages.map(({ from, text }) => ({
+        from,
+        text,
+      }));
       localStorage.setItem("chatMessages", JSON.stringify(messagesToStore));
-      
+
       // Sauvegarder dans l'historique après chaque message (avec debounce)
       if (messages.length > 1) {
         const timeoutId = setTimeout(() => {
@@ -321,13 +560,19 @@ const Chat = () => {
         return () => clearTimeout(timeoutId);
       }
     }
-  }, [messages, mode, isInitialLoadComplete, currentConversationId, preventAutoSave]);
+  }, [
+    messages,
+    mode,
+    isInitialLoadComplete,
+    currentConversationId,
+    preventAutoSave,
+  ]);
 
   // Scroll automatique dans le container de chat
   useEffect(() => {
     if (mode === "chat" && chatContainerRef.current && isInitialLoadComplete) {
       const container = chatContainerRef.current;
-      
+
       // Au chargement initial : scroll vers le bas
       if (messages.length > 1) {
         container.scrollTop = container.scrollHeight;
@@ -338,15 +583,24 @@ const Chat = () => {
 
   // Scroll automatique après nouvelles réponses d'Olivia
   useEffect(() => {
-    if (mode === "chat" && chatContainerRef.current && isInitialLoadComplete &&
-        isInActiveConversation && messages.length > 1) {
-      
+    if (
+      mode === "chat" &&
+      chatContainerRef.current &&
+      isInitialLoadComplete &&
+      isInActiveConversation &&
+      messages.length > 1
+    ) {
       const lastMessage = messages[messages.length - 1];
       const secondLastMessage = messages[messages.length - 2];
-      
+
       // Scroll automatiquement si dernier message d'Olivia après message utilisateur
-      if (lastMessage && lastMessage.from === "model" &&
-          secondLastMessage && secondLastMessage.from === "user" && isAtBottom) {
+      if (
+        lastMessage &&
+        lastMessage.from === "model" &&
+        secondLastMessage &&
+        secondLastMessage.from === "user" &&
+        isAtBottom
+      ) {
         const container = chatContainerRef.current;
         setTimeout(() => {
           container.scrollTop = container.scrollHeight;
@@ -356,20 +610,32 @@ const Chat = () => {
   }, [messages.length, isInActiveConversation, isAtBottom]);
 
   // Gestion de l'arrêt de la synthèse vocale
-  useEffect(() => { if (!voiceEnabled && isSpeaking && cancelSpeech) cancelSpeech(); }, [voiceEnabled, isSpeaking, cancelSpeech]);
-  useEffect(() => { if (mode !== "chat" && isSpeaking && cancelSpeech) cancelSpeech(); }, [mode, isSpeaking, cancelSpeech]);
+  useEffect(() => {
+    if (!voiceEnabled && isSpeaking && cancelSpeech) cancelSpeech();
+  }, [voiceEnabled, isSpeaking, cancelSpeech]);
+  useEffect(() => {
+    if (mode !== "chat" && isSpeaking && cancelSpeech) cancelSpeech();
+  }, [mode, isSpeaking, cancelSpeech]);
 
   // Détection du scroll manuel pour afficher/cacher les boutons de scroll
   const handleScroll = useCallback(() => {
     const container = chatContainerRef.current;
     if (container) {
       const scrollThreshold = 50;
-      const atBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + scrollThreshold;
+      const atBottom =
+        container.scrollHeight - container.scrollTop <=
+        container.clientHeight + scrollThreshold;
       const atTop = container.scrollTop <= scrollThreshold;
-      
+
       setIsAtBottom(atBottom);
-      setShowScrollButton(container.scrollHeight > container.clientHeight && !atBottom);
-      setShowScrollToTopButton(container.scrollHeight > container.clientHeight && !atTop && container.scrollTop > 100);
+      setShowScrollButton(
+        container.scrollHeight > container.clientHeight && !atBottom
+      );
+      setShowScrollToTopButton(
+        container.scrollHeight > container.clientHeight &&
+          !atTop &&
+          container.scrollTop > 100
+      );
     }
   }, []); // Le tableau de dépendances est vide car chatContainerRef.current ne cause pas de re-création de la fonction
 
@@ -377,7 +643,7 @@ const Chat = () => {
     const container = chatContainerRef.current;
     if (container && mode === "chat") {
       container.addEventListener("scroll", handleScroll);
-      handleScroll(); 
+      handleScroll();
       return () => container.removeEventListener("scroll", handleScroll);
     }
   }, [mode, handleScroll, messages]); // `messages` car sa longueur affecte scrollHeight
@@ -392,110 +658,131 @@ const Chat = () => {
     }
   };
 
-  const containsEmergencyKeyword = (text) => EMERGENCY_KEYWORDS.some(word => text.toLowerCase().includes(word));
+  const containsEmergencyKeyword = (text) =>
+    EMERGENCY_KEYWORDS.some((word) => text.toLowerCase().includes(word));
 
   const handleAIResponse = (aiReplyText, currentMessagesContextForUI) => {
     const parsed = parseActionTag(aiReplyText);
-    const aiMessage = { 
-        from: "model", text: aiReplyText, 
-        displayText: parsed.displayText, 
-        actionName: parsed.actionName, actionParams: parsed.params 
+    const aiMessage = {
+      from: "model",
+      text: aiReplyText,
+      displayText: parsed.displayText,
+      actionName: parsed.actionName,
+      actionParams: parsed.params,
     };
-    setMessages(prevMsgs => [...prevMsgs, aiMessage]);
-    setIsAtBottom(true); 
-    if (voiceEnabled && !silentMode && parsed.displayText) speak(parsed.displayText);
+    setMessages((prevMsgs) => [...prevMsgs, aiMessage]);
+    setIsAtBottom(true);
+    if (voiceEnabled && !silentMode && parsed.displayText)
+      speak(parsed.displayText);
     if (parsed.actionName === "REDIRECT" && parsed.params?.path) {
-        setTimeout(() => navigate(parsed.params.path), 700);
+      setTimeout(() => navigate(parsed.params.path), 700);
     }
   };
 
-const sendMessage = async () => {
-  if (!input.trim()) return;
-  
-  // Activer la conversation dès le premier message utilisateur
-  if (!isInActiveConversation) {
-    setIsInActiveConversation(true);
-  }
-  
-  const userMessageText = input;
-  const userMessageForUI = {
-    from: "user",
-    text: userMessageText,
-    displayText: userMessageText,
-    actionName: null,
-    actionParams: {}
-  };
-  
-  // 1. Préparer les messages pour l'API AVANT de mettre à jour l'état
-  //    On utilise l'état `messages` actuel et on y ajoute le nouveau message utilisateur.
-  const messagesForAPI = [...messages, userMessageForUI].map(m => ({
-    from: m.from,
-    text: m.text // Utilise le texte brut original (avec tags pour les messages IA)
-  }));
+  const sendMessage = async () => {
+    if (!input.trim()) return;
 
-  // 2. Mettre à jour l'UI avec le message de l'utilisateur
-  setMessages(prevMsgs => [...prevMsgs, userMessageForUI]);
-  setIsAtBottom(true);
-  setInput("");
-
-  if (silentMode) { 
-    setLoading(false); // Assure-toi que loading est remis à false
-    return; 
-  }
-
-  // La logique pour les mots-clés d'urgence doit aussi utiliser une version à jour des messages
-  // ou être gérée après la mise à jour de l'état, mais c'est plus complexe.
-  // Pour l'instant, on va supposer qu'on continue avec l'appel API normal.
-  if (containsEmergencyKeyword(userMessageText.toLowerCase())) {
-    const emergencyMsgText = `Je comprends ton inquiétude. Il est important de chercher de l'aide rapidement. Je te redirige vers nos ressources d'urgence. #REDIRECT{path:"/urgence"}`;
-    // On passe messagesForAPI (qui inclut déjà le msg utilisateur) comme contexte
-    handleAIResponse(emergencyMsgText, messagesForAPI.map(m => ({...m, ...parseActionTag(m.text)})) ); // Reparse pour handleAIResponse
-    setShowEmergencyModal(true);
-    setLoading(false); // Pas de chargement IA pour ce cas
-    return;
-  }
-  
-  console.log("CHAT: sendMessage - setLoading(true)");
-  setLoading(true);
-
-  try {
-    const response = await fetch("http://localhost:3000/ask", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ messages: messagesForAPI })
-    });
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    // Activer la conversation dès le premier message utilisateur
+    if (!isInActiveConversation) {
+      setIsInActiveConversation(true);
     }
-    
-    const data = await response.json();
-    // Pour handleAIResponse, on a besoin du contexte UI (avec displayText, etc.)
-    // On peut le reconstruire à partir de messagesForAPI ou utiliser l'état messages qui sera mis à jour.
-    // Option plus sûre : reconstruire à partir de messagesForAPI pour le contexte exact envoyé
-    const contextForUI = messagesForAPI.map(m => ({...m, ...parseActionTag(m.text)}));
-    handleAIResponse(data.response || "Pardon, je n'ai pas saisi.", contextForUI);
-  } catch (error) {
-    console.error("Erreur API Chat:", error);
-    const contextForUI = messagesForAPI.map(m => ({...m, ...parseActionTag(m.text)}));
-    handleAIResponse(
-      `Navrée, une erreur technique est survenue. (${error.message})`,
-      contextForUI
-    );
-  } finally {
-    console.log("CHAT: sendMessage - setLoading(false)");
-    setLoading(false);
-  }
-};
-  
-  const handleKeyDown = (e) => { if (e.key === "Enter" && !e.shiftKey && !loading) { e.preventDefault(); sendMessage(); }};
-  
+
+    const userMessageText = input;
+    const userMessageForUI = {
+      from: "user",
+      text: userMessageText,
+      displayText: userMessageText,
+      actionName: null,
+      actionParams: {},
+    };
+
+    // 1. Préparer les messages pour l'API AVANT de mettre à jour l'état
+    //    On utilise l'état `messages` actuel et on y ajoute le nouveau message utilisateur.
+    const messagesForAPI = [...messages, userMessageForUI].map((m) => ({
+      from: m.from,
+      text: m.text, // Utilise le texte brut original (avec tags pour les messages IA)
+    }));
+
+    // 2. Mettre à jour l'UI avec le message de l'utilisateur
+    setMessages((prevMsgs) => [...prevMsgs, userMessageForUI]);
+    setIsAtBottom(true);
+    setInput("");
+
+    if (silentMode) {
+      setLoading(false); // Assure-toi que loading est remis à false
+      return;
+    }
+
+    // La logique pour les mots-clés d'urgence doit aussi utiliser une version à jour des messages
+    // ou être gérée après la mise à jour de l'état, mais c'est plus complexe.
+    // Pour l'instant, on va supposer qu'on continue avec l'appel API normal.
+    if (containsEmergencyKeyword(userMessageText.toLowerCase())) {
+      const emergencyMsgText = `Je comprends ton inquiétude. Il est important de chercher de l'aide rapidement. Je te redirige vers nos ressources d'urgence. #REDIRECT{path:"/urgence"}`;
+      // On passe messagesForAPI (qui inclut déjà le msg utilisateur) comme contexte
+      handleAIResponse(
+        emergencyMsgText,
+        messagesForAPI.map((m) => ({ ...m, ...parseActionTag(m.text) }))
+      ); // Reparse pour handleAIResponse
+      setShowEmergencyModal(true);
+      setLoading(false); // Pas de chargement IA pour ce cas
+      return;
+    }
+
+    console.log("CHAT: sendMessage - setLoading(true)");
+    setLoading(true);
+
+    try {
+      const response = await fetch("http://localhost:3000/ask", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ messages: messagesForAPI }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      // Pour handleAIResponse, on a besoin du contexte UI (avec displayText, etc.)
+      // On peut le reconstruire à partir de messagesForAPI ou utiliser l'état messages qui sera mis à jour.
+      // Option plus sûre : reconstruire à partir de messagesForAPI pour le contexte exact envoyé
+      const contextForUI = messagesForAPI.map((m) => ({
+        ...m,
+        ...parseActionTag(m.text),
+      }));
+      handleAIResponse(
+        data.response || "Pardon, je n'ai pas saisi.",
+        contextForUI
+      );
+    } catch (error) {
+      console.error("Erreur API Chat:", error);
+      const contextForUI = messagesForAPI.map((m) => ({
+        ...m,
+        ...parseActionTag(m.text),
+      }));
+      handleAIResponse(
+        `Navrée, une erreur technique est survenue. (${error.message})`,
+        contextForUI
+      );
+    } finally {
+      console.log("CHAT: sendMessage - setLoading(false)");
+      setLoading(false);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey && !loading) {
+      e.preventDefault();
+      sendMessage();
+    }
+  };
+
   const toggleScrollToPosition = () => {
     if (!chatContainerRef.current) return;
     const container = chatContainerRef.current;
-    
+
     if (isAtBottom && container.scrollTop > 0) {
       // Si on est en bas, remonter en haut du CONTAINER
       container.scrollTo({ top: 0, behavior: "smooth" });
@@ -512,7 +799,7 @@ const sendMessage = async () => {
       chatContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
-  
+
   const clearChatHistoryAndMessages = () => {
     // Créer une nouvelle conversation au lieu d'effacer
     createNewConversation();
@@ -521,7 +808,7 @@ const sendMessage = async () => {
   };
 
   const formatResponse = (textToFormat) => {
-    if (!textToFormat) return []; 
+    if (!textToFormat) return [];
     return textToFormat
       .split(/\n+/)
       .filter((pText) => pText.trim() !== "")
@@ -531,7 +818,13 @@ const sendMessage = async () => {
         const listItemRegex = /^\s*(?:•|\*|-|\d+\.)\s+/;
         const isListItem = listItemRegex.test(pText); // Test sur pText original pour les espaces
         const pClassName = isListItem ? "chat-list-item" : "";
-        return ( <p key={i} className={pClassName} dangerouslySetInnerHTML={{ __html: content }} /> );
+        return (
+          <p
+            key={i}
+            className={pClassName}
+            dangerouslySetInnerHTML={{ __html: content }}
+          />
+        );
       });
   };
 
@@ -540,18 +833,30 @@ const sendMessage = async () => {
     // Assure-toi que les routes et la gestion d'état (state) sont correctes pour chaque action
     switch (actionName) {
       case "EXERCICE_RESPIRATION":
-        navigate(`/detente/programme`, { state: { type: params?.type, duration: params?.duree_sec, cycles: params?.cycles, autoStart: true } });
+        navigate(`/detente/programme`, {
+          state: {
+            type: params?.type,
+            duration: params?.duree_sec,
+            cycles: params?.cycles,
+            autoStart: true,
+          },
+        });
         break;
       case "VOYAGE_SONORE":
-        navigate(`/detente/voyage-sonore`, { state: { autoSelectThemeId: params?.themeId, autoPlay: true } });
+        navigate(`/detente/voyage-sonore`, {
+          state: { autoSelectThemeId: params?.themeId, autoPlay: true },
+        });
         break;
       case "SUGGESTION_JOURNAL":
-        setMode('journal');
-        if (params?.prompt) localStorage.setItem('journalPromptSuggestion', params.prompt); // Pour que Journal.js puisse le lire
+        setMode("journal");
+        if (params?.prompt)
+          localStorage.setItem("journalPromptSuggestion", params.prompt); // Pour que Journal.js puisse le lire
         alert(`Olivia suggère d'écrire sur : ${params?.prompt}`);
         break;
       case "INFO_STRESS":
-        navigate(`/detente/comprendre-stress${params?.sujet ? '#' + params.sujet : ''}`);
+        navigate(
+          `/detente/comprendre-stress${params?.sujet ? "#" + params.sujet : ""}`
+        );
         break;
       default:
         console.warn("Action non reconnue:", actionName);
@@ -564,7 +869,11 @@ const sendMessage = async () => {
       {/* Sidebar d'historique MOBILE SEULEMENT */}
       {mode === "chat" && (
         <>
-          <aside className={`conversation-history-sidebar mobile-only ${showHistorySidebar ? 'open' : ''}`}>
+          <aside
+            className={`conversation-history-sidebar mobile-only ${
+              showHistorySidebar ? "open" : ""
+            }`}
+          >
             <div className="sidebar-header">
               <div className="sidebar-title">
                 <h3>Historique des conversations</h3>
@@ -576,12 +885,16 @@ const sendMessage = async () => {
                   ✕
                 </button>
               </div>
-              <button className="new-conversation-btn" onClick={createNewConversation} title="Nouvelle conversation">
+              <button
+                className="new-conversation-btn"
+                onClick={createNewConversation}
+                title="Nouvelle conversation"
+              >
                 <Plus size={20} />
                 Nouvelle conversation
               </button>
             </div>
-            
+
             <div className="conversation-list">
               {conversationHistory.length === 0 ? (
                 <div className="no-conversations">
@@ -592,12 +905,16 @@ const sendMessage = async () => {
                 conversationHistory.map((conversation) => (
                   <div
                     key={conversation.id}
-                    className={`conversation-item ${currentConversationId === conversation.id ? 'active' : ''}`}
+                    className={`conversation-item ${
+                      currentConversationId === conversation.id ? "active" : ""
+                    }`}
                     onClick={() => loadConversation(conversation.id)}
                   >
                     <div className="conversation-content">
                       <MessageCircle size={16} />
-                      <span className="conversation-title">{conversation.title}</span>
+                      <span className="conversation-title">
+                        {conversation.title}
+                      </span>
                     </div>
                     <button
                       className="delete-conversation-btn"
@@ -611,9 +928,14 @@ const sendMessage = async () => {
               )}
             </div>
           </aside>
-          
+
           {/* Overlay pour mobile */}
-          {showHistorySidebar && <div className="mobile-overlay" onClick={() => setShowHistorySidebar(false)} />}
+          {showHistorySidebar && (
+            <div
+              className="mobile-overlay"
+              onClick={() => setShowHistorySidebar(false)}
+            />
+          )}
         </>
       )}
 
@@ -625,20 +947,38 @@ const sendMessage = async () => {
               onClick={() => setShowHistorySidebar(!showHistorySidebar)}
               title="Historique des conversations"
             >
-              <Menu size={20} />
+              <Menu size={30} />
             </button>
-            
-            <OliviaAvatar isSpeaking={isSpeaking && voiceEnabled && !silentMode} />
+
+            <OliviaAvatar
+              isSpeaking={isSpeaking && voiceEnabled && !silentMode}
+            />
             <div className="chat-controls">
               <div className="chat__voice-toggle">
-                <label title={voiceEnabled ? "Désactiver la voix" : "Activer la voix"}>
-                  <input type="checkbox" checked={voiceEnabled} onChange={handleVoiceToggleChange}/>
+                <label
+                  title={
+                    voiceEnabled ? "Désactiver la voix" : "Activer la voix"
+                  }
+                >
+                  <input
+                    type="checkbox"
+                    checked={voiceEnabled}
+                    onChange={handleVoiceToggleChange}
+                  />
                   Voix {voiceEnabled ? "🔊" : "🔇"}
                 </label>
               </div>
               <div className="chat__silent-toggle">
-                <label title={silentMode ? "Reprendre le dialogue" : "Mode écoute seule"}>
-                  <input type="checkbox" checked={silentMode} onChange={() => setSilentMode(!silentMode)}/>
+                <label
+                  title={
+                    silentMode ? "Reprendre le dialogue" : "Mode écoute seule"
+                  }
+                >
+                  <input
+                    type="checkbox"
+                    checked={silentMode}
+                    onChange={() => setSilentMode(!silentMode)}
+                  />
                   Écoute {silentMode ? "✍️" : "💬"}
                 </label>
               </div>
@@ -648,8 +988,12 @@ const sendMessage = async () => {
                 {/* DESKTOP : Affichage de l'historique directement ici */}
                 <div className="desktop-history">
                   <h3>Conversations</h3>
-                  <button className="new-conversation-btn-desktop" onClick={createNewConversation} title="Nouvelle conversation">
-                    <Plus size={16} /> Nouveau
+                  <button
+                    className="new-conversation-btn-desktop"
+                    onClick={createNewConversation}
+                    title="Nouvelle conversation"
+                  >
+                    <Plus size={10} /> Nouveau
                   </button>
                   <div className="desktop-conversation-list">
                     {conversationHistory.length === 0 ? (
@@ -658,15 +1002,23 @@ const sendMessage = async () => {
                       conversationHistory.slice(0, 5).map((conversation) => (
                         <div
                           key={conversation.id}
-                          className={`history-item ${currentConversationId === conversation.id ? 'active' : ''}`}
+                          className={`history-item ${
+                            currentConversationId === conversation.id
+                              ? "active"
+                              : ""
+                          }`}
                           onClick={() => loadConversation(conversation.id)}
                           title={conversation.title}
                         >
                           <MessageCircle size={12} />
-                          <span className="conversation-title">{conversation.title}</span>
+                          <span className="conversation-title">
+                            {conversation.title}
+                          </span>
                           <button
                             className="delete-conversation-btn"
-                            onClick={(e) => deleteConversation(conversation.id, e)}
+                            onClick={(e) =>
+                              deleteConversation(conversation.id, e)
+                            }
                             title="Supprimer"
                           >
                             <Trash2 size={10} />
@@ -683,55 +1035,124 @@ const sendMessage = async () => {
                 <p>Créer une nouvelle conversation ?</p>
                 <div className="confirmation-actions">
                   <button onClick={clearChatHistoryAndMessages}>Oui</button>
-                  <button onClick={() => setShowConfirmClear(false)}>Non</button>
+                  <button onClick={() => setShowConfirmClear(false)}>
+                    Non
+                  </button>
                 </div>
               </div>
             )}
           </>
         ) : (
-          <div className="journal-navigation-content">
-            <img src={userProfileAvatar || "/images/default-avatar.png"} alt="Mon profil" className="profile-avatar-display"/>
-            <h2>📖 Mon Carnet</h2>
-          </div>
+          <JournalNav
+            sessions={journalSessions}
+            activeSession={activeJournalSession}
+            setActiveSession={(sessionKey) => {
+              // On ajoute la logique d'animation quand on clique dans la nav
+              const newIndex = sortedSessionKeys.indexOf(sessionKey);
+              const oldIndex = sortedSessionKeys.indexOf(activeJournalSession);
+              setAnimationDirection(newIndex > oldIndex ? "next" : "prev");
+              setActiveJournalSession(sessionKey);
+              setActiveSession = { changeActiveDay };
+            }}
+            userProfileAvatar={userProfileAvatar}
+          />
         )}
       </nav>
 
       <main className="main-content-area">
         <div className="mode-switcher">
-          <button className={`btn-mode ${mode === "chat" ? "active" : ""}`} onClick={() => setMode("chat")}>
+          <button
+            className={`btn-mode ${mode === "chat" ? "active" : ""}`}
+            onClick={() => setMode("chat")}
+          >
             💬 Dialogue avec Olivia
           </button>
-          <button className={`btn-mode ${mode === "journal" ? "active" : ""}`} onClick={() => setMode("journal")}>
+          <button
+            className={`btn-mode ${mode === "journal" ? "active" : ""}`}
+            onClick={() => setMode("journal")}
+          >
             📓 Mon Carnet Personnel
           </button>
         </div>
 
         {mode === "chat" ? (
           <div className="chat-interface-wrapper">
-            <div className="chat-messages-container" ref={chatContainerRef} onScroll={handleScroll}>
+            <div
+              className="chat-messages-container"
+              ref={chatContainerRef}
+              onScroll={handleScroll}
+            >
               {messages.map((msg, idx) => (
-                <div key={idx} className={`message-bubble-wrapper ${msg.from === "user" ? "user-message-wrapper" : "ai-message-wrapper"}`}>
-                  <div className={`message-bubble ${msg.from === "user" ? "user-message" : "ai-message"}`}>
-                    {msg.from === "model" 
-                        ? formatResponse(msg.displayText) 
-                        : <p>{msg.displayText}</p> // Le texte utilisateur est déjà simple
+                <div
+                  key={idx}
+                  className={`message-bubble-wrapper ${
+                    msg.from === "user"
+                      ? "user-message-wrapper"
+                      : "ai-message-wrapper"
+                  }`}
+                >
+                  <div
+                    className={`message-bubble ${
+                      msg.from === "user" ? "user-message" : "ai-message"
+                    }`}
+                  >
+                    {
+                      msg.from === "model" ? (
+                        formatResponse(msg.displayText)
+                      ) : (
+                        <p>{msg.displayText}</p>
+                      ) // Le texte utilisateur est déjà simple
                     }
                   </div>
-                  {msg.from === "model" && msg.actionName && msg.actionParams && (
-                    <button 
-                      className="btn btn--action-tag" 
-                      onClick={() => handleActionClick(msg.actionName, msg.actionParams)}
-                      title={`Action suggérée: ${msg.actionName.toLowerCase().replace(/_/g, ' ')}`}
-                    >
-                      {msg.actionName === "EXERCICE_RESPIRATION" && <><Zap size={16}/> Pratiquer</>}
-                      {msg.actionName === "VOYAGE_SONORE" && <><Waves size={16}/> Écouter</>}
-                      {msg.actionName === "SUGGESTION_JOURNAL" && <><BookOpen size={16}/> Écrire</>}
-                      {msg.actionName === "INFO_STRESS" && <><Info size={16}/> Infos</>}
-                      {msg.actionName === "REDIRECT" && <><ExternalLink size={16}/> Aller</>}
-                      {!["EXERCICE_RESPIRATION", "VOYAGE_SONORE", "SUGGESTION_JOURNAL", "INFO_STRESS", "REDIRECT"].includes(msg.actionName) && 
-                        `Suggestion: ${msg.actionName.toLowerCase().replace(/_/g, ' ')}`}
-                    </button>
-                  )}
+                  {msg.from === "model" &&
+                    msg.actionName &&
+                    msg.actionParams && (
+                      <button
+                        className="btn btn--action-tag"
+                        onClick={() =>
+                          handleActionClick(msg.actionName, msg.actionParams)
+                        }
+                        title={`Action suggérée: ${msg.actionName
+                          .toLowerCase()
+                          .replace(/_/g, " ")}`}
+                      >
+                        {msg.actionName === "EXERCICE_RESPIRATION" && (
+                          <>
+                            <Zap size={16} /> Pratiquer
+                          </>
+                        )}
+                        {msg.actionName === "VOYAGE_SONORE" && (
+                          <>
+                            <Waves size={16} /> Écouter
+                          </>
+                        )}
+                        {msg.actionName === "SUGGESTION_JOURNAL" && (
+                          <>
+                            <BookOpen size={16} /> Écrire
+                          </>
+                        )}
+                        {msg.actionName === "INFO_STRESS" && (
+                          <>
+                            <Info size={16} /> Infos
+                          </>
+                        )}
+                        {msg.actionName === "REDIRECT" && (
+                          <>
+                            <ExternalLink size={16} /> Aller
+                          </>
+                        )}
+                        {![
+                          "EXERCICE_RESPIRATION",
+                          "VOYAGE_SONORE",
+                          "SUGGESTION_JOURNAL",
+                          "INFO_STRESS",
+                          "REDIRECT",
+                        ].includes(msg.actionName) &&
+                          `Suggestion: ${msg.actionName
+                            .toLowerCase()
+                            .replace(/_/g, " ")}`}
+                      </button>
+                    )}
                 </div>
               ))}
               {/* Indicateur de chargement pour Olivia */}
@@ -744,25 +1165,72 @@ const sendMessage = async () => {
             </div>
 
             {showScrollButton && (
-              <button className="scroll-toggle-button" onClick={toggleScrollToPosition} title={isAtBottom && chatContainerRef.current && chatContainerRef.current.scrollTop > 0 ? "Remonter en haut" : "Aller en bas"}>
-                {(isAtBottom && chatContainerRef.current && chatContainerRef.current.scrollTop > 0) || (!isAtBottom && chatContainerRef.current && chatContainerRef.current.scrollTop > 100)
-                    ? <ArrowUpwardIcon fontSize="small"/>
-                    : <ArrowDownwardIcon fontSize="small"/>}
+              <button
+                className="scroll-toggle-button"
+                onClick={toggleScrollToPosition}
+                title={
+                  isAtBottom &&
+                  chatContainerRef.current &&
+                  chatContainerRef.current.scrollTop > 0
+                    ? "Remonter en haut"
+                    : "Aller en bas"
+                }
+              >
+                {(isAtBottom &&
+                  chatContainerRef.current &&
+                  chatContainerRef.current.scrollTop > 0) ||
+                (!isAtBottom &&
+                  chatContainerRef.current &&
+                  chatContainerRef.current.scrollTop > 100) ? (
+                  <ArrowUpwardIcon fontSize="small" />
+                ) : (
+                  <ArrowDownwardIcon fontSize="small" />
+                )}
               </button>
             )}
 
             {showScrollToTopButton && (
-              <button className="scroll-to-top-button" onClick={scrollToTop} title="Remonter au début de la conversation">
-                <ArrowUpIcon fontSize="small"/>
+              <button
+                className="scroll-to-top-button"
+                onClick={scrollToTop}
+                title="Remonter au début de la conversation"
+              >
+                <ArrowUpIcon fontSize="small" />
               </button>
             )}
-            
+
             <div className="chat-input-area">
-              <textarea placeholder="Écris ton message ici..." value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} rows="3" disabled={loading}/>
-              <button onClick={sendMessage} disabled={loading || !input.trim()}>📨</button>
+              <textarea
+                placeholder="Écris ton message ici..."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                rows="3"
+                disabled={loading}
+              />
+              <button onClick={sendMessage} disabled={loading || !input.trim()}>
+                📨
+              </button>
             </div>
           </div>
-        ) : ( <Journal /> )}
+        ) : (
+          // ICI, on injecte le nouveau contenu du journal
+          <JournalContent
+            sessions={journalSessions}
+            activeSession={activeJournalSession}
+            journalInput={journalInput}
+            setJournalInput={setJournalInput}
+            handleAddEntry={handleAddEntry}
+            handleDeleteEntry={handleDeleteEntry}
+            goToNextDay={goToNextDay}
+            goToPreviousDay={goToPreviousDay}
+            sortedSessionKeys={sortedSessionKeys}
+            animationDirection={animationDirection}
+            activePageIndex={activePageIndex}
+            setActivePageIndex={setActivePageIndex}
+            addNewPage={addNewPage}
+          />
+        )}
       </main>
       {showEmergencyModal && (
         <div className="modal-backdrop">
@@ -802,7 +1270,10 @@ const sendMessage = async () => {
               <button className="btn-cancel" onClick={cancelDeleteConversation}>
                 Annuler
               </button>
-              <button className="btn-delete" onClick={confirmDeleteConversation}>
+              <button
+                className="btn-delete"
+                onClick={confirmDeleteConversation}
+              >
                 <Trash2 size={16} />
                 Supprimer
               </button>

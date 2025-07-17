@@ -1,0 +1,74 @@
+// src/styles/_chatLayout.scss
+
+
+// Palette de couleurs "Relaxante" (valeurs hexadécimales directes)
+$chat-bg-dark: #2C3A47;          // Bleu-gris nuit (fond général)
+$chat-bg-nav: #3B4A5A;           // Un peu plus clair pour la nav
+$chat-bg-nav-border: #33424E;    // Bordure pour la nav (plus foncée que nav)
+
+$chat-text-light: #EAEFF3;       // Blanc cassé (texte principal sur fond sombre)
+$chat-text-muted: #A8B6C1;       // Gris clair (texte secondaire, labels)
+$chat-text-dark: #1A232B;        // Texte foncé (pour bulles claires, inputs)
+
+$chat-accent-primary: #82AAFF;   // Bleu clair (accent principal, bulles utilisateur)
+$chat-accent-primary-darker: #6C95E0; // Pour hover sur accent primaire
+$chat-accent-primary-lighter: #D6E4FF; // Pour fond actif du mode-switcher
+
+$chat-accent-secondary: #FFCB6B; // Jaune doux (accent secondaire, gras, checkbox)
+
+$chat-bg-main-content: #F0F4F8; // Fond très clair (zone de chat et mode-switcher)
+$chat-bg-main-content-border: #DDE4EA; // Bordure pour mode-switcher
+
+$chat-ai-bubble-bg: #4A5A6A;     // Gris-bleu (bulles IA)
+
+$chat-input-bg: #FFFFFF;         // Blanc (fond textarea)
+$chat-input-border: #D1D9E0;    // Gris clair (bordure textarea)
+
+$chat-button-disabled: #B0BEC5;  // Gris pour boutons désactivés
+
+$chat-danger-bg: #D32F2F;        // Rouge pour suppression/urgence
+$chat-danger-hover: #B71C1C;     // Rouge plus foncé pour hover
+
+
+.chat-layout {
+  display: flex;
+  height: calc(100vh - 60px); // Ajuster 60px à la hauteur de ta navbar
+  background-color: $chat-bg-main-content; // Fond clair par défaut
+}
+
+.chat-layout-sidebar {
+  width: 280px;
+  background-color: $chat-bg-nav; // Fond sombre pour la sidebar
+  color: $chat-text-light;
+  border-right: 1px solid $chat-bg-nav-border;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+
+  @media (max-width: 767px) {
+    display: none; // Pour mobile, on utilisera une autre approche (menu burger)
+  }
+  // ... (coller ici tous les styles de la sidebar : .sidebar-profile-section, .sidebar-history-section, etc.)
+}
+
+.chat-layout-main-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; // Important
+}
+
+.mode-switcher { /* ... (styles existants) ... */ }
+
+.content-area {
+  flex-grow: 1;
+  position: relative; // Pour que les composants enfants puissent être positionnés
+  overflow: hidden;
+  display: flex; // Pour que les enfants (Chat, Journal) prennent 100% de la hauteur/largeur
+  
+  // Le composant Chat ou Journal doit prendre tout l'espace
+  > div { // Cible .chat-interface-wrapper ou .journal-layout
+      width: 100%;
+      height: 100%;
+  }
+}

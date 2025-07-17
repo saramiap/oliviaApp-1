@@ -7,7 +7,8 @@ $journal-lines: #D4C8B4;                  // Couleur des lignes du cahier
 $journal-text-color: #4A3B31;             // Couleur d'encre foncée (marron/gris)
 $journal-accent: #814CAF;                 // Ton violet pour les accents
 $journal-accent-darker: #6A3D91;          // Pour hover sur $journal-accent
-$journal-accent-lighter: #E8D9F2;         // Pour fond actif ou hover léger
+$journal-accent-lighter: #E8D9F2;   
+$journal-accent-primary: #E8D9F2;       // Pour fond actif ou hover léger
 $journal-history-bg: #F5EFDB;             // Fond pour la colonne historique
 $journal-history-border: #EAE1CD;         // Bordure pour l'historique (plus foncée que le fond)
 $journal-history-text: #5D5046;
@@ -19,23 +20,190 @@ $journal-delete-btn-bg-hover: #FEEFEE;    // Fond léger pour hover sur supprime
 $journal-input-area-bg: #F0EADC;          // Fond de la zone d'input (légèrement différent de l'historique)
 $journal-textarea-border: #CBBFAC;        // Bordure pour textarea
 $journal-button-disabled-bg: #BCA5D3;     // Accent plus clair pour bouton désactivé
+$journal-nav-border: #EAE1CD; 
+$chat-text-muted:#A8B6C1;
+$journal-bg: #F0F4F8;                   // Fond papier très clair (bleu-gris)
+$journal-lines: #DDE4EA;                // Lignes de cahier
+$journal-text-color: #2C3A47;           // Couleur d'encre (bleu nuit)
+$journal-accent: #82AAFF;               // Accent bleu clair du chat
+$journal-accent-darker: #6C95E0;        // Hover
+$journal-border-dotted: #A8B6C1;        // Bordure pointillée (gris-bleu)
+$journal-spiral-bg: #EAEFF3;            // Fond de la zone de la spirale
+$journal-spiral-shadow: #BFCAD4;        // Ombre des trous
+$journal-tape-bg: rgba(130, 170, 255, 0.25); // Scotch transparent bleuté
 
-.journal-layout {
-  display: flex;
-  height: 100%; // Parent direct doit avoir une hauteur définie (ex: 100vh - hauteur_navbar)
-  position: relative;
-  background-color: $journal-bg;
-  overflow: hidden; // Empêche le scroll global indésirable dû aux translations
+
+
+.layout-mode-journal {
+  .page-navigation {
+    // Override des styles pour le mode journal
+    padding: 0; // On gère le padding dans le composant interne
+    
+    // Sur Desktop, on s'assure que tout est aligné en haut
+    @media(min-width: 768px) {
+      align-items: stretch;
+      justify-content: flex-start;
+    }
+
+    .journal-navigation-content {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      width: 100%;
+
+      .journal-nav-header {
+        display: flex;
+        align-items: center;
+        padding: 1.5rem;
+        border-bottom: 1px solid $journal-nav-border;
+        flex-shrink: 0; // Empêche le header de se compresser
+        
+        .profile-avatar-display {
+          width: 50px;
+          height: 50px;
+          border-radius: 50%;
+          object-fit: cover;
+          margin-right: 1rem;
+          border: 2px solid $journal-accent-primary;
+        }
+
+        h2 {
+          font-size: 1.2rem;
+          color: $journal-history-text-light;
+          margin: 0;
+          font-weight: 600;
+        }
+      }
+
+      .journal-history-list {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 1rem;
+
+        .no-history-entries {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 2rem 1rem;
+          color: $chat-text-muted;
+          text-align: center;
+          gap: 0.75rem;
+
+          p { margin: 0; font-size: 0.9rem; }
+        }
+
+        ul {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+
+        .history-entry-item {
+          padding: 0.85rem 1rem;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: background-color 0.2s;
+          border-left: 4px solid transparent; // Pour l'indicateur actif
+          
+          &:hover {
+            background-color: rgba($journal-history-text-light, 0.1);
+          }
+
+          &.active-session {
+            background-color: rgba($journal-accent-primary, 0.2);
+            border-left-color: $journal-accent-primary;
+          }
+
+          .history-entry-title {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: $journal-history-text-light;
+            margin-bottom: 0.25rem;
+          }
+
+          .history-entry-date {
+            display: block;
+            font-size: 0.75rem;
+            color: $chat-text-muted;
+          }
+        }
+      }
+    }
+  }
 }
 
-// Bouton de toggle pour l'historique (principalement pour mobile)
-.journal-history-toggle {
-  display: none; // Caché par défaut, affiché via media query pour mobile
-  position: fixed; // Positionné par rapport au viewport
-  top: 75px;       // Ajuste selon la hauteur de ta navbar principale + un peu d'espace
-  right: 15px;
-  z-index: 1300;   // Au-dessus de l'aside quand il est en overlay
-  background-color: rgba($journal-accent, 0.9);
+// --- KEYFRAMES POUR L'ANIMATION DE FLIP ---
+
+@keyframes page-turn-in-from-right {
+  from {
+    transform: rotateY(-90deg);
+    opacity: 0.5;
+  }
+  to {
+    transform: rotateY(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes page-turn-in-from-left {
+  from {
+    transform: rotateY(90deg);
+    opacity: 0.5;
+  }
+  to {
+    transform: rotateY(0deg);
+    opacity: 1;
+  }
+}
+
+.journal-layout {
+   // Nécessaire pour que les transformations 3D des enfants fonctionnent
+  perspective: 1500px; 
+  position: relative; // Pour positionner les boutons de navigation
+  height: 100%;
+  width: 100%;
+  display: flex;
+  overflow: hidden;
+  background-color: #EAEFF3;
+}
+
+// Contenu principal (la "page" du cahier)
+.journal-page-column {
+ 
+ flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  font-family: 'Kalam', cursive; // Police manuscrite pour les entrées
+  color: $journal-text-color;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15); // Ombre portée pour l'effet papier
+  
+  // Application des animations
+  &.page-turn-next {
+    transform-origin: left center; // Le livre tourne depuis la "reliure" gauche
+    animation: page-turn-in-from-right 0.6s ease-in-out;
+  }
+
+  &.page-turn-prev {
+    transform-origin: right center; // Le livre tourne depuis la "reliure" droite
+    animation: page-turn-in-from-left 0.6s ease-in-out;
+  }
+}
+// Boutons de navigation (flèches)
+.journal-nav-button {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+  background-color: rgba(60, 60, 60, 0.3);
   color: white;
   border: none;
   border-radius: 50%;
@@ -44,151 +212,142 @@ $journal-button-disabled-bg: #BCA5D3;     // Accent plus clair pour bouton désa
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.25);
   cursor: pointer;
-  transition: background-color 0.2s, transform 0.2s;
+  opacity: 1; // Invisibles par défaut
+  transition: opacity 0.3s ease, background-color 0.3s ease, transform 0.3s ease;
+  backdrop-filter: blur(2px);
 
-  &:hover {
-    background-color: $journal-accent;
-    transform: scale(1.05);
+  &.prev {
+    left: 1rem;
   }
 
-  @media (max-width: 767.98px) {
-    display: flex; // Afficher sur mobile
+  &.next {
+    right: 1rem;
   }
-   @media (min-width: 768px) { // Si tu veux le garder sur desktop aussi pour toggle
-    // left: 15px; // Ou autre positionnement
-    // right: auto;
-   }
-}
 
-// Colonne de l'historique ("Mes Entrées")
-.journal-history-column {
-  background-color: $journal-history-bg;
-  border-right: 1px solid $journal-history-border;
-  padding: 1.5rem 1rem;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
-              margin-left 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-              width 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-              opacity 0.3s ease-in-out; // Pour le fade sur desktop
+  &:not(:disabled):hover {
+    background-color: rgba(0, 0, 0, 0.6);
+    transform: translateY(-50%) scale(1.1);
+  }
   
-  // Comportement par défaut (caché sur mobile, visible sur desktop)
-  @media (max-width: 767.98px) { // Mobile: Overlay
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100vh; // Prend toute la hauteur de la vue
-    width: 85%;    // Largeur quand ouvert
-    max-width: 300px;
-    z-index: 1200; // En dessous du toggle, au-dessus du contenu principal
-    transform: translateX(-100%); // Caché à gauche
-    border-right-width: 2px; // Bordure plus marquée pour l'overlay
-    box-shadow: 4px 0 15px rgba(0,0,0,0.1);
-
-    &.visible {
-      transform: translateX(0);
-    }
-  }
-
-  @media (min-width: 768px) { // Desktop: Colonne fixe
-    position: static; // Revient dans le flux
-    width: 280px;     // Largeur fixe
-    flex-shrink: 0;   // Ne rétrécit pas
-    transform: translateX(0); // Toujours visible (pas de translation)
-    opacity: 1;       // Toujours visible
-
-    // Si on veut pouvoir la cacher sur desktop aussi via le toggle
-    .journal-layout:not(.history-visible) & { // Quand la classe parente N'A PAS .history-visible
-        // width: 0; // Cache en réduisant la largeur
-        // padding-left: 0; padding-right: 0;
-        // opacity: 0;
-        // margin-left: -280px; // Pour un effet de glissement plus propre
-        // Pour l'instant, on la laisse toujours visible sur desktop par défaut
-        // Si tu veux un toggle desktop, décommente ces lignes et ajuste le JSX du bouton toggle
-    }
-  }
-
-  .journal-history-title {
-    font-family: 'Kalam', cursive;
-    font-size: 1.7rem; // Légèrement réduit
-    color: $journal-text-color;
-    margin: 0 0 1.5rem 0;
-    text-align: center;
-    padding-bottom: 0.75rem;
-    border-bottom: 1px dashed $journal-history-title-border;
-    flex-shrink: 0; // Pour que le titre ne soit pas écrasé
-  }
-
-  .journal-history-list {
-    list-style: none; padding: 0; margin: 0; flex-grow: 1;
-    .history-entry-item {
-      padding: 0.8rem 0.6rem; margin-bottom: 0.5rem; border-radius: 6px;
-      cursor: pointer; transition: background-color 0.2s, border-left-color 0.2s;
-      color: $journal-history-text; border-left: 3px solid transparent;
-      &:hover {
-        background-color: $journal-history-hover-bg;
-        border-left-color: $journal-lines; // Ligne de la couleur des lignes du cahier
-      }
-      &.active-session {
-        background-color: $journal-accent-lighter;
-        color: $journal-accent;
-        font-weight: 600;
-        border-left-color: $journal-accent;
-      }
-      .history-entry-title {
-        display: block; font-size: 0.9rem; font-weight: 500; margin-bottom: 0.2rem;
-        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      }
-      .history-entry-date {
-        display: block; font-size: 0.75rem; color: $journal-history-text-light;
-      }
-    }
-    .no-history-entries {
-        text-align: center; color: $journal-history-text-light; padding: 2rem 0.5rem; font-style: italic;
-    }
+  &:disabled {
+    opacity: 0 !important; // Totalement invisible si désactivé
+    cursor: not-allowed;
   }
 }
-
-// Contenu principal (la "page" du cahier)
-.journal-page-column {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-  height: 100%; // Prend la hauteur du parent .journal-layout
-  overflow: hidden; // Scroll géré par .journal-notebook-paper
-  background-color: $journal-bg;
+.journal-layout:hover .journal-nav-button:not(:disabled) {
+  opacity: 1;
 }
-
 .journal-notebook-paper {
-  flex-grow: 1; // Prend tout l'espace vertical disponible dans .journal-page-column
+ flex-grow: 1;
   background-color: $journal-bg;
   background-image: linear-gradient(to bottom, $journal-lines 1px, transparent 1px);
-  background-size: 100% 2.2em; // Espacement des lignes
-  padding: 1.5rem 2rem; // Padding mobile
+  background-size: 100% 2.2em;
+  padding: 1.5rem 2rem 1.5rem 3.5rem; // Plus de padding à gauche pour la spirale !
   overflow-y: auto;
-  font-family: 'Kalam', cursive;
-  color: $journal-text-color;
-  font-size: 1.05em; // Taille de base
-  line-height: 2.2em; // Doit correspondre à background-size
+  position: relative; // Pour la spirale
+  border: 2px dotted $journal-border-dotted;
+  border-left: none; // La spirale remplace la bordure gauche
+ // La spirale !
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 2rem; // Largeur de la reliure
+    background-color: $journal-spiral-bg;
+    border-right: 1px solid $journal-lines;
+    // Les trous de la spirale (magie des dégradés)
+    background-image: radial-gradient(
+      circle at 1rem 1rem, 
+      transparent 0.4rem, 
+      $journal-spiral-shadow 0.4rem, 
+      $journal-spiral-shadow 0.5rem, 
+      $journal-spiral-bg 0.5rem
+    );
+    background-size: 2rem 2rem;
+    background-position: 0 0.5rem;
+  }
 
   @media (min-width: 768px) {
     padding: 2rem 2.5rem; // Padding desktop
     font-size: 1.1em;
   }
 
-  .notebook-header {
-    margin-bottom: 1.5em;
-    .notebook-date {
-      font-size: 1.4em; // Plus grand pour la date
-      font-weight: 700;
-      color: $journal-text-color; // Couleur d'encre normale
-      text-align: center;
-      padding-bottom: 0.5em;
+  // Titre effet "scotché"
+.notebook-title-wrapper {
+  font-family: 'Gochi Hand', cursive; // Une police "doodle" pour le titre
+  font-size: 2.5rem;
+  text-align: center;
+  padding: 0.5rem 1.5rem;
+  background-color: #fff;
+  display: inline-block;
+  margin: 0 auto 1.5em auto;
+  position: relative;
+  transform: rotate(-1.5deg); // Légèrement penché
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  
+  // Le scotch
+  &::before, &::after {
+    content: '';
+    position: absolute;
+    width: 4rem;
+    height: 1.5rem;
+    background-color: $journal-tape-bg;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  &::before { left: -2rem; transform: translateY(-50%) rotate(-15deg); }
+  &::after { right: -2rem; transform: translateY(-50%) rotate(15deg); }
+}
+
+ .notebook-header .notebook-date {
+  font-family: 'Kalam', cursive;
+  font-weight: 700;
+  text-align: left;
+  padding-bottom: 0.5em;
+  border-bottom: 1px solid $journal-lines;
+}
+// Ligne de séparation pour les nouvelles pages
+.page-break-line {
+  border: none;
+  border-top: 1px dashed $journal-border-dotted;
+  text-align: center;
+  margin: 2.2em 0;
+}
+
+// === PIED DE PAGE & NOUVEAU BOUTON ===
+.journal-page-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1.5rem;
+  background-color: $journal-spiral-bg; // Même fond que la spirale
+  border-top: 1px solid $journal-lines;
+  font-family: Arial, sans-serif;
+  font-size: 0.85rem;
+  color: $journal-text-color;
+
+  .new-page-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: transparent;
+    border: 1px solid $journal-accent;
+    color: $journal-accent;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 500;
+
+    &:hover {
+      background-color: $journal-accent;
+      color: white;
     }
   }
+}
 
   .notebook-entry-saved {
     margin-bottom: 2.2em; // Alignement sur les lignes
