@@ -1,77 +1,252 @@
-/* Home.scss */
+/* Home.scss - Design Premium Serein pour Olivia Sérenis */
+
+// Couleurs sereines Premium
+$home-bg-primary: #FEFCFB;              // Blanc cassé chaleureux
+$home-bg-secondary: #F8F6F4;            // Beige très clair
+$home-text-primary: #2D2A26;            // Brun foncé élégant
+$home-text-secondary: #6B6458;          // Brun moyen apaisant
+
+// Couleurs d'accent sereines
+$olivia-primary: #7B68A6;               // Violet serein principal
+$olivia-primary-light: #A69BC7;         // Violet clair
+$olivia-secondary: #B8D4C7;             // Vert serein
+$olivia-warm: #E6C89C;                  // Beige chaleureux
+
 .home {
-    padding-top: 60px;
-  
-    &__sections {
-      padding: 2rem;
-      text-align: center;
-  
-      h2 {
-        margin-bottom: 1.5rem;
-        font-size: 1.8rem;
-        color: #fff;
-      }
-    }
+  background: linear-gradient(135deg, $home-bg-primary 0%, $home-bg-secondary 100%);
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+
+  // Effet de fond subtil avec particules flottantes
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      radial-gradient(circle at 20% 80%, rgba(123, 104, 166, 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(184, 212, 199, 0.04) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(230, 200, 156, 0.02) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+    animation: breathe 10s ease-in-out infinite;
   }
-  /* Carousel.scss */
-.carousel {
-    display: flex;
-    overflow-x: auto;
-    gap: 20px;
-    padding: 1rem;
-    overflow-x: hidden; /* Hide horizontal scrollbar */
-  
-    &__item {
-      flex: 0 0 300px;
-      background: #111;
-      padding: 1rem;
-      border-radius: 12px;
-      iframe {
-        width: 100%;
-        height: 170px;
-        border: none;
-        border-radius: 10px;
-      }
-  
-      h4 {
-        margin-top: 10px;
-        color: #ccc;
-      }
-    }
+
+  > * {
+    position: relative;
+    z-index: 1;
   }
-  /* CardSection.scss */
-.cards {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 30px;
-  }
-  
-  .card {
-    width: 220px;
-    border-radius: 15px;
-    overflow: hidden;
-    background: #222;
-    color: white;
+
+  &__sections {
+    padding: 3rem 2rem;
     text-align: center;
-    text-decoration: none;
-    transition: transform 0.3s;
-  
-    img {
-      width: 100%;
-      height: 150px;
-      object-fit: cover;
-    }
-  
-    &__info {
-      padding: 1rem;
-      h3 {
-        font-size: 1.1rem;
+    animation: slideUp 0.8s ease-out;
+
+    h2 {
+      margin-bottom: 2rem;
+      font-size: 2.2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, $home-text-primary 0%, $olivia-primary 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.02em;
+
+      @media (min-width: 768px) {
+        font-size: 2.8rem;
       }
     }
+  }
+}
+
+/* Carousel Premium */
+.carousel {
+  display: flex;
+  overflow-x: auto;
+  gap: 2rem;
+  padding: 2rem;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
   
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  &__item {
+    flex: 0 0 320px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+    padding: 1.5rem;
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(232, 227, 223, 0.6);
+    box-shadow:
+      0 4px 20px rgba(123, 104, 166, 0.08),
+      0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    animation: cardAppear 0.6s ease-out both;
+
+    &:nth-child(1) { animation-delay: 0.1s; }
+    &:nth-child(2) { animation-delay: 0.2s; }
+    &:nth-child(3) { animation-delay: 0.3s; }
+    &:nth-child(4) { animation-delay: 0.4s; }
+
     &:hover {
-      transform: scale(1.05);
+      transform: translateY(-6px) scale(1.02);
+      box-shadow:
+        0 12px 32px rgba(123, 104, 166, 0.15),
+        0 4px 12px rgba(0, 0, 0, 0.1);
+      border-color: rgba(123, 104, 166, 0.2);
+    }
+
+    iframe {
+      width: 100%;
+      height: 200px;
+      border: none;
+      border-radius: 16px;
+      margin-bottom: 1rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+    }
+
+    &:hover iframe {
+      transform: scale(1.02);
+    }
+
+    h4 {
+      margin: 0;
+      color: $home-text-primary;
+      font-size: 1.2rem;
+      font-weight: 600;
+      line-height: 1.4;
     }
   }
+}
+
+/* Cards Section Premium */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2rem;
+  padding: 0 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: slideUp 0.8s ease-out 0.3s both;
+
+  @media (min-width: 992px) {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  }
+}
+
+.card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+  border-radius: 20px;
+  overflow: hidden;
+  text-decoration: none;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(232, 227, 223, 0.6);
+  box-shadow:
+    0 4px 20px rgba(123, 104, 166, 0.08),
+    0 1px 3px rgba(0, 0, 0, 0.05);
+  animation: cardAppear 0.6s ease-out both;
+  position: relative;
+
+  // Effet de bordure lumineux au survol
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: 20px;
+    padding: 1px;
+    background: linear-gradient(135deg, $olivia-primary, $olivia-secondary, $olivia-warm);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: xor;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  &:nth-child(odd) {
+    animation-delay: 0.1s;
+  }
+
+  &:nth-child(even) {
+    animation-delay: 0.2s;
+  }
+
+  &:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow:
+      0 20px 40px rgba(123, 104, 166, 0.15),
+      0 8px 16px rgba(0, 0, 0, 0.1);
+    
+    &::before {
+      opacity: 1;
+    }
+
+    img {
+      transform: scale(1.08);
+    }
+
+    .card__info h3 {
+      color: $olivia-primary;
+    }
+  }
+
+  img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    filter: brightness(1.05) saturate(1.1);
+  }
+
+  &__info {
+    padding: 1.5rem;
+    text-align: center;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.7) 100%);
+
+    h3 {
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: $home-text-primary;
+      margin: 0;
+      line-height: 1.4;
+      transition: color 0.3s ease;
+    }
+  }
+}
+
+// Animations keyframes
+@keyframes breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cardAppear {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
   

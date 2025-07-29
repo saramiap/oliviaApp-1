@@ -1,4 +1,6 @@
 // src/services/googleAuth.js
+import { monetizationService } from './monetizationService';
+
 class GoogleAuthService {
   constructor() {
     this.user = null;
@@ -63,10 +65,34 @@ class GoogleAuthService {
       // Sauvegarder dans localStorage
       localStorage.setItem('olivia_user', JSON.stringify(user));
       
-      // Notifier les listeners
-      this.notifyListeners('SIGNED_IN', user);
+      // Configurer la monétisation
+      monetizationService.setAuth(user.id, user);
       
-      return { user, error: null };
+      // Créer ou récupérer l'utilisateur dans le backend
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:3000'}/api/auth/google-signin`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ googleUserData: user })
+        });
+        
+        if (response.ok) {
+          const userData = await response.json();
+          // Mettre à jour l'utilisateur avec les infos de subscription
+          this.user = { ...this.user, ...userData.user };
+          localStorage.setItem('olivia_user', JSON.stringify(this.user));
+        }
+      } catch (error) {
+        console.warn('Erreur lors de la synchronisation backend:', error);
+        // Continuer même si le backend n'est pas disponible
+      }
+      
+      // Notifier les listeners
+      this.notifyListeners('SIGNED_IN', this.user);
+      
+      return { user: this.user, error: null };
     } catch (error) {
       console.error('Erreur lors de la connexion Google:', error);
       return { user: null, error };
@@ -76,6 +102,9 @@ class GoogleAuthService {
   // Déconnexion
   async signOut() {
     try {
+      // Effacer la monétisation
+      monetizationService.clearAuth();
+      
       this.user = null;
       this.isAuthenticated = false;
       

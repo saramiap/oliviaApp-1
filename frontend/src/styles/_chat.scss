@@ -1,45 +1,117 @@
 // _chat.scss
 
-// Palette de couleurs "Relaxante" (valeurs hexadécimales directes)
-$chat-bg-dark: #2C3A47;          // Bleu-gris nuit (fond général)
-$chat-bg-nav: #3B4A5A;           // Un peu plus clair pour la nav
-$chat-bg-nav-border: #33424E;    // Bordure pour la nav (plus foncée que nav)
+// Palette de couleurs "Sereines" Premium pour Olivia Sérenis
+$chat-bg-primary: #FEFCFB;          // Blanc cassé chaleureux
+$chat-bg-secondary: #F8F6F4;        // Beige très clair
+$chat-bg-nav: #FFFFFF;              // Blanc pur pour la navigation
+$chat-bg-nav-border: #E8E3DF;       // Bordure douce beige
 
-$chat-text-light: #EAEFF3;       // Blanc cassé (texte principal sur fond sombre)
-$chat-text-muted: #A8B6C1;       // Gris clair (texte secondaire, labels)
-$chat-text-dark: #1A232B;        // Texte foncé (pour bulles claires, inputs)
-
-$chat-accent-primary: #82AAFF;   // Bleu clair (accent principal, bulles utilisateur)
-$chat-accent-primary-darker: #6C95E0; // Pour hover sur accent primaire
-$chat-accent-primary-lighter: #D6E4FF; // Pour fond actif du mode-switcher
-
-$chat-accent-secondary: #FFCB6B; // Jaune doux (accent secondaire, gras, checkbox)
-
-$chat-bg-main-content: #F0F4F8; // Fond très clair (zone de chat et mode-switcher)
-$chat-bg-main-content-border: #DDE4EA; // Bordure pour mode-switcher
-
-$chat-ai-bubble-bg: #4A5A6A;     // Gris-bleu (bulles IA)
-
-$chat-input-bg: #FFFFFF;         // Blanc (fond textarea)
-$chat-input-border: #D1D9E0;    // Gris clair (bordure textarea)
-
-$chat-button-disabled: #B0BEC5;  // Gris pour boutons désactivés
-
-$chat-danger-bg: #D32F2F;        // Rouge pour suppression/urgence
-$chat-danger-hover: #B71C1C;     // Rouge plus foncé pour hover
+$chat-text-primary: #2D2A26;        // Brun foncé élégant
+$chat-text-secondary: #6B6458;      // Brun moyen apaisant
+$chat-text-tertiary: #9C9485;       // Brun clair pour texte secondaire
+$chat-text-light: #FFFFFF;          // Blanc pur
+$chat-text-dark:red;
+$chat-bg-dark: red;
+// Couleurs sereines pour Olivia
+$olivia-primary: #7B68A6;           // Violet serein principal
+$olivia-primary-light: #A69BC7;     // Violet clair
+$olivia-primary-lighter: #E6E1F0;   // Violet très clair
+$olivia-secondary: #B8D4C7;         // Vert serein
+$olivia-warm: #E6C89C;              // Beige chaleureux
+$olivia-warm-light: #F4E6D1;        // Beige très clair
+ $chat-accent-primary-lighter:red;
+// Couleurs pour les utilisateurs
+$user-primary: #6B9BD2;             // Bleu confiance
+$user-primary-light: #A8C8E8;       // Bleu clair
+$user-primary-lighter: #E3F2FD;     // Bleu très clair
+ $chat-accent-primary:#E3F2FD; 
+// Arrière-plans principaux
+$chat-bg-main-content: $chat-bg-primary;
+$chat-bg-main-content-border: #E8E3DF;
+$chat-accent-primary-darker: black;
+// Bulles de messages
+$chat-ai-bubble-bg: #FFFFFF;        // Blanc pur pour Olivia
+$chat-ai-bubble-border: #E8E3DF;    // Bordure douce
+$chat-user-bubble-bg: $user-primary; // Bleu utilisateur
+$chat-accent-secondary:#FFFFFF;
+// Zone d'input
+$chat-input-bg: #FFFFFF;
+$chat-input-border: #D4CFC8;
+$chat-input-focus: $olivia-primary;
+$chat-text-muted:#D85656;
+// États et interactions
+$chat-button-disabled: #C9C0B8;
+$chat-danger-bg: #E07A7A;
+$chat-danger-hover: #D85656;
+$chat-success: $olivia-secondary;
+$chat-warning: $olivia-warm;
 
 
 .chat-journal-layout {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: $chat-bg-dark;
-  color: $chat-text-light;
+  background: linear-gradient(135deg, $chat-bg-primary 0%, $chat-bg-secondary 100%);
+  color: $chat-text-primary;
   overflow: hidden;
   position: relative;
 
+  // Effet de fond subtil avec particules flottantes
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background:
+      radial-gradient(circle at 20% 80%, rgba(123, 104, 166, 0.03) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(184, 212, 199, 0.04) 0%, transparent 50%),
+      radial-gradient(circle at 40% 40%, rgba(230, 200, 156, 0.02) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+    animation: breathe 8s ease-in-out infinite;
+  }
+
+  > * {
+    position: relative;
+    z-index: 1;
+  }
+
   @media (min-width: 768px) {
     flex-direction: row;
+  }
+}
+
+@keyframes breathe {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
@@ -237,16 +309,19 @@ $chat-danger-hover: #B71C1C;     // Rouge plus foncé pour hover
 }
 
 .page-navigation {
-  background-color: $chat-bg-nav;
+  background: linear-gradient(135deg, $chat-bg-nav 0%, rgba(255, 255, 255, 0.95) 100%);
   border-bottom: 1px solid $chat-bg-nav-border;
-  padding: 0.75rem 1rem;
+  padding: 1rem 1.25rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1rem; // Espace initialement les éléments
   flex-wrap: nowrap; // Empêcher le retour à la ligne des éléments principaux
   overflow-x: hidden;
-  z-index: 40; // S'assurer que la nav est au-dessus du sidebar
+  z-index: 40;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 2px 20px rgba(123, 104, 166, 0.08);
+  animation: slideInUp 0.6s ease-out;
 
   .history-toggle-btn {
     background: none;
@@ -577,46 +652,70 @@ $chat-danger-hover: #B71C1C;     // Rouge plus foncé pour hover
 }
 
 .message-bubble {
-  padding: 0.8rem 1.2rem; // Padding des bulles augmenté
-  border-radius: 20px; // Bulles plus arrondies
-  line-height: 1.55;
+  padding: 1rem 1.5rem;
+  border-radius: 24px;
+  line-height: 1.6;
   word-wrap: break-word;
-  max-width: 80%; // Les bulles peuvent être un peu plus larges
+  max-width: 85%;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  animation: slideInUp 0.4s ease-out;
+  transition: all 0.3s ease;
   
-  p {   
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  }
+  
+  p {
     margin-top: 0;
-    margin-bottom: 0.6em; // Espace entre les <p> dans une bulle
-    &:last-child { margin-bottom: 0; } 
-    strong { 
-        color: $chat-accent-secondary; 
-        font-weight: 700; // Gras plus marqué
+    margin-bottom: 0.6em;
+    &:last-child { margin-bottom: 0; }
+    strong {
+        color: $olivia-primary;
+        font-weight: 600;
     }
   }
 
   &.user-message {
-    background-color: $chat-accent-primary;
-    color: $chat-text-dark;
+    background: linear-gradient(135deg, $user-primary 0%, $user-primary-light 100%);
+    color: $chat-text-light;
     margin-left: auto;
-    border-bottom-right-radius: 8px; // Style de "queue"
-     p { white-space: pre-line; }
+    border-bottom-right-radius: 8px;
+    border: 1px solid rgba(107, 155, 210, 0.2);
+    
+    p {
+      white-space: pre-line;
+    }
+
+    &:hover {
+      box-shadow: 0 4px 20px rgba(107, 155, 210, 0.25);
+    }
   }
 
   &.ai-message {
-    background-color: $chat-ai-bubble-bg;
-    color: $chat-text-light;
+    background: linear-gradient(135deg, $chat-ai-bubble-bg 0%, rgba(255, 255, 255, 0.95) 100%);
+    color: $chat-text-primary;
     margin-right: auto;
-    border-bottom-left-radius: 8px; // Style de "queue"
+    border-bottom-left-radius: 8px;
+    border: 1px solid $chat-ai-bubble-border;
+    backdrop-filter: blur(5px);
+
+    &:hover {
+      box-shadow: 0 4px 20px rgba(123, 104, 166, 0.15);
+      border-color: rgba(123, 104, 166, 0.2);
+    }
   
     .chat-list-item {
-      padding-left: 1.5em; // Indentation un peu plus grande
+      padding-left: 1.5em;
       position: relative;
-      // Ajout d'un style de puce si le texte ne contient pas déjà de puce
-      // &:before {
-      //   content: "•";
-      //   position: absolute;
-      //   left: 0.5em;
-      //   color: $chat-text-muted;
-      // }
+      
+      &:before {
+        content: "✦";
+        position: absolute;
+        left: 0.5em;
+        color: $olivia-primary;
+        font-size: 0.8em;
+      }
     }
   }
 }

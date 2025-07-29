@@ -14,17 +14,13 @@ import {
   KeyboardArrowUp as ArrowUpIcon,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import {
-  Zap,
-  Waves,
-  BookOpen,
-  Info,
-  ExternalLink,
-  Menu,
-  Plus,
-  MessageCircle,
-  Trash2,
-} from "lucide-react";
+
+import Journal from "./Journal"; // Assure-toi que ce chemin est correct et que Journal est exporté par défaut
+import { Zap, Waves, BookOpen, Info, ExternalLink, Menu, Plus, MessageCircle, Trash2, Crown } from 'lucide-react'; // Icônes pour les boutons d'action
+import { monetizationService } from '../services/monetizationService';
+import { googleAuth } from '../services/googleAuth';
+import UpgradeModal from '../components/UpgradeModal';
+import SubscriptionStatus from '../components/SubscriptionStatus';
 import JournalNav from "../components/JournalNav"; // <- AJOUTER
 import JournalContent from "../components/JournalContent"; // <- AJOUTER
 import "../styles/_chat.scss"; // Ton fichier SCSS principal
@@ -134,8 +130,17 @@ const Chat = () => {
   const [conversationToDelete, setConversationToDelete] = useState(null);
   const [preventAutoSave, setPreventAutoSave] = useState(false);
   const [history, setHistory] = useState([]); // L'historique séparé peut être réintroduit si besoin
+
+  // États pour la monétisation
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [upgradeTrigger, setUpgradeTrigger] = useState('limit_reached');
+  const [userStatus, setUserStatus] = useState(null);
+  const [canSendMessage, setCanSendMessage] = useState(true);
+
+
   const [animationDirection, setAnimationDirection] = useState("next");
   const [activePageIndex, setActivePageIndex] = useState(0);
+
   // Refs
   const messagesEndRef = useRef(null);
   const chatContainerRef = useRef(null);
@@ -480,6 +485,37 @@ const Chat = () => {
 
   // --- EFFETS ---
 
+  // Initialisation de la monétisation
+  useEffect(() => {
+    const initMonetization = async () => {
+      const user = googleAuth.getCurrentUser();
+      if (user) {
+        // Configurer l'authentification pour le service de monétisation
+        monetizationService.setAuth(user.id, user);
+        
+        try {
+          // Charger le statut utilisateur
+          const status = await monetizationService.getUserStatus();
+          setUserStatus(status);
+          
+          // Vérifier si l'utilisateur peut envoyer des messages
+          const messageCheck = monetizationService.canSendMessage();
+          setCanSendMessage(messageCheck.allowed);
+          
+          // Tracker la visite de la page
+          await monetizationService.trackEvent('page_visit', {
+            page: 'chat',
+            subscription_type: status.user?.subscription_type
+          });
+        } catch (error) {
+          console.error('Erreur initialisation monétisation:', error);
+        }
+      }
+    };
+    
+    initMonetization();
+  }, []);
+
   // Chargement initial des données (avatar, messages depuis localStorage, historique)
   useEffect(() => {
     const storedAvatar = localStorage.getItem("userAvatar");
@@ -679,6 +715,7 @@ const Chat = () => {
     }
   };
 
+  
   const sendMessage = async () => {
     if (!input.trim()) return;
 
@@ -833,6 +870,7 @@ const Chat = () => {
     // Assure-toi que les routes et la gestion d'état (state) sont correctes pour chaque action
     switch (actionName) {
       case "EXERCICE_RESPIRATION":
+        navigate(`/respiration`, { state: { type: params?.type, duration: params?.duree_sec, cycles: params?.cycles, autoStart: true } });
         navigate(`/detente/programme`, {
           state: {
             type: params?.type,
@@ -950,6 +988,11 @@ const Chat = () => {
               <Menu size={30} />
             </button>
 
+            
+            <OliviaAvatar isSpeaking={isSpeaking && voiceEnabled && !silentMode} />
+            
+            {/* Statut d'abonnement compact */}
+            <SubscriptionStatus compact />
             <OliviaAvatar
               isSpeaking={isSpeaking && voiceEnabled && !silentMode}
             />
@@ -1201,15 +1244,29 @@ const Chat = () => {
 
             <div className="chat-input-area">
               <textarea
-                placeholder="Écris ton message ici..."
+
+                placeholder={
+                  canSendMessage
+                    ? "Écris ton message ici..."
+                    : "Limite mensuelle atteinte - Passez à Premium pour continuer"
+                }
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 rows="3"
-                disabled={loading}
+                disabled={loading || !canSendMessage}
               />
-              <button onClick={sendMessage} disabled={loading || !input.trim()}>
-                📨
+              <button
+                onClick={canSendMessage ? sendMessage : () => {
+                  setUpgradeTrigger('limit_reached');
+                  setShowUpgradeModal(true);
+                }}
+                disabled={loading || (!input.trim() && canSendMessage)}
+                className={!canSendMessage ? 'upgrade-required' : ''}
+                title={!canSendMessage ? 'Limite atteinte - Cliquez pour passer à Premium' : 'Envoyer le message'}
+              >
+                {!canSendMessage ? <Crown size={16} /> : '📨'}
+                disabled={loading}
               </button>
             </div>
           </div>
@@ -1281,6 +1338,13 @@ const Chat = () => {
           </div>
         </div>
       )}
+
+      {/* Modal d'upgrade */}
+      <UpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        trigger={upgradeTrigger}
+      />
     </div>
   );
 };

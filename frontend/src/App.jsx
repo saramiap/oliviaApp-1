@@ -17,7 +17,7 @@ import ProfileSelect from './pages/ProfileSelect';
 import Sante from './pages/Sante';
 import StressProgramPage from './pages/StressProgramPage';
 import Urgence from './pages/Urgence';
-import Journal from "./pages/Journal"; 
+import Journal from "./pages/Journal";
 import PreparerSeance from './pages/PreparerSeance';
 import Settings from './pages/Settings';
 import SoundJourney from './pages/SoundJourney'; // Renommé depuis SoundJourneyPage pour cohérence
@@ -26,6 +26,10 @@ import UnderstandingStress from './pages/UnderstandingStress'; // Renommé
 import Dashboard from './pages/Dashboard'; // Renommé depuis Dashboard pour être plus explicite
 import AuthPage from './pages/AuthPage';
 import Logout from './pages/Logout';
+
+// Pages de monétisation
+import SubscriptionSuccess from './pages/SubscriptionSuccess';
+import AdminDashboard from './pages/AdminDashboard';
 
 // Importe le service d'authentification Google
 import { supabase } from './supabaseClient'; // Maintenant utilise Google Auth
@@ -105,6 +109,12 @@ function AppContent() {
           <Route path="/urgence" element={<Urgence />} />
           <Route path="/parametres" element={<Settings />} />
           <Route path="/logout" element={<Logout />} />
+          
+          {/* Routes de monétisation */}
+          <Route path="/subscription/success" element={<SubscriptionSuccess />} />
+          <Route path="/subscription/cancel" element={<Dashboard />} />
+          <Route path="/subscription/manage" element={<Dashboard />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
         </Routes>
       </div>
       <Footer />

@@ -110,6 +110,33 @@ const Journal = () => {
             </div>
           )}
         </div>
+
+        {showHistory && (
+          <div className="history-book">
+            {entries.length === 0 ? (
+              <p className="empty">Aucune note encore...</p>
+            ) : (
+              entries.map((entry, idx) => (
+                <div className="entry" key={idx}>
+                  <div className="entry-content">
+                    <p>{entry.text}</p>
+                    <small>{new Date(entry.date).toLocaleString()}</small>
+                  </div>
+                  <button
+                    className="delete-entry-btn"
+                    onClick={() => {
+                      const updatedEntries = entries.filter((_, index) => index !== idx);
+                      setEntries(updatedEntries);
+                    }}
+                    title="Supprimer cette entrée"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              ))
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
