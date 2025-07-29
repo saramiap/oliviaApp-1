@@ -314,7 +314,8 @@ $chat-warning: $olivia-warm;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: nowrap;
+  padding: 0.75rem 1rem; // Espace initialement les éléments
+  flex-wrap: nowrap; // Empêcher le retour à la ligne des éléments principaux
   overflow-x: hidden;
   z-index: 40;
   backdrop-filter: blur(10px);
@@ -453,13 +454,18 @@ $chat-warning: $olivia-warm;
 
 
   @media (min-width: 768px) { // Desktop (Sidebar)
-    width: 20%;
-    padding: 1.5rem; // Plus de padding interne
+   width: 25%; // Un peu plus de place pour la nav
+    max-width: 320px;
+    min-width: 280px;
+    height: 100vh;
+    padding: 1.5rem;
     border-right: 1px solid $chat-bg-nav-border;
-    flex-direction: column; // Les éléments s'empilent verticalement
-    justify-content: flex-start; // Aligner en haut
-    align-items: center; // Centrer horizontalement l'avatar, puis les contrôles à gauche
+    border-bottom: none;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch; // Étirer les enfants
 
+    
     .olivia-avatar {
       width: 150px; 
       height: 150px; 

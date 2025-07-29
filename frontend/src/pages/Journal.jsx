@@ -1,3 +1,24 @@
+// import React from 'react';
+// import ConstructionPage from '../components/ConstructionPage'; // Ajuste le chemin si besoin
+// import { Mic  } from 'lucide-react';
+
+
+
+// const Journal = () => {
+//   // Pour l'instant, on affiche juste la page "en cours de création".
+//   //décommenter et réutiliser ton code original quand la page sera prête.
+  
+//   return (
+//     <ConstructionPage 
+//       pageName="Journal" 
+//       featureDescription="de nouveaux épisodes inspirants et relaxants"
+//       IconComponent={Mic} // <<<< PASSE L'ICÔNE EN PROP
+//     />
+//   );
+// };
+
+// export default Journal;
+
 import React, { useEffect, useState, useRef } from "react"; // Ajout de useRef
 import "../styles/_journalLayout.scss"; // On va beaucoup modifier ce fichier
 import { Menu, X } from "lucide-react"; // Icônes pour le bouton toggle

@@ -277,7 +277,7 @@ const chatInteractionAreaRef = useRef(null);
           <h1>Préparer ma prochaine séance</h1>
            <p className="main-content__description">
             Utilise cet espace pour explorer librement tes pensées, sentiments et les événements récents. 
-            Note tout ce qui te vient à l'esprit. Ensuite, Olivia pourra t'aider à identifier les points clés à aborder.
+            Note tout ce qui te vient à l'esprit. Ensuite, plus bas sur la page Olivia pourra t'aider à identifier les points clés à aborder.
           </p>
           {currentTopic && <h2 className="main-content__current-topic">Focus actuel : {currentTopic}</h2>}
         </header>
