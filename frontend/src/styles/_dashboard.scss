@@ -181,7 +181,10 @@ $db-button-text-on-accent: #FFFFFF; // Texte sur les boutons avec fond $db-accen
   display: grid;
   gap: 1.5rem;
   grid-template-columns: 1fr; // 1 colonne par défaut sur mobile
-
+ // Animation d'apparition pour la grille elle-même et ses enfants
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
   @media (min-width: 768px) {
     grid-template-columns: repeat(2, 1fr); // 2 colonnes sur tablette
   }
@@ -193,11 +196,6 @@ $db-button-text-on-accent: #FFFFFF; // Texte sur les boutons avec fond $db-accen
     // grid-template-columns: 1.5fr 1fr;
     // Pour l'instant, on garde 2 colonnes égales sur desktop, tu pourras ajuster.
   }
-
-  // Animation d'apparition pour la grille elle-même et ses enfants
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.5s ease-out, transform 0.5s ease-out;
 
   &.visible {
     opacity: 1;
@@ -346,7 +344,7 @@ $db-button-text-on-accent: #FFFFFF; // Texte sur les boutons avec fond $db-accen
 // --- Carte Suggestion d'Olivia ---
 .card-olivia-suggestion {
   // Si tu veux un style particulier pour cette carte, par exemple pour la mettre en avant:
-  // background-color: lighten($db-accent-primary, 38%);
+  // background-color: $db-accent-primary, 38%;
   // border-left: 4px solid $db-accent-primary; 
   // Si c'est la première carte de la grille et tu veux qu'elle prenne plus de place:
   // @media (min-width: 768px) { grid-column: span 2; } // Exemple si grille de 2 colonnes

@@ -21,18 +21,6 @@ import { monetizationService } from '../services/monetizationService';
 import { googleAuth } from '../services/googleAuth';
 import UpgradeModal from '../components/UpgradeModal';
 import SubscriptionStatus from '../components/SubscriptionStatus';
-
-import {
-  Zap,
-  Waves,
-  BookOpen,
-  Info,
-  ExternalLink,
-  Menu,
-  Plus,
-  MessageCircle,
-  Trash2,
-} from "lucide-react";
 import JournalNav from "../components/JournalNav"; // <- AJOUTER
 import JournalContent from "../components/JournalContent"; // <- AJOUTER
 import "../styles/_chat.scss"; // Ton fichier SCSS principal

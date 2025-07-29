@@ -10,7 +10,8 @@ $chat-text-primary: #2D2A26;        // Brun foncé élégant
 $chat-text-secondary: #6B6458;      // Brun moyen apaisant
 $chat-text-tertiary: #9C9485;       // Brun clair pour texte secondaire
 $chat-text-light: #FFFFFF;          // Blanc pur
-
+$chat-text-dark:red;
+$chat-bg-dark: red;
 // Couleurs sereines pour Olivia
 $olivia-primary: #7B68A6;           // Violet serein principal
 $olivia-primary-light: #A69BC7;     // Violet clair
@@ -18,26 +19,26 @@ $olivia-primary-lighter: #E6E1F0;   // Violet très clair
 $olivia-secondary: #B8D4C7;         // Vert serein
 $olivia-warm: #E6C89C;              // Beige chaleureux
 $olivia-warm-light: #F4E6D1;        // Beige très clair
-
+ $chat-accent-primary-lighter:red;
 // Couleurs pour les utilisateurs
 $user-primary: #6B9BD2;             // Bleu confiance
 $user-primary-light: #A8C8E8;       // Bleu clair
 $user-primary-lighter: #E3F2FD;     // Bleu très clair
-
+ $chat-accent-primary:#E3F2FD; 
 // Arrière-plans principaux
 $chat-bg-main-content: $chat-bg-primary;
 $chat-bg-main-content-border: #E8E3DF;
-
+$chat-accent-primary-darker: black;
 // Bulles de messages
 $chat-ai-bubble-bg: #FFFFFF;        // Blanc pur pour Olivia
 $chat-ai-bubble-border: #E8E3DF;    // Bordure douce
 $chat-user-bubble-bg: $user-primary; // Bleu utilisateur
-
+$chat-accent-secondary:#FFFFFF;
 // Zone d'input
 $chat-input-bg: #FFFFFF;
 $chat-input-border: #D4CFC8;
 $chat-input-focus: $olivia-primary;
-
+$chat-text-muted:#D85656;
 // États et interactions
 $chat-button-disabled: #C9C0B8;
 $chat-danger-bg: #E07A7A;

@@ -141,8 +141,8 @@ $auth-google-btn-border: #D1D9E0;
 
 .auth-error-message {
   color: $auth-error-color;
-  background-color: lighten($auth-error-color, 38%);
-  border: 1px solid lighten($auth-error-color, 25%);
+  background-color: $auth-error-color, 38%;
+  border: 1px solid $auth-error-color, 25%;
   padding: 0.75rem;
   border-radius: 6px;
   font-size: 0.9rem;
