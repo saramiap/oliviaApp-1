@@ -1,42 +1,32 @@
-// _prepareSessionPage.scss
+// --- Palette de couleurs cohérente ---
+$session-bg-dark: #2C3A47;
+$session-bg-light: #F0F4F8;
+$session-text-dark-primary: #EAEFF3;
+$session-text-dark-secondary: #A8B6C1;
+$session-text-light-primary: #2C3A47; // Texte foncé pour les titres
+$session-text-light-secondary: #5C7A99;
+$session-accent-primary: #82AAFF;
+$session-accent-darker: #6C95E0;
+$session-card-bg: #FFFFFF;
+$session-border-color: #DDE4EA;
 
-// --- Palette de couleurs (tirée de _chat.scss) ---
-$session-bg-dark: #2C3A47;          // Fond sidebar
-$session-bg-light: #F0F4F8;         // Fond principal
-$session-text-dark-primary: #EAEFF3; // Texte clair sur fond sombre
-$session-text-dark-secondary: #A8B6C1;// Texte muté sur fond sombre
-$session-text-light-primary: #3A4F66; // Texte principal sur fond clair
-$session-text-light-secondary: #5C7A99;// Texte secondaire sur fond clair
-$session-accent-primary: #82AAFF;   // Bleu clair accent (bulles user, sélection)
-$session-accent-secondary: #FFCB6B; // Jaune doux accent
-$session-ai-bubble-bg: #4A5A6A;     // Fond bulle IA
-$session-card-bg: #FFFFFF;          // Fond pour widgets/inputs
-$session-border-color: #DDE4EA;    // Bordures subtiles
-$session-input-text: #222222;
-$session-text-dark: black;
-
-
+// --- Conteneur principal de la page ---
 .prepare-session-page {
   display: flex;
-  height: calc(100vh - 60px); // Ajuste 60px si ta navbar a une hauteur différente
-  background-color: $session-bg-light; // Fond clair par défaut pour le contenu principal
-
-  @media (max-width: 767.98px) { // Mobile: sidebar devient une barre en haut ou cachée
-    flex-direction: column;
-    height: auto; // Hauteur automatique sur mobile
-    min-height: calc(100vh - 60px); 
-  }
+  // La hauteur est calculée pour remplir l'espace sous votre header principal
+  // J'assume un header de 70px, ajustez si besoin
+  height: calc(100vh - 70px); 
+  background-color: $session-bg-light;
 }
 
-// --- Sidebar (Widgets Émotions) ---
+// --- Sidebar (colonne de gauche) ---
 .prepare-session__sidebar {
-  width: 260px;
+  width: 280px;
   background-color: $session-bg-dark;
   color: $session-text-dark-secondary;
-  padding: 1.5rem 1rem;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
-  overflow-y: auto; // Scroll si trop d'émotions
   flex-shrink: 0; // Empêche de rétrécir
 
   .sidebar__title {
@@ -44,347 +34,217 @@ $session-text-dark: black;
     font-size: 1.2rem;
     font-weight: 600;
     margin: 0 0 1.5rem 0;
-    text-align: center;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
   }
 
   .emotion-widgets-container {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem; // Espace entre les widgets
-    margin-bottom: 1rem; // Espace avant le bouton "Sujet libre"
+    gap: 0.5rem;
   }
-
+  
   .emotion-widget {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    background-color: $session-bg-dark, 5%;
-    border: 1px solid $session-bg-dark, 10%;
+    background-color: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
     color: $session-text-dark-secondary;
     padding: 0.8rem 1rem;
     border-radius: 8px;
     cursor: pointer;
     text-align: left;
     font-size: 0.95rem;
-    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+    transition: all 0.2s ease;
 
-    .emotion-widget__emoji {
-      font-size: 1.3rem;
-      display: inline-block; // Assure l'alignement
-    }
-    .emotion-widget__label {
-        flex-grow: 1; // Prend l'espace restant
-    }
+    .emotion-widget__emoji { font-size: 1.3rem; }
 
     &:hover {
-      background-color: $session-bg-dark, 8%;
-      border-color: $session-accent-primary;
+      background-color: rgba(255,255,255,0.1);
       color: $session-text-dark-primary;
     }
 
     &.selected {
       background-color: $session-accent-primary;
       border-color: $session-accent-primary;
-      color: black; // Texte foncé sur accent clair
+      color: #1A232B; // Texte foncé sur l'accent
       font-weight: 600;
-      .emotion-widget__emoji { transform: scale(1.1); } // Petit effet
     }
     
-    &--clear { // Style spécifique pour le bouton "Sujet libre"
-        margin-top: auto; // Pousse vers le bas si possible (dans un flex column)
-        // Ou ajoute une marge spécifique: margin-top: 2rem;
-        // Style un peu différent pour le distinguer
-        background-color: transparent;
-        border-style: dashed;
-         &.selected { // Quand sujet libre est sélectionné
-             background-color: rgba($session-accent-primary, 0.15);
-             border-color: $session-accent-primary;
-             color: $session-text-dark-primary;
-         }
+    // Pour le bouton "Sujet Libre" qui est en dehors du conteneur
+    &.emotion-widget--clear {
+      margin-top: auto; // Le pousse en bas
+      border-style: dashed;
     }
   }
-  
-  @media (max-width: 767.98px) { // Styles Mobile pour la "sidebar"
-    width: 100%;
-    height: auto; // Hauteur automatique
-    overflow-y: visible;
-    padding: 1rem;
-    background-color: $session-bg-light, 3%; // Un fond légèrement différent du contenu principal
-    border-bottom: 1px solid $session-border-color;
-    flex-direction: row; // Les éléments en ligne
+
+  .sidebar-tip {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    font-size: 0.85rem;
+    display: flex;
+    gap: 0.5rem;
     align-items: center;
-    overflow-x: auto; // Scroll horizontal pour les émotions
-
-    .sidebar__title { display: none; } // Cacher le titre sur mobile
-
-    .emotion-widgets-container {
-      flex-direction: row; // Émotions en ligne
-      gap: 0.5rem;
-      margin-bottom: 0;
-      flex-grow: 1; // Prend l'espace
-    }
-    .emotion-widget {
-      padding: 0.5rem 0.8rem; // Plus petits
-      flex-shrink: 0; // Empêche de rétrécir excessivement
-      .emotion-widget__label { display: none; } // Cacher le label, montrer juste l'emoji
-      &--clear { 
-          margin-top: 0; margin-left: 1rem; // Espace le bouton "Sujet libre"
-          .emotion-widget__label { display: inline; font-size: 0.8rem;} // Afficher le label pour celui-ci
-      }
-    }
+    opacity: 0.8;
   }
 }
 
-// --- Contenu Principal ---
+// --- Contenu principal (colonne de droite) ---
 .prepare-session__main-content {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
-  height: 100%; // Prend la hauteur restante sur desktop
-  overflow-x: hidden; // Scroll géré par interaction-area
-  background-color: $session-bg-light;
+  overflow-y: auto; // Très important : la colonne de contenu est la seule à scroller
+  padding: 2rem;
+  gap: 1.5rem; // Espace entre les sections enfants
+}
 
-  .main-content__header {
-    padding: 1.5rem 1.5rem 1rem 1.5rem;
-    border-bottom: 1px solid $session-border-color;
-    flex-shrink: 0; // Ne rétrécit pas
-
-    h1 {
-      font-size: 1.6rem;
-      color: $session-text-light-primary;
-      margin: 0 0 0.5rem 0;
-    }
-    .main-content__description {
-      font-size: 0.95rem;
-      color: $session-text-light-secondary;
-      margin-bottom: 0.75rem;
-      max-width: 700px; // Limite la largeur pour lisibilité
-    }
-    .main-content__current-topic {
-        font-size: 1.1rem;
-        color: $session-accent-primary;
-        font-weight: 600;
-        margin: 0;
-    }
+.main-content__header {
+  h1 {
+    font-size: 1.8rem;
+    color: $session-text-light-primary;
+    margin: 0 0 0.5rem 0;
+  }
+  .main-content__description {
+    font-size: 1rem;
+    color: $session-text-light-secondary;
+    max-width: 700px;
   }
 }
-.session-notes-area {
-  background-color: $session-card-bg; // Ou un fond légèrement différent
-  padding: 1.5rem;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  margin-bottom: 2rem;
 
+.session-notes-area {
   h2 {
     font-size: 1.3rem;
     color: $session-text-light-primary;
-    margin: 0 0 1rem 0;
-    font-weight: 600;
-    .topic-highlight { // Pour le "(Focus actuel : ...)"
+    margin-bottom: 1rem;
+    .topic-highlight {
       color: $session-accent-primary;
-      font-weight: normal;
-      font-size: 0.9em;
+      font-weight: 500;
     }
   }
 
   .session-notes-textarea {
     width: 100%;
-    min-height: 200px; // Plus grand pour les notes principales
     padding: 1rem;
     border: 1px solid $session-border-color;
     border-radius: 8px;
-    font-family: 'Kalam', cursive; // Effet manuscrit si tu le souhaites
-    // ou font-family: Arial, sans-serif;
-    font-size: 1.05em;
+    font-size: 1.1em;
     line-height: 1.7;
-    color: $session-text-light-primary; // S'assurer que c'est lisible sur le fond de la carte
-    background-color: $session-bg-light, 2%; // Fond légèrement différent pour le textarea
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.06);
+    background-color: $session-card-bg;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.04);
     resize: vertical;
-    margin-bottom: 1rem;
 
     &:focus {
       outline: none;
       border-color: $session-accent-primary;
-      box-shadow: inset 0 1px 3px rgba(0,0,0,0.06), 0 0 0 3px rgba($session-accent-primary, 0.2);
+      box-shadow: 0 0 0 3px rgba($session-accent-primary, 0.2);
     }
   }
+}
 
-  .btn--structure-notes {
-    // Utilise tes styles .btn, ou personnalise
-    background-color: $session-accent-primary;
-    color: white; // Ou $session-button-text-on-accent
-    // ... autres styles de bouton
+.ai-actions-toolbar {
+  background-color: $session-bg-light, 3%;
+  padding: 1.5rem;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid $session-border-color;
+
+  p {
+    margin: 0 0 1rem 0;
+    font-weight: 500;
+    color: $session-text-light-primary;
+  }
+
+  .buttons-container {
     display: flex;
-    align-items: center;
-    gap: 0.5em;
-    padding: 0.7rem 1.2rem;
+    justify-content: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .btn--ai-action {
+    background-color: $session-accent-primary;
+    color: #1A232B;
+    padding: 0.7rem 1.4rem;
     border-radius: 8px;
     border: none;
     cursor: pointer;
-    font-weight: 500;
-    &:hover { background-color: $session-accent-primary, 10%; }
-    &:disabled { /* ... styles désactivés ... */ }
-  }
-  .structured-points-area {
-  // Reprend le style .card-style de ta page StressProgramPage ou définis-le ici
-  background-color: $session-accent-primary, 38%; // Un fond distinctif
-  padding: 1.5rem;
-  border-radius: 10px;
-  border: 1px solid $session-accent-primary, 30%;
-
-  margin-bottom: 2rem;
-
-  h3 {
-    font-size: 1.2rem;
-    color: $session-text-light-primary;
-    margin: 0 0 1rem 0;
     font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 0.5em;
-    // svg { color: $session-accent-primary; } // Si tu ajoutes une icône au titre
-  }
-  .formatted-ai-response { // Pour styler la réponse formatée (liste à puces, etc.)
-    p { margin-bottom: 0.5em; line-height: 1.6; }
-    strong { color: $session-accent-secondary; }
-    .chat-list-item { // Si Olivia utilise des puces
-        padding-left: 1.5em;
-        position: relative;
-        &::before {
-            content: "•"; // Ou une autre puce
-            position: absolute;
-            left: 0.2em;
-            color: $session-accent-primary;
-            font-weight: bold;
-        }
+    gap: 0.75rem;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: $session-accent-darker;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba($session-accent-primary, 0.3);
+    }
+    &:disabled {
+      background-color: #DDE4EA;
+      color: #A8B6C1;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
     }
   }
-  .tip {
-    font-style: italic;
-    font-size: 0.85rem;
-    color: $session-text-light-secondary;
-    margin-top: 1rem;
-    text-align: center;
-  }
-}
-}
-// --- Zone des Points Structurés par Olivia ---
-
-// --- Zone de Guidage Interactif (Chat avec Olivia) ---
-.interactive-guidance-area {
-  margin-top: 1rem; // Espace par rapport à la section des points structurés
-  border-top: 1px solid $session-border-color;
-  padding-top: 1.5rem;
-
-  h3 {
-    font-size: 1.2rem;
-    color: $session-text-light-primary;
-    text-align: center;
-    margin: 0 0 0.5rem 0;
-  }
-  > p { // Le paragraphe sous h3
-    font-size: 0.9rem;
-    color: $session-text-light-secondary;
-    text-align: center;
-    margin-bottom: 1.5rem;
-  }
 }
 
-// Zone d'interaction type chat
-.interaction-area {
-  flex-grow: 1;
-  overflow-y: auto;
-  padding: 1rem 1.5rem;
+.ai-results-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  padding-bottom: 2rem; // Espace en fin de page
+}
+
+.ai-result-card {
+  background-color: $session-card-bg;
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid $session-border-color;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.04);
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
+  gap: 1rem;
 
-  .interaction-bubble {
-    padding: 0.8rem 1.2rem;
-    border-radius: 18px;
-    line-height: 1.55;
-    word-wrap: break-word;
-    max-width: 85%; // Un peu plus larges que le chat normal
+  .card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: $session-accent-primary;
+    border-bottom: 1px solid $session-border-color;
+    padding-bottom: 1rem;
+    
+    h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      color: $session-text-light-primary;
+    }
+  }
+  
+  .formatted-ai-response {
+    color: $session-text-light-secondary;
+    line-height: 1.6;
+    strong { color: $session-text-light-primary; }
 
-    p { margin: 0 0 0.6em 0; &:last-child { margin-bottom: 0; }}
-    strong { color: $session-accent-secondary; font-weight: 700; }
-
-    &.bubble--user {
-      background-color: $session-accent-primary;
-      color: $session-text-dark; // Assurer contraste
-      margin-left: auto;
-      border-bottom-right-radius: 6px;
-      p { white-space: pre-line; }
+    .chat-list-item {
+      padding-left: 1.5em;
+      position: relative;
+      &::before {
+        content: "•";
+        position: absolute;
+        left: 0.2em;
+        color: $session-accent-primary;
+        font-weight: bold;
+      }
     }
-    &.bubble--ai {
-      background-color: $session-ai-bubble-bg;
-      color: $session-text-dark-primary; // Texte clair sur fond IA
-      margin-right: auto;
-      border-bottom-left-radius: 6px;
-    }
-    &.bubble--loading p {
-        font-style: italic;
-        color: $session-text-dark-secondary;
-    }
-    // Copier les styles .chat-list-item d'ici si besoin
   }
 }
 
-// Zone d'input en bas
-.session-input-area {
-  display: flex;
-  align-items: flex-end;
-  padding: 1rem 1.5rem;
-  border-top: 1px solid $session-border-color;
-  background-color: $session-bg-light, 2%; // Très léger contraste
-  flex-shrink: 0; // Ne rétrécit pas
-
-  textarea {
-    flex-grow: 1;
-    padding: 0.8rem 1rem;
-    border-radius: 18px; // Arrondi
-    border: 1px solid $session-border-color;
-    background-color: $session-card-bg;
-    color: $session-input-text;
-    font-size: 1rem;
-    line-height: 1.5;
-    resize: none;
-    margin-right: 0.75rem;
-    min-height: 50px;
-    max-height: 150px;
-    overflow-y: auto;
-    &:focus {
-        outline: none;
-        border-color: $session-accent-primary;
-        box-shadow: 0 0 0 2px rgba($session-accent-primary, 0.3);
-    }
-    &:disabled { background-color: $session-card-bg, 5%; }
-  }
-
-  button {
-    background-color: $session-accent-primary;
-    color: $session-text-dark; // Texte foncé sur bouton clair
-    border: none;
-    border-radius: 8px; // Moins arrondi que l'input
-    padding: 0.7rem 1rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 0.5em;
-    transition: background-color 0.2s;
-    flex-shrink: 0;
-    min-height: 50px; // Aligner hauteur avec textarea
-
-    svg { stroke-width: 2.5px; }
-
-    &:hover { background-color: $session-accent-primary, 10%; }
-    &:disabled {
-      background-color: $session-accent-primary, 20%; 
-      cursor: not-allowed;
-      color: $session-text-dark, 15%;
-    }
-  }
+// Styles pour le typing-indicator si vous en avez un
+.typing-indicator {
+  // ...
 }
